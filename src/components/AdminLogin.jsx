@@ -58,8 +58,12 @@ export default function AdminLogin({ onLogin, loading: externalLoading }) {
 
       <div className="w-full max-w-[400px] space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
         <div className="text-center space-y-4">
-          <div className="inline-block p-4 bg-secondary/10 rounded-3xl mb-4">
-            <ShieldCheck size={40} className="text-secondary" />
+          <div className="inline-block p-4 ">
+            <img
+              src="/static/icons/logo.png"
+              alt="ShutterSync Logo"
+              className="w-24 h-24 transition-transform hover:scale-110 duration-500 drop-shadow-2xl"
+            />{" "}
           </div>
           <div className="space-y-1">
             <h1 className="text-3xl font-black tracking-tight text-foreground uppercase">
@@ -72,13 +76,6 @@ export default function AdminLogin({ onLogin, loading: externalLoading }) {
         </div>
 
         <Card className="border-none shadow-2xl bg-card/50 backdrop-blur-xl transition-all">
-          <CardHeader className="pb-8 text-center">
-            <CardDescription className="text-xs font-semibold text-muted-foreground/80">
-              Please authenticate with your secure administrator credentials to
-              gain access to the collective management dashboard.
-            </CardDescription>
-          </CardHeader>
-
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">

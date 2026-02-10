@@ -186,14 +186,15 @@ export default function Login({ onLogin }) {
 
       <div className="w-full max-w-[400px] space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
         <div className="text-center space-y-4">
-          <div className="inline-block p-4 bg-primary/10 rounded-3xl mb-2">
-            <Camera size={40} className="text-primary" />
+          <div className="inline-block p-4  mb-2">
+            <img
+              src="/static/icons/logo.png"
+              alt="ShutterSync Logo"
+              className="w-24 h-24 transition-transform hover:scale-110 duration-500 drop-shadow-2xl"
+            />
           </div>
           <div className="space-y-1">
-            <h1 className="text-3xl font-black tracking-tight text-foreground uppercase">
-              ShutterSync
-            </h1>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+            <p className="text-[10px] font-bold  tracking-[0.2em] text-muted-foreground">
               Smart photography simplified
             </p>
           </div>
@@ -207,7 +208,7 @@ export default function Login({ onLogin }) {
                 className={cn(
                   "flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all",
                   isLogin
-                    ? "bg-background text-primary shadow-sm"
+                    ? "bg-background text-secondary shadow-sm"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
@@ -218,7 +219,7 @@ export default function Login({ onLogin }) {
                 className={cn(
                   "flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all",
                   !isLogin
-                    ? "bg-background text-primary shadow-sm"
+                    ? "bg-background text-secondary shadow-sm"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
@@ -246,7 +247,7 @@ export default function Login({ onLogin }) {
                     />
                     <User
                       size={16}
-                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50"
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 text-secondary"
                     />
                   </div>
                 </div>
@@ -269,7 +270,7 @@ export default function Login({ onLogin }) {
                   />
                   <Mail
                     size={16}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 text-secondary"
                   />
                 </div>
               </div>
@@ -291,7 +292,7 @@ export default function Login({ onLogin }) {
                   />
                   <Lock
                     size={16}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 text-secondary"
                   />
                 </div>
                 {!isLogin && (
@@ -319,7 +320,7 @@ export default function Login({ onLogin }) {
                       />
                       <Phone
                         size={16}
-                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50"
+                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 text-secondary"
                       />
                     </div>
                   </div>
@@ -343,7 +344,7 @@ export default function Login({ onLogin }) {
                       />
                       <Wallet
                         size={16}
-                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50"
+                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 text-secondary "
                       />
                     </div>
                   </div>
