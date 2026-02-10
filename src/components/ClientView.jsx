@@ -1,140 +1,239 @@
-import React, { useState } from 'react';
-import { Camera, Check, ExternalLink, ArrowRight, FileText, CreditCard, ChevronLeft } from 'lucide-react';
-import { GlassCard, Button, Badge } from './UI';
-import Agreement from './Agreement';
-import BookingForm from './BookingForm';
+import React, { useState } from "react";
+import {
+  Camera,
+  Check,
+  ExternalLink,
+  ArrowRight,
+  FileText,
+  CreditCard,
+  ChevronLeft,
+  User,
+  Sparkles,
+} from "lucide-react";
+import { Button } from "./ui/button";
+import { Badge } from "./ui/badge";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "./ui/card";
+import { cn } from "../lib/utils";
+import Agreement from "./Agreement";
+import BookingForm from "./BookingForm";
 
 const ClientView = ({ pkg, onBack, onInitiatePayment, agreed, setAgreed }) => {
-    const [step, setStep] = useState(1); // 1: Overview, 2: Agreement, 3: Payment
+  const [step, setStep] = useState(1); // 1: Overview, 2: Agreement, 3: Payment
 
-    if (!pkg) return null;
+  if (!pkg) return null;
 
-    const steps = [
-        { id: 1, label: 'Experience', icon: Camera },
-        { id: 2, label: 'Legal Audit', icon: FileText },
-        { id: 3, label: 'Secure Booking', icon: CreditCard },
-    ];
+  const steps = [
+    { id: 1, label: "Discovery", icon: Camera },
+    { id: 2, label: "Agreement", icon: FileText },
+    { id: 3, label: "Reservation", icon: CreditCard },
+  ];
 
-    return (
-        <div className="max-w-4xl mx-auto space-y-6 md:space-y-10 animate-in fade-in duration-1000">
-            {/* Header / Stepper */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-8">
-                <div className="flex items-center gap-3">
-                    {onBack && step === 1 && (
-                        <button onClick={onBack} className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-all active:scale-95">
-                            <ChevronLeft size={18} className="text-purple-400" />
-                        </button>
-                    )}
-                    {step > 1 && (
-                        <button onClick={() => setStep(step - 1)} className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-all active:scale-95">
-                            <ChevronLeft size={18} className="text-purple-400" />
-                        </button>
-                    )}
-                    <div>
-                        <h2 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight">{pkg.name}</h2>
-                        <p className="text-[10px] text-purple-400 font-bold tracking-widest uppercase opacity-60">
-                            {pkg.clientName ? `Prepared for ${pkg.clientName}` : 'Client Experience Portal'}
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-2 bg-white/5 p-1 rounded-2xl border border-white/10">
-                    {steps.map((s) => (
-                        <div key={s.id} className={`flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-xl transition-all duration-500 ${step === s.id ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20' : 'text-purple-200/20'}`}>
-                            <s.icon size={14} className="md:w-4 md:h-4" />
-                            <span className="text-[9px] md:text-[10px] font-black uppercase tracking-tighter hidden sm:block">{s.label}</span>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Content Area */}
-            <div className="relative">
-                {step === 1 && (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in slide-in-from-bottom-8 duration-700">
-                        <div className="lg:col-span-2 space-y-8">
-                            <GlassCard className="p-6 md:p-10">
-                                <header className="mb-8">
-                                    <div className="flex items-baseline gap-2 mb-2">
-                                        <span className="text-4xl md:text-5xl font-black text-white">₹{pkg.amount}</span>
-                                        <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-2 md:px-3 text-[10px]">PREMIUM ACCESS</Badge>
-                                    </div>
-                                    <p className="text-base md:text-lg text-purple-100/60 leading-relaxed font-light">{pkg.description}</p>
-                                </header>
-
-                                <div className="space-y-6">
-                                    <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-purple-400 opacity-80">What's included in your session</h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {pkg.services.map((service, idx) => (
-                                            <div key={idx} className="flex items-center gap-3 p-4 bg-white/5 rounded-2xl border border-white/5 group hover:border-purple-500/30 transition-all">
-                                                <div className="p-1.5 bg-emerald-500/10 text-emerald-400 rounded-full group-hover:scale-110 transition-transform">
-                                                    <Check size={14} strokeWidth={3} />
-                                                </div>
-                                                <span className="text-sm text-white/80 group-hover:text-white transition-colors">{service}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </GlassCard>
-                        </div>
-
-                        <div className="space-y-8">
-                            <GlassCard className="p-8 border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-transparent">
-                                <h3 className="text-sm font-bold text-white mb-6">Your Artist</h3>
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center text-xl font-bold text-white">
-                                        {pkg.photographerName?.charAt(0) || 'P'}
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-white">{pkg.photographerName || 'Lead Photographer'}</p>
-                                        <p className="text-xs text-purple-400">{pkg.photographerContact}</p>
-                                    </div>
-                                </div>
-                                <Button onClick={() => setStep(2)} className="w-full py-4 rounded-xl flex items-center justify-center gap-2 group">
-                                    <span>Review Agreement</span>
-                                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                                </Button>
-                            </GlassCard>
-
-                            <div className="p-6 bg-white/5 rounded-2xl border border-white/10 italic">
-                                <p className="text-xs text-purple-200/40 text-center">"Every click is a heartbeat, every frame is a memory. Let's capture your story together."</p>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {step === 2 && (
-                    <div className="animate-in slide-in-from-right-8 duration-700">
-                        <Agreement pkg={pkg} onAgree={() => setAgreed(true)} agreed={agreed} />
-                        <div className="mt-10 flex justify-end">
-                            <Button onClick={() => setStep(3)} disabled={!agreed} className="px-10 py-4 rounded-2xl flex items-center gap-3 shadow-2xl shadow-purple-600/30">
-                                <span>Continue to Secure Payment</span>
-                                <ArrowRight size={20} />
-                            </Button>
-                        </div>
-                    </div>
-                )}
-
-                {step === 3 && (
-                    <div className="animate-in slide-in-from-right-8 duration-700 max-w-2xl mx-auto">
-                        <div className="text-center mb-10">
-                            <h3 className="text-3xl font-bold heading-font text-white mb-2">Secure Booking</h3>
-                            <p className="text-sm text-purple-200/60">Finalize your slot with an instant UPI deposit</p>
-                        </div>
-                        <BookingForm
-                            config={{
-                                upiId: pkg.photographerUPI || 'ShutterSync@upi',
-                                payeeName: pkg.photographerName || 'ShutterSync',
-                                amount: pkg.amount,
-                                whatsappNumber: '8370993562', // Keeping from original
-                            }}
-                            onSuccess={() => onInitiatePayment(pkg)}
-                        />
-                    </div>
-                )}
-            </div>
+  return (
+    <div className="max-w-5xl mx-auto space-y-8 md:space-y-12 animate-in fade-in duration-1000">
+      {/* Header / Stepper */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+        <div className="flex items-center gap-4">
+          {(onBack && step === 1) || step > 1 ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={step > 1 ? () => setStep(step - 1) : onBack}
+              className="h-10 w-10 rounded-xl bg-muted/20 hover:bg-muted/40 transition-all active:scale-95"
+            >
+              <ChevronLeft size={20} className="text-primary" />
+            </Button>
+          ) : null}
+          <div>
+            <h2 className="text-2xl md:text-3xl font-black text-foreground uppercase tracking-tight">
+              {pkg.name}
+            </h2>
+            <p className="text-[10px] text-primary font-black tracking-[0.2em] uppercase opacity-70">
+              {pkg.clientName
+                ? `Exclusively curated for ${pkg.clientName}`
+                : "Signature Experience Portal"}
+            </p>
+          </div>
         </div>
-    );
+
+        <div className="flex items-center gap-2 bg-muted/30 p-1.5 rounded-2xl border border-border/5 shadow-inner">
+          {steps.map((s) => (
+            <div
+              key={s.id}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-500",
+                step === s.id
+                  ? "bg-primary text-primary-foreground shadow-xl shadow-primary/20 scale-105"
+                  : "text-muted-foreground/30",
+              )}
+            >
+              <s.icon size={16} />
+              <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block">
+                {s.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Content Area */}
+      <div className="relative">
+        {step === 1 && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in slide-in-from-bottom-8 duration-700">
+            <div className="lg:col-span-2 space-y-8">
+              <Card className="border-none shadow-2xl bg-card/50 backdrop-blur-xl overflow-hidden">
+                <CardHeader className="p-8 md:p-12 pb-4">
+                  <div className="flex items-center gap-3 mb-6">
+                    <Badge className="bg-primary/10 text-primary border-primary/20 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full">
+                      Signature Collection
+                    </Badge>
+                    <Badge
+                      variant="outline"
+                      className="border-border/10 text-muted-foreground px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full"
+                    >
+                      Ref: {pkg._id?.slice(-6) || "N/A"}
+                    </Badge>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-5xl md:text-6xl font-black text-foreground tracking-tighter">
+                        ₹{pkg.amount}
+                      </span>
+                    </div>
+                    <p className="text-lg md:text-xl text-muted-foreground leading-relaxed font-medium">
+                      {pkg.description}
+                    </p>
+                  </div>
+                </CardHeader>
+
+                <CardContent className="p-8 md:p-12 pt-8">
+                  <div className="space-y-8">
+                    <div className="flex items-center gap-4">
+                      <div className="h-px w-12 bg-primary/30"></div>
+                      <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">
+                        Experience Inclusions
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {pkg.services.map((service, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-4 p-5 bg-muted/20 rounded-2xl border border-border/5 group hover:bg-muted/40 transition-all border-l-4 border-l-transparent hover:border-l-primary/50"
+                        >
+                          <div className="p-1.5 bg-primary text-primary-foreground rounded-full shadow-lg shadow-primary/10 group-hover:rotate-12 transition-transform">
+                            <Check size={14} strokeWidth={4} />
+                          </div>
+                          <span className="text-sm font-bold text-muted-foreground group-hover:text-foreground transition-colors uppercase tracking-tight">
+                            {service}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="space-y-6">
+              <Card className="border-none shadow-xl bg-primary/[0.03] backdrop-blur-md p-8 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity rotate-12 group-hover:rotate-0">
+                  <Sparkles size={120} className="text-primary" />
+                </div>
+                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60 mb-8 ml-1">
+                  Assigned Artist
+                </h3>
+                <div className="flex items-center gap-5 mb-10 relative z-10">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-2xl font-black text-primary-foreground shadow-2xl shadow-primary/20">
+                    {pkg.photographerName?.charAt(0) || <User size={32} />}
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-lg font-black text-foreground tracking-tight">
+                      {pkg.photographerName || "Lead Photographer"}
+                    </p>
+                    <p className="text-[11px] font-bold text-primary/70 uppercase tracking-widest">
+                      {pkg.photographerContact}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => setStep(2)}
+                  className="w-full h-14 rounded-2xl flex items-center justify-center gap-3 font-black uppercase tracking-widest text-[10px] shadow-xl shadow-primary/20 group relative z-10"
+                >
+                  Proceed to Agreement
+                  <ArrowRight
+                    size={18}
+                    className="group-hover:translate-x-1.5 transition-transform"
+                  />
+                </Button>
+              </Card>
+
+              <div className="p-8 bg-muted/20 rounded-3xl border border-border/5 text-center flex flex-col items-center justify-center gap-4">
+                <Camera size={24} className="text-primary/20" />
+                <p className="text-[11px] text-muted-foreground/50 font-medium italic leading-relaxed max-w-[200px]">
+                  "We don't just take pictures, we curate visual legacies that
+                  stand the test of time."
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="animate-in slide-in-from-right-8 duration-700 space-y-10">
+            <Agreement
+              pkg={pkg}
+              onAgree={(checked) => setAgreed(checked)}
+              agreed={agreed}
+            />
+            <div className="flex justify-end">
+              <Button
+                onClick={() => setStep(3)}
+                disabled={!agreed}
+                className="h-16 px-12 rounded-2xl flex items-center gap-4 font-black  tracking-[0.2em] text-[10px] shadow-2xl shadow-primary/20 disabled:opacity-30 disabled:grayscale transition-all hover:-translate-y-1"
+              >
+                Continue to Secure Reservation
+                <CreditCard size={20} />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="animate-in slide-in-from-right-8 duration-700 max-w-2xl mx-auto space-y-10">
+            <div className="text-center space-y-3">
+              <Badge
+                variant="outline"
+                className="text-[10px] font-black uppercase tracking-[0.3em] text-secondary px-6 py-2 border-primary/20 bg-primary/5 rounded-full"
+              >
+                Final Step
+              </Badge>
+              <h3 className="text-4xl font-black text-foreground  tracking-tight">
+                Secure Reservation
+              </h3>
+              <p className="text-[11px] text-muted-foreground font-bold  tracking-widest opacity-60">
+                Complete the transaction via our secure digital payment gateway
+              </p>
+            </div>
+            <BookingForm
+              config={{
+                upiId: pkg.photographerUPI || "ShutterSync@upi",
+                payeeName: pkg.photographerName || "ShutterSync",
+                amount: pkg.amount,
+                whatsappNumber: "8370993562",
+              }}
+              onSuccess={() => onInitiatePayment(pkg)}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default ClientView;

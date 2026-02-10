@@ -1,8 +1,8 @@
 import React from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Camera,
   BarChart3,
-  Package,
   Users,
   LogOut,
   User,
@@ -10,46 +10,34 @@ import {
   Moon,
   Laptop,
 } from "lucide-react";
+import { Button } from "./ui/button";
+import { cn } from "../lib/utils";
 
-const Header = ({ view, setView, user, onLogout, theme, setTheme }) => {
+const Header = ({ user, onLogout, theme, setTheme }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const ThemeIcon = theme === "light" ? Sun : theme === "dark" ? Moon : Laptop;
+
+  const isActive = (path) => location.pathname === path;
+  const userRole = user?.roleCode || user?.role || "photographer";
+  const isAdmin =
+    userRole === "admin" || user?.email === "admin@shuttersync.com";
+
   return (
-    <header
-      className="sticky top-0 z-50 backdrop-blur-xl px-6 py-4"
-      style={{
-        background: "var(--card-bg)",
-        borderBottom: "1px solid var(--card-border)",
-      }}
-    >
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6 py-4">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
         {/* Logo Section */}
         <div
           className="flex items-center gap-3 group cursor-pointer"
-          onClick={() =>
-            setView(user?.role === "admin" ? "artists" : "dashboard")
-          }
+          onClick={() => navigate("/dashboard")}
         >
-          <div
-            className="p-2.5 rounded-xl shadow-lg group-hover:scale-110 transition-transform"
-            style={{ background: "var(--primary-color)" }}
-          >
-            <Camera
-              size={22}
-              className="md:w-6 md:h-6"
-              style={{ color: "var(--bg-main)" }}
+          <div className="flex flex-col items-center md:items-start">
+            <img
+              src="/static/icons/logo.png"
+              alt="ShutterSync Logo"
+              className="w-20 h-20 transition-transform hover:scale-110 duration-500 drop-shadow-2xl"
             />
-          </div>
-          <div>
-            <h1
-              className="text-xl md:text-2xl font-black heading-font tracking-tight"
-              style={{ color: "var(--text-primary)" }}
-            >
-              ShutterSync
-            </h1>
-            <p
-              className="text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-black opacity-60"
-              style={{ color: "var(--text-secondary)" }}
-            >
+            <p className="text-[8px] md:text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground mt-1 text-center md:text-left">
               Smart photography simplified
             </p>
           </div>
@@ -59,90 +47,79 @@ const Header = ({ view, setView, user, onLogout, theme, setTheme }) => {
         <div className="flex flex-wrap items-center justify-center gap-6">
           {/* Role-Based Nav */}
           {user && (
-            <nav
-              className="flex items-center p-1.5 rounded-2xl"
-              style={{
-                background: "var(--card-bg)",
-                border: "1px solid var(--card-border)",
-              }}
-            >
-              {user.role === "admin" ? (
-                <button
-                  onClick={() => setView("artists")}
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-500"
-                  style={{
-                    background:
-                      view === "artists"
-                        ? "var(--primary-color)"
-                        : "transparent",
-                    color:
-                      view === "artists"
-                        ? "var(--bg-main)"
-                        : "var(--text-secondary)",
-                    transform: view === "artists" ? "scale(1.05)" : "scale(1)",
-                  }}
-                >
-                  <Users size={16} />
-                  <span>Artists</span>
-                </button>
+            <nav className="flex items-center bg-muted/50 p-1 rounded-lg border">
+              {isAdmin ? (
+                <div className="flex gap-1">
+                  <Button
+                    variant={isActive("/dashboard") ? "default" : "ghost"}
+                    onClick={() => navigate("/dashboard")}
+                    className={cn(
+                      "flex items-center gap-2 px-4 md:px-6 py-2 rounded-md font-bold text-xs md:text-sm transition-all duration-300",
+                      isActive("/dashboard")
+                        ? "shadow-sm scale-[1.02]"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    <BarChart3 size={16} />
+                    <span>Dashboard</span>
+                  </Button>
+                  <Button
+                    variant={isActive("/photographers") ? "default" : "ghost"}
+                    onClick={() => navigate("/photographers")}
+                    className={cn(
+                      "flex items-center gap-2 px-4 md:px-6 py-2 rounded-md font-bold text-xs md:text-sm transition-all duration-300",
+                      isActive("/photographers")
+                        ? "shadow-sm scale-[1.02]"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    <Users size={16} />
+                    <span>Photographers</span>
+                  </Button>
+                </div>
               ) : (
-                <>
+                <div className="flex gap-1">
                   {[
-                    { id: "dashboard", label: "Dashboard", icon: BarChart3 },
+                    { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
                     {
-                      id: "create-assignment",
+                      path: "/create-assignment",
                       label: "New Assignment",
-                      icon: BarChart3,
+                      icon: Camera,
                     },
                   ].map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => setView(item.id)}
-                      className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all duration-500"
-                      style={{
-                        background:
-                          view === item.id
-                            ? "var(--primary-color)"
-                            : "transparent",
-                        color:
-                          view === item.id
-                            ? "var(--bg-main)"
-                            : "var(--text-secondary)",
-                        transform:
-                          view === item.id ? "scale(1.05)" : "scale(1)",
-                      }}
+                    <Button
+                      key={item.path}
+                      variant={isActive(item.path) ? "default" : "ghost"}
+                      onClick={() => navigate(item.path)}
+                      className={cn(
+                        "flex items-center gap-2 px-4 md:px-6 py-2 rounded-md font-bold text-xs md:text-sm transition-all duration-300",
+                        isActive(item.path)
+                          ? "shadow-sm scale-[1.02]"
+                          : "text-muted-foreground hover:text-foreground",
+                      )}
                     >
                       <item.icon size={16} />
                       <span>{item.label}</span>
-                    </button>
+                    </Button>
                   ))}
-                </>
+                </div>
               )}
             </nav>
           )}
 
           {/* User Profile & Logout */}
           {user && (
-            <div
-              className="flex items-center gap-4 pl-6"
-              style={{ borderLeft: "1px solid var(--card-border)" }}
-            >
+            <div className="flex items-center gap-4 pl-6 border-l">
               <div className="text-right hidden sm:block">
-                <p
-                  className="text-sm font-bold line-clamp-1"
-                  style={{ color: "var(--text-primary)" }}
-                >
-                  {user.profile.name}
-                </p>
-                <p
-                  className="text-[10px] uppercase tracking-widest font-black opacity-60"
-                  style={{ color: "var(--text-secondary)" }}
-                >
-                  {user.role}
+                <p className="text-sm font-bold text-foreground">{user.name}</p>
+                <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">
+                  {user.roleName || user.roleCode || user.role}
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <button
+                <Button
+                  variant="outline"
+                  size="icon"
                   onClick={() =>
                     setTheme(
                       theme === "dark"
@@ -152,44 +129,29 @@ const Header = ({ view, setView, user, onLogout, theme, setTheme }) => {
                           : "dark",
                     )
                   }
-                  className="p-2.5 rounded-xl transition-all active:scale-95 group"
-                  style={{
-                    background: "var(--card-bg)",
-                    border: "1px solid var(--card-border)",
-                    color: "var(--primary-color)",
-                  }}
+                  className="rounded-xl transition-all active:scale-95 group hover:bg-accent hover:text-accent-foreground"
                   title={`Switch to ${theme === "dark" ? "Light" : theme === "light" ? "System" : "Dark"} Mode`}
                 >
                   <ThemeIcon
                     size={18}
                     className="group-hover:rotate-12 transition-transform"
                   />
-                </button>
-                <div
-                  className="p-2 rounded-xl"
-                  style={{
-                    background: "var(--card-bg)",
-                    border: "1px solid var(--card-border)",
-                    color: "var(--primary-color)",
-                  }}
-                >
+                </Button>
+                <div className="p-2 rounded-xl bg-primary text-accent-foreground border aspect-square flex items-center justify-center">
                   <User size={18} />
                 </div>
-                <button
+                <Button
+                  variant="destructive"
+                  size="icon"
                   onClick={onLogout}
-                  className="p-2.5 rounded-xl transition-all active:scale-95 group"
-                  style={{
-                    background: "rgba(239, 68, 68, 0.1)",
-                    border: "1px solid rgba(239, 68, 68, 0.2)",
-                    color: "#ef4444",
-                  }}
+                  className="rounded-xl transition-all active:scale-95 group"
                   title="Logout"
                 >
                   <LogOut
                     size={18}
                     className="group-hover:rotate-12 transition-transform"
                   />
-                </button>
+                </Button>
               </div>
             </div>
           )}

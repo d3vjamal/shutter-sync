@@ -5,32 +5,37 @@ import { authTables } from "@convex-dev/auth/server";
 export default defineSchema({
     ...authTables,
     users: defineTable({
-        name: v.optional(v.string()),
-        image: v.optional(v.string()),
-        email: v.optional(v.string()),
-        emailVerified: v.optional(v.boolean()),
-        emailVerificationTime: v.optional(v.number()),
+        ...authTables.users.validator.fields,
         contact: v.optional(v.string()),
         upiId: v.optional(v.string()),
-        role: v.optional(v.string()),
-    }).index("email", ["email"]),
-    admins: defineTable({
-        email: v.string(),
-        password: v.string(), // In a real app, use proper auth like Clerk or Auth.js
-        name: v.string(),
-    }).index("by_email", ["email"]),
+        // Keep legacy `role` for compatibility, and add structured role fields
+        role: v.optional(v.string()), // deprecated
+        roleName: v.optional(v.string()), // human-friendly name, e.g. "Photographer"
+        roleCode: v.optional(v.string()), // machine code, e.g. "photographer"
+        active: v.optional(v.boolean()),
+    })
+        .index("email", ["email"])
+        .index("by_role", ["role"]) // legacy
+        .index("by_roleCode", ["roleCode"]),
 
-    photographers: defineTable({
+    packages: defineTable({
+        photographerId: v.string(), // TODO: migrate to v.id("users")
         name: v.string(),
-        email: v.string(),
-        contact: v.string(),
-        upiId: v.string(),
-        password: v.string(),
+        description: v.string(),
+        amount: v.string(),
+        services: v.array(v.string()),
+        clientName: v.optional(v.string()),
+        clientContact: v.optional(v.string()),
+        eventStartDate: v.optional(v.string()),
+        eventDuration: v.optional(v.number()),
+        photographerDays: v.optional(v.array(v.string())),
+        location: v.optional(v.string()),
+        venue: v.optional(v.string()),
         active: v.boolean(),
-    }).index("by_email", ["email"]),
+    }).index("by_photographer", ["photographerId"]),
 
     assignments: defineTable({
-        photographerId: v.id("photographers"),
+        photographerId: v.string(), // TODO: migrate to v.id("users")
         // Event Details (formerly in Package)
         title: v.string(), // renamed from packageName/name
         description: v.optional(v.string()),

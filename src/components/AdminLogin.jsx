@@ -1,94 +1,163 @@
-import React, { useState } from 'react';
-import { ShieldCheck, Lock, Mail, ArrowRight, AlertTriangle } from 'lucide-react';
-import { GlassCard, Button, Input } from './UI';
+import React, { useState } from "react";
+import { ShieldCheck, Lock, Mail, ArrowRight, AlertCircle } from "lucide-react";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "./ui/card";
+import { useNavigate } from "react-router-dom";
+import { cn } from "../lib/utils";
 
 export default function AdminLogin({ onLogin, loading: externalLoading }) {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        setLoading(true);
-        try {
-            await onLogin(email, password, 'admin');
-        } catch (err) {
-            setError(err.message || 'Invalid admin credentials');
-        } finally {
-            setLoading(false);
-        }
-    };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
 
-    return (
-        <div className="min-h-screen flex items-center justify-center p-6">
-            <div className="w-full max-w-md animate-in fade-in zoom-in-95 duration-700">
-                {/* Admin Badge */}
-                <div className="text-center mb-8">
-                    <div className="inline-flex p-4 rounded-3xl shadow-2xl mb-6" style={{ background: 'var(--primary-color)' }}>
-                        <ShieldCheck size={36} style={{ color: 'var(--bg-main)' }} />
-                    </div>
-                    <h1 className="text-4xl font-black mb-2" style={{ color: 'var(--text-primary)' }}>Admin Portal</h1>
-                    <p className="text-xs uppercase tracking-widest font-bold opacity-60" style={{ color: 'var(--text-secondary)' }}>Restricted Access</p>
-                </div>
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
+    if (!/[A-Z]/.test(password)) {
+      setError("Password must contain at least one uppercase letter");
+      return;
+    }
+    if (!/[0-9]/.test(password)) {
+      setError("Password must contain at least one number");
+      return;
+    }
 
-                <GlassCard className="p-8 md:p-10 shadow-2xl">
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="space-y-2">
-                            <label className="text-xs font-bold uppercase tracking-wider ml-1" style={{ color: 'var(--text-secondary)' }}>Admin Email</label>
-                            <Input
-                                type="email"
-                                icon={Mail}
-                                placeholder="admin@shutterbug.com"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                            />
-                        </div>
+    setLoading(true);
+    try {
+      await onLogin(email, password, "admin");
+    } catch (err) {
+      setError(err.message || "Invalid admin credentials");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                        <div className="space-y-2">
-                            <label className="text-xs font-bold uppercase tracking-wider ml-1" style={{ color: 'var(--text-secondary)' }}>Password</label>
-                            <Input
-                                type="password"
-                                icon={Lock}
-                                placeholder="••••••••"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                            />
-                        </div>
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background relative overflow-hidden">
+      {/* Background Decor */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none -z-10">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-secondary/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/5 rounded-full blur-[120px]" />
+      </div>
 
-                        {error && (
-                            <div className="p-3 rounded-xl flex items-center gap-2" style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-                                <AlertTriangle size={16} style={{ color: '#ef4444' }} />
-                                <p className="text-xs font-bold" style={{ color: '#ef4444' }}>{error}</p>
-                            </div>
-                        )}
-
-                        <Button
-                            type="submit"
-                            disabled={loading || externalLoading}
-                            className="w-full py-4 font-bold uppercase tracking-wider text-xs rounded-xl shadow-lg transition-all active:scale-95"
-                        >
-                            <span className="flex items-center justify-center gap-2">
-                                {loading || externalLoading ? 'Authenticating...' : 'Access Admin Panel'}
-                                <ArrowRight size={16} />
-                            </span>
-                        </Button>
-                    </form>
-
-                    <div className="mt-6 pt-6 text-center" style={{ borderTop: '1px solid var(--card-border)' }}>
-                        <a
-                            href="/"
-                            className="text-xs font-bold uppercase tracking-wider hover:underline transition-all"
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
-                            ← Back to Login
-                        </a>
-                    </div>
-                </GlassCard>
-            </div>
+      <div className="w-full max-w-[400px] space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        <div className="text-center space-y-4">
+          <div className="inline-block p-4 bg-secondary/10 rounded-3xl mb-4">
+            <ShieldCheck size={40} className="text-secondary" />
+          </div>
+          <div className="space-y-1">
+            <h1 className="text-3xl font-black tracking-tight text-foreground uppercase">
+              Admin Portal
+            </h1>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+              Restricted Supervisory Access
+            </p>
+          </div>
         </div>
-    );
+
+        <Card className="border-none shadow-2xl bg-card/50 backdrop-blur-xl transition-all">
+          <CardHeader className="pb-8 text-center">
+            <CardDescription className="text-xs font-semibold text-muted-foreground/80">
+              Please authenticate with your secure administrator credentials to
+              gain access to the collective management dashboard.
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase tracking-widest font-bold ml-1 text-muted-foreground">
+                  Admin Identity
+                </Label>
+                <div className="relative">
+                  <Input
+                    type="email"
+                    placeholder="admin@shuttersync.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10 h-12"
+                    required
+                  />
+                  <Mail
+                    size={18}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase tracking-widest font-bold ml-1 text-muted-foreground">
+                  Secure Password
+                </Label>
+                <div className="relative">
+                  <Input
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10 h-12"
+                    required
+                  />
+                  <Lock
+                    size={18}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50"
+                  />
+                </div>
+              </div>
+
+              {error && (
+                <div className="flex items-center gap-2 p-3 bg-secondary/10 border border-secondary/20 rounded-xl mt-2 animate-in fade-in zoom-in-95 duration-200">
+                  <AlertCircle size={14} className="text-secondary" />
+                  <p className="text-[11px] font-bold text-secondary">
+                    {error}
+                  </p>
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                variant="destructive"
+                disabled={loading || externalLoading}
+                className="w-full h-14 mt-4 font-bold rounded-xl shadow-lg transition-all active:scale-[0.98] uppercase tracking-widest text-[10px] gap-2"
+              >
+                {loading || externalLoading ? (
+                  "Authenticating..."
+                ) : (
+                  <>
+                    Access Admin Panel
+                    <ArrowRight size={16} />
+                  </>
+                )}
+              </Button>
+            </form>
+          </CardContent>
+
+          <CardFooter className="pt-4 pb-8 flex justify-center border-t mt-4">
+            <button
+              onClick={() => navigate("/")}
+              className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
+            >
+              ← Back to main portal
+            </button>
+          </CardFooter>
+        </Card>
+      </div>
+    </div>
+  );
 }

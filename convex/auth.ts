@@ -1,25 +1,39 @@
-
 import { convexAuth } from "@convex-dev/auth/server";
 import Google from "@auth/core/providers/google";
 import { Password } from "@convex-dev/auth/providers/Password";
 
-export const { auth, signIn, signOut, store } = convexAuth({
-    providers: [
+const providers = [
+    Password({
+        profile(params) {
+            return {
+                email: params.email as string,
+                name: params.name as string,
+                role: "photographer",
+            };
+        },
+    }),
+];
+
+// Only add Google provider if credentials are configured
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    providers.push(
         Google({
             clientId: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        }),
-        Password({
-            profile(params) {
+            profile(profile) {
                 return {
-                    email: params.email as string,
-                    name: params.name as string,
-                    contact: params.contact as string,
-                    upiId: params.upiId as string,
+                    email: profile.email,
+                    name: profile.name,
+                    image: profile.picture,
+                    role: "photographer",
                 };
             },
         }),
-    ],
+    );
+}
+
+export const { auth, signIn, signOut, store } = convexAuth({
+    providers,
 });
 
 import { mutation } from "./_generated/server";

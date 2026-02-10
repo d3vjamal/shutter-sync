@@ -3,7 +3,7 @@ import { mutation, query } from "./_generated/server";
 
 export const create = mutation({
     args: {
-        photographerId: v.id("photographers"),
+        photographerId: v.id("users"),
         title: v.string(),
         description: v.optional(v.string()),
         services: v.array(v.string()),
@@ -25,12 +25,19 @@ export const create = mutation({
 });
 
 export const listByPhotographer = query({
-    args: { photographerId: v.id("photographers") },
+    args: { photographerId: v.id("users") },
     handler: async (ctx, args) => {
         return await ctx.db
             .query("assignments")
             .withIndex("by_photographer", (q) => q.eq("photographerId", args.photographerId))
             .collect();
+    },
+});
+
+export const get = query({
+    args: { id: v.id("assignments") },
+    handler: async (ctx, args) => {
+        return await ctx.db.get(args.id);
     },
 });
 

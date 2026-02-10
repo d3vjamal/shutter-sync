@@ -3,28 +3,16 @@ import { Mail, Github, Linkedin, Heart } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer
-      className="mt-24 border-t"
-      style={{
-        borderColor: "var(--card-border)",
-        background: "var(--bg-main)",
-      }}
-    >
+    <footer className="mt-24 border-t bg-background">
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Main Footer Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12 mb-12">
           {/* About Section */}
-          <div className="col-span-1">
-            <h3
-              className="text-sm font-bold uppercase tracking-widest mb-4"
-              style={{ color: "var(--primary-color)" }}
-            >
+          <div className="col-span-2">
+            <h3 className="text-sm font-bold uppercase tracking-widest mb-4 text-primary">
               About ShutterSync
             </h3>
-            <p
-              className="text-xs leading-relaxed opacity-70"
-              style={{ color: "var(--text-secondary)" }}
-            >
+            <p className="text-xs leading-relaxed text-muted-foreground">
               ShutterSync is a lightweight photography management platform
               designed to streamline photographer operations, assignments, and
               bookings with an elegant interface.
@@ -33,18 +21,14 @@ export default function Footer() {
 
           {/* Product Section */}
           <div className="col-span-1">
-            <h3
-              className="text-sm font-bold uppercase tracking-widest mb-4"
-              style={{ color: "var(--primary-color)" }}
-            >
+            <h3 className="text-sm font-bold uppercase tracking-widest mb-4 text-primary">
               Product
             </h3>
             <ul className="space-y-2 text-xs">
               <li>
                 <a
                   href="#dashboard"
-                  className="opacity-60 hover:opacity-100 transition-opacity"
-                  style={{ color: "var(--text-secondary)" }}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Dashboard
                 </a>
@@ -52,8 +36,7 @@ export default function Footer() {
               <li>
                 <a
                   href="#pricing"
-                  className="opacity-60 hover:opacity-100 transition-opacity"
-                  style={{ color: "var(--text-secondary)" }}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Pricing
                 </a>
@@ -61,8 +44,7 @@ export default function Footer() {
               <li>
                 <a
                   href="#features"
-                  className="opacity-60 hover:opacity-100 transition-opacity"
-                  style={{ color: "var(--text-secondary)" }}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Features
                 </a>
@@ -70,78 +52,33 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Resources Section */}
-          <div className="col-span-1">
-            <h3
-              className="text-sm font-bold uppercase tracking-widest mb-4"
-              style={{ color: "var(--primary-color)" }}
-            >
-              Resources
-            </h3>
-            <ul className="space-y-2 text-xs">
-              <li>
-                <a
-                  href="#docs"
-                  className="opacity-60 hover:opacity-100 transition-opacity"
-                  style={{ color: "var(--text-secondary)" }}
-                >
-                  Documentation
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#blog"
-                  className="opacity-60 hover:opacity-100 transition-opacity"
-                  style={{ color: "var(--text-secondary)" }}
-                >
-                  Blog
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#support"
-                  className="opacity-60 hover:opacity-100 transition-opacity"
-                  style={{ color: "var(--text-secondary)" }}
-                >
-                  Support
-                </a>
-              </li>
-            </ul>
-          </div>
-
           {/* Contact Section */}
           <div className="col-span-1">
-            <h3
-              className="text-sm font-bold uppercase tracking-widest mb-4"
-              style={{ color: "var(--primary-color)" }}
-            >
+            <h3 className="text-sm font-bold uppercase tracking-widest mb-4 text-primary">
               Get in Touch
             </h3>
             <div className="space-y-3">
               <a
-                href="mailto:contact@shuttersync.com"
-                className="flex items-center gap-2 text-xs opacity-60 hover:opacity-100 transition-opacity"
-                style={{ color: "var(--text-secondary)" }}
+                href="mailto:d3v.jamal@gmail.com"
+                className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Mail size={14} />
-                contact@shuttersync.com
+                d3v.jamal@gmail.com
               </a>
               <a
                 href="https://github.com/d3vjamal"
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-2 text-xs opacity-60 hover:opacity-100 transition-opacity"
-                style={{ color: "var(--text-secondary)" }}
+                className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Github size={14} />
                 GitHub
               </a>
               <a
-                href="https://linkedin.com"
+                href="https://linkedin.com/in/d3vjamal"
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-2 text-xs opacity-60 hover:opacity-100 transition-opacity"
-                style={{ color: "var(--text-secondary)" }}
+                className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Linkedin size={14} />
                 LinkedIn
@@ -151,32 +88,18 @@ export default function Footer() {
         </div>
 
         {/* Divider */}
-        <div
-          className="h-px my-8"
-          style={{ background: "var(--card-border)" }}
-        />
+        <div className="h-px my-8 bg-border" />
 
         {/* Developer Credit & Legal */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
           {/* Developer Credit */}
           <div className="text-center md:text-left">
-            <p
-              className="text-xs flex items-center justify-center md:justify-start gap-2"
-              style={{ color: "var(--text-secondary)" }}
-            >
+            <p className="text-xs flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
               Made with
-              <Heart size={12} className="text-red-500 fill-red-500" />
-              by{" "}
-              <span
-                style={{ color: "var(--primary-color)", fontWeight: "bold" }}
-              >
-                d3vjamal
-              </span>
+              <Heart size={12} className="text-secondary fill-secondary" />
+              by <span className="text-primary font-bold">d3vjamal</span>
             </p>
-            <p
-              className="text-[10px] opacity-50 mt-1"
-              style={{ color: "var(--text-secondary)" }}
-            >
+            <p className="text-[10px] text-muted-foreground/60 mt-1">
               © {new Date().getFullYear()} ShutterSync. All rights reserved.
             </p>
           </div>
@@ -185,36 +108,23 @@ export default function Footer() {
           <div className="flex items-center justify-center md:justify-end gap-6">
             <a
               href="#privacy"
-              className="text-xs opacity-60 hover:opacity-100 transition-opacity"
-              style={{ color: "var(--text-secondary)" }}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               Privacy Policy
             </a>
             <a
               href="#terms"
-              className="text-xs opacity-60 hover:opacity-100 transition-opacity"
-              style={{ color: "var(--text-secondary)" }}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               Terms of Service
             </a>
             <a
               href="#contact"
-              className="text-xs opacity-60 hover:opacity-100 transition-opacity"
-              style={{ color: "var(--text-secondary)" }}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               Contact
             </a>
           </div>
-        </div>
-
-        {/* Version Info */}
-        <div className="mt-6 text-center">
-          <p
-            className="text-[9px] uppercase tracking-widest opacity-40"
-            style={{ color: "var(--text-secondary)" }}
-          >
-            ShutterSync v0.1.0 — Built with React &amp; Convex
-          </p>
         </div>
       </div>
     </footer>
