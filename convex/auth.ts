@@ -22,6 +22,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
             profile(profile) {
                 return {
+                    id: profile.sub,
                     email: profile.email,
                     name: profile.name,
                     image: profile.picture,
@@ -41,6 +42,31 @@ import { mutation } from "./_generated/server";
 export const seedAdmin = mutation({
     args: {},
     handler: async (ctx) => {
-        // Implementation for seeding admin, currently empty to satisfy the call
+        const adminEmail = process.env.ADMIN_EMAIL;
+        if (!adminEmail) {
+            console.error("ADMIN_EMAIL environment variable not set.");
+            return;
+        }
+
+        // Check if an admin user already exists
+        const existingAdmin = await ctx.db
+            .query("users")
+            .withIndex("by_roleCode", (q) => q.eq("roleCode", "admin"))
+            .first();
+
+        if (existingAdmin) {
+            console.log("Admin user already exists.");
+            return;
+        }
+
+        // Create the admin user
+        await ctx.db.insert("users", {
+            email: adminEmail,
+            name: "Admin",
+            roleCode: "admin",
+            roleName: "Administrator",
+            active: true,
+        });
+        console.log("Admin user created successfully.");
     },
 });
