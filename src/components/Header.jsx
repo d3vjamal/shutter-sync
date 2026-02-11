@@ -24,7 +24,7 @@ const Header = ({ user, onLogout, theme, setTheme }) => {
     userRole === "admin" || user?.email === "admin@shuttersync.com";
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6 py-4">
+    <header className=" top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6 py-4">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
         {/* Logo Section */}
         <div

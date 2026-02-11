@@ -8,9 +8,6 @@ import {
   Clock,
   Edit2,
   ExternalLink,
-  TrendingUp,
-  DollarSign,
-  ChevronRight,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { Button } from "./ui/button";
@@ -31,6 +28,7 @@ import {
   DialogFooter,
 } from "./ui/dialog";
 import { cn } from "../lib/utils";
+import { isFuture, isSameMonth } from "date-fns";
 
 const AssignmentCard = ({
   assignment,
@@ -128,7 +126,7 @@ const AssignmentCard = ({
               variant="outline"
               size="sm"
               onClick={handleEdit}
-              className="w-full flex items-center justify-center gap-2 h-8 text-sm"
+              className="w-full flex  items-center justify-center gap-2 h-8 text-sm"
             >
               <Edit2 size={14} className="icon-contrast" /> Edit
             </Button>
@@ -136,7 +134,7 @@ const AssignmentCard = ({
               <Button
                 size="sm"
                 onClick={() => setShowConfirm(true)}
-                className="w-full hover:bg-secondary/90 text-white font-bold flex items-center justify-center gap-2 h-8 text-sm shadow-secondary/20"
+                className="w-full hover:bg-primary/90 text-white   bg-secondary font-bold flex items-center justify-center gap-2 h-8 text-sm shadow-secondary/20"
               >
                 <CheckCircle size={14} className="icon-contrast" /> Complete
               </Button>
@@ -204,9 +202,7 @@ const DashboardSection = ({
           <AssignmentCard
             key={a._id}
             assignment={a}
-            isCompleted={
-              title === "Completed History" || title === "Past assignments"
-            }
+            isCompleted={a.status === "Completed"}
             {...handlers}
           />
         ))}
@@ -239,28 +235,39 @@ const Dashboard = ({
   const now = new Date();
   const upcoming = [];
   const ongoing = [];
-  const completed = [];
+  const past = [];
 
   assignments.forEach((a) => {
     if (a.status === "Completed") {
-      completed.push(a);
-    } else if (a.captureDate && new Date(a.captureDate) > now) {
-      upcoming.push(a);
+      past.push(a);
     } else {
-      ongoing.push(a); // Ongoing or Unscheduled
+      const eventDateStr = a.eventStartDate || a.captureDate;
+      if (eventDateStr) {
+        const eventDate = new Date(eventDateStr);
+        if (isFuture(eventDate) && !isSameMonth(eventDate, now)) {
+          upcoming.push(a);
+        } else {
+          ongoing.push(a);
+        }
+      } else {
+        ongoing.push(a); // Unscheduled are ongoing
+      }
     }
   });
 
-  // Sort upcoming by date (soonest first)
-  upcoming.sort((a, b) => new Date(a.captureDate) - new Date(b.captureDate));
-  // Sort completed by recent
-  completed.sort((a, b) => b._creationTime - a._creationTime);
+  // Sort groups
+  const sortFn = (a, b) =>
+    new Date(a.eventStartDate || a.captureDate) -
+    new Date(b.eventStartDate || b.captureDate);
+  ongoing.sort(sortFn);
+  upcoming.sort(sortFn);
+  past.sort((a, b) => b._creationTime - a._creationTime);
 
   return (
     <div className="max-w-6xl mx-auto pb-20">
       {/* Header Stats */}
       <div className="grid grid-cols-2 gap-4 mb-10">
-        <Card className="relative overflow-hidden shadow-sm border-none bg-primary text-primary-foreground">
+        <Card className="relative overflow-hidden shadow-sm border-none bg-secondary text-primary-foreground">
           <CardContent className="p-6 relative z-10">
             <p className="text-sm font-medium opacity-80 mb-1">Total Revenue</p>
             <h2 className="text-3xl font-black">
@@ -288,28 +295,26 @@ const Dashboard = ({
 
       {/* Timeline Sections */}
       <DashboardSection
-        title="Upcoming assignments"
-        assignments={upcoming}
-        icon={Calendar}
-        color="text-primary"
-        onUpdateStatus={onUpdateStatus}
-        onUpdateCaptureDate={onUpdateCaptureDate}
-      />
-
-      <DashboardSection
         title="Ongoing assignments"
         assignments={ongoing}
         icon={PlayCircle}
-        color="text-primary"
+        color="text-yellow-500"
         onUpdateStatus={onUpdateStatus}
         onUpdateCaptureDate={onUpdateCaptureDate}
       />
-
+      <DashboardSection
+        title="Upcoming assignments"
+        assignments={upcoming}
+        icon={Calendar}
+        color="text-red-500"
+        onUpdateStatus={onUpdateStatus}
+        onUpdateCaptureDate={onUpdateCaptureDate}
+      />
       <DashboardSection
         title="Past assignments"
-        assignments={completed}
+        assignments={past}
         icon={CheckCircle}
-        color="text-primary"
+        color="text-green-500"
         onUpdateStatus={onUpdateStatus}
         onUpdateCaptureDate={onUpdateCaptureDate}
       />

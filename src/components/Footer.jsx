@@ -96,7 +96,7 @@ export default function Footer() {
           <div className="text-center md:text-left">
             <p className="text-xs flex items-center justify-center md:justify-start gap-2 text-muted-foreground">
               Made with
-              <Heart size={12} className="text-secondary fill-secondary" />
+              <Heart size={12} className="text-red-500 fill-red-500" />
               by <span className="text-primary font-bold">d3vjamal</span>
             </p>
             <p className="text-[10px] text-muted-foreground/60 mt-1">
