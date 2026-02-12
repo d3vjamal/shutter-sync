@@ -17,6 +17,7 @@ export const viewer = query({
 
 export const updateUserProfile = mutation({
     args: {
+        name: v.optional(v.string()),
         contact: v.optional(v.string()),
         upiId: v.optional(v.string()),
     },
@@ -33,6 +34,7 @@ export const updateUserProfile = mutation({
 
         // Update user profile with provided fields
         const updates: any = {};
+        if (args.name !== undefined) updates.name = args.name;
         if (args.contact !== undefined) updates.contact = args.contact;
         if (args.upiId !== undefined) updates.upiId = args.upiId;
 

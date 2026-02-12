@@ -63,7 +63,6 @@ export default function Login({ onLogin }) {
     email: "",
     password: "",
     contact: "",
-    upiId: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -71,7 +70,7 @@ export default function Login({ onLogin }) {
   const validationRules = {
     textOnly: (value) => /^[a-zA-Z\s]*$/.test(value),
     numberOnly: (value) => /^[0-9]*$/.test(value),
-    phone: (value) => /^[+]*[0-9]*$/.test(value),
+    phone: (value) => /^[0-9]*$/.test(value),
     email: (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
     alphanumeric: (value) => /^[a-zA-Z0-9_-]*$/.test(value),
   };
@@ -97,7 +96,7 @@ export default function Login({ onLogin }) {
       return;
     }
 
-    if (!isLogin && (!formData.name || !formData.contact || !formData.upiId)) {
+    if (!isLogin && (!formData.name || !formData.contact)) {
       setError("Please fill in all required fields for registration.");
       return;
     }
@@ -112,6 +111,11 @@ export default function Login({ onLogin }) {
     }
     if (!/[0-9]/.test(formData.password)) {
       setError("Password must contain at least one number");
+      return;
+    }
+
+    if (!isLogin && formData.contact.replace(/\D/g, "").length !== 10) {
+      setError("Contact number must be exactly 10 digits");
       return;
     }
 
@@ -136,7 +140,6 @@ export default function Login({ onLogin }) {
         if (typeof window !== "undefined") {
           const pendingFields = {
             contact: formData.contact,
-            upiId: formData.upiId,
           };
           sessionStorage.setItem(
             "pendingUserFields",
@@ -194,7 +197,7 @@ export default function Login({ onLogin }) {
             />
           </div>
           <div className="space-y-1">
-            <p className="text-[10px] font-bold  tracking-[0.2em] text-muted-foreground">
+            <p className="text-[10px] font-optical-sizing-auto font-weight:400  tracking-[0.2em] font-family: 'Passions Conflict', cursive">
               Smart photography simplified
             </p>
           </div>
@@ -303,52 +306,27 @@ export default function Login({ onLogin }) {
               </div>
 
               {!isLogin && (
-                <>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] uppercase tracking-widest font-bold ml-1 text-muted-foreground">
-                      Contact
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        placeholder="+91 XXXXX XXXXX"
-                        value={formData.contact}
-                        onChange={(e) =>
-                          handleInputChange("contact", e.target.value, "phone")
-                        }
-                        className="pl-10 h-11"
-                        required={!isLogin}
-                      />
-                      <Phone
-                        size={16}
-                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 text-secondary"
-                      />
-                    </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase tracking-widest font-bold ml-1 text-muted-foreground">
+                    Contact
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      placeholder="Enter mobile"
+                      value={formData.contact}
+                      onChange={(e) =>
+                        handleInputChange("contact", e.target.value, "phone")
+                      }
+                      className="pl-10 h-11"
+                      required={!isLogin}
+                      maxLength={10}
+                    />
+                    <Phone
+                      size={16}
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 text-secondary"
+                    />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] uppercase tracking-widest font-bold ml-1 text-muted-foreground">
-                      UPI ID
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        placeholder="photographer@upi"
-                        value={formData.upiId}
-                        onChange={(e) =>
-                          handleInputChange(
-                            "upiId",
-                            e.target.value,
-                            "alphanumeric",
-                          )
-                        }
-                        className="pl-10 h-11"
-                        required={!isLogin}
-                      />
-                      <Wallet
-                        size={16}
-                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 text-secondary "
-                      />
-                    </div>
-                  </div>
-                </>
+                </div>
               )}
 
               {error && (

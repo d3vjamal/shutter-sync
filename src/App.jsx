@@ -12,6 +12,8 @@ import PhotographersPage from "./pages/PhotographersPage";
 import LoginPage from "./pages/LoginPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import PublicClientPage from "./pages/PublicClientPage";
+import AgreementsPage from "./pages/AgreementsPage";
+import ProfilePage from "./pages/ProfilePage";
 
 // Components
 import LoadingSpinner from "./components/common/LoadingSpinner";
@@ -53,8 +55,9 @@ const AppContent = () => {
           const fields = JSON.parse(pendingFields);
           console.log("Updating user profile with pending fields", fields);
           updateUserProfile({
-            contact: fields.contact || "",
-            upiId: fields.upiId || "",
+            name: fields.name || undefined,
+            contact: fields.contact || undefined,
+            upiId: fields.upiId || undefined,
           }).catch((err) => {
             console.error("Failed to update user profile:", err);
           });
@@ -109,6 +112,24 @@ const AppContent = () => {
           element={
             <ProtectedRoute user={user} requiredRole="admin">
               <PhotographersPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/agreements"
+          element={
+            <ProtectedRoute user={user}>
+              <AgreementsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute user={user}>
+              <ProfilePage />
             </ProtectedRoute>
           }
         />

@@ -58,4 +58,9 @@ export default defineSchema({
         captureDate: v.optional(v.string()), // Main shoot date or next action
         paidAmount: v.string(),
     }).index("by_photographer", ["photographerId"]),
+
+    agreements: defineTable({
+        description: v.string(),
+        photographerId: v.string(),
+    }).index("by_photographer", ["photographerId"]),
 });

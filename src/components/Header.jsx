@@ -6,6 +6,7 @@ import {
   Users,
   LogOut,
   User,
+  FileText,
   Sun,
   Moon,
   Laptop,
@@ -76,6 +77,19 @@ const Header = ({ user, onLogout, theme, setTheme }) => {
                     <Users size={16} />
                     <span>Photographers</span>
                   </Button>
+                  <Button
+                    variant={isActive("/agreements") ? "default" : "ghost"}
+                    onClick={() => navigate("/agreements")}
+                    className={cn(
+                      "flex items-center gap-2 px-4 md:px-6 py-2 rounded-md font-bold text-xs md:text-sm transition-all duration-300",
+                      isActive("/agreements")
+                        ? "shadow-sm scale-[1.02]"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    <FileText size={16} />
+                    <span>Agreements</span>
+                  </Button>
                 </div>
               ) : (
                 <div className="flex gap-1">
@@ -102,6 +116,19 @@ const Header = ({ user, onLogout, theme, setTheme }) => {
                       <span>{item.label}</span>
                     </Button>
                   ))}
+                  <Button
+                    variant={isActive("/agreements") ? "default" : "ghost"}
+                    onClick={() => navigate("/agreements")}
+                    className={cn(
+                      "flex items-center gap-2 px-4 md:px-6 py-2 rounded-md font-bold text-xs md:text-sm transition-all duration-300",
+                      isActive("/agreements")
+                        ? "shadow-sm scale-[1.02]"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    <FileText size={16} />
+                    <span>Agreements</span>
+                  </Button>
                 </div>
               )}
             </nav>
@@ -137,9 +164,15 @@ const Header = ({ user, onLogout, theme, setTheme }) => {
                     className="group-hover:rotate-12 transition-transform"
                   />
                 </Button>
-                <div className="p-2 rounded-xl bg-primary text-accent-foreground border aspect-square flex items-center justify-center">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate("/profile")}
+                  className="p-2 rounded-xl bg-primary text-accent-foreground border aspect-square flex items-center justify-center"
+                  title="Profile"
+                >
                   <User size={18} />
-                </div>
+                </Button>
                 <Button
                   variant="destructive"
                   size="icon"
