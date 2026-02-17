@@ -18,6 +18,7 @@ export const create = mutation({
         status: v.string(),
         captureDate: v.optional(v.string()),
         paidAmount: v.string(),
+        conditions: v.optional(v.array(v.string())),
     },
     handler: async (ctx, args) => {
         return await ctx.db.insert("assignments", args);
@@ -37,7 +38,20 @@ export const listByPhotographer = query({
 export const get = query({
     args: { id: v.id("assignments") },
     handler: async (ctx, args) => {
-        return await ctx.db.get(args.id);
+        const assignment = await ctx.db.get(args.id);
+        if (!assignment) return null;
+
+        const photographer = await ctx.db
+            .query("users")
+            .filter((q) => q.eq(q.field("_id"), assignment.photographerId))
+            .first();
+
+        return {
+            ...assignment,
+            photographerName: photographer?.name || "Photographer",
+            photographerContact: photographer?.contact || "",
+            photographerUPI: photographer?.upiId || "", // Provide fallback if needed, or handle in UI
+        };
     },
 });
 
@@ -74,10 +88,27 @@ export const update = mutation({
         eventDuration: v.optional(v.number()),
         location: v.optional(v.string()),
         venue: v.optional(v.string()),
+        services: v.optional(v.array(v.string())),
+        photographerDays: v.optional(v.array(v.string())),
+        conditions: v.optional(v.array(v.string())),
         // Add other fields as necessary
     },
     handler: async (ctx, args) => {
         const { id, ...updates } = args;
         await ctx.db.patch(id, updates);
+    },
+});
+
+export const calculateTotalRevenue = query({
+    args: {},
+    handler: async (ctx) => {
+        const completedAssignments = await ctx.db
+            .query("assignments")
+            .withIndex("by_status", (q) => q.eq("status", "Completed"))
+            .collect();
+
+        return completedAssignments.reduce((total, assignment) => {
+            return total + parseFloat(assignment.paidAmount || "0");
+        }, 0);
     },
 });

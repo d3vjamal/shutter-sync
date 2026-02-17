@@ -51,7 +51,7 @@ export const seedAdmin = mutation({
         // Check if an admin user already exists
         const existingAdmin = await ctx.db
             .query("users")
-            .withIndex("by_roleCode", (q) => q.eq("roleCode", "admin"))
+            .withIndex("by_roleCode", (q) => q.eq("roleCode", 0))
             .first();
 
         if (existingAdmin) {
@@ -63,7 +63,7 @@ export const seedAdmin = mutation({
         await ctx.db.insert("users", {
             email: adminEmail,
             name: "Admin",
-            roleCode: "admin",
+            roleCode: 0, // 0 = admin
             roleName: "Administrator",
             active: true,
         });

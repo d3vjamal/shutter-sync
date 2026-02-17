@@ -12,7 +12,9 @@ import {
   User,
   Lock,
   Plus,
+  Share2,
 } from "lucide-react";
+import { toast } from "react-toastify";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -244,6 +246,20 @@ export default function PhotographerManager({
                   </div>
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => {
+                      const url = `${window.location.origin}/photographer/${artist._id}`;
+                      navigator.clipboard.writeText(url).then(() => {
+                        toast.success(`Public link for ${artist.name} copied!`);
+                      });
+                    }}
+                    className="h-8 w-8 rounded-lg hover:text-primary hover:bg-primary/10"
+                    title="Copy Public Link"
+                  >
+                    <Share2 size={14} />
+                  </Button>
                   <Button
                     size="icon"
                     variant="ghost"

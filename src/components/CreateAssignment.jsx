@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import {
   Camera,
   Plus,
@@ -10,6 +12,9 @@ import {
   Phone,
   Calendar,
   MapPin,
+  FileText,
+  CheckCircle2,
+  Circle,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -45,8 +50,10 @@ const CreateAssignment = ({
       venue: "",
       photographerDays: [],
       paidAmount: "0",
+      conditions: [],
     },
   );
+  const agreements = useQuery(api.agreements.get) || [];
   const [dateInput, setDateInput] = useState("");
   const [serviceInput, setServiceInput] = useState("");
 
@@ -95,6 +102,23 @@ const CreateAssignment = ({
       photographerDays: newDays,
       eventDuration: newDays.length,
       eventStartDate: newDays[0] || "",
+    });
+  };
+
+  const toggleCondition = (conditionText) => {
+    const currentConditions = currentAssignment.conditions || [];
+    const isSelected = currentConditions.includes(conditionText);
+
+    let newConditions;
+    if (isSelected) {
+      newConditions = currentConditions.filter(c => c !== conditionText);
+    } else {
+      newConditions = [...currentConditions, conditionText];
+    }
+
+    setCurrentAssignment({
+      ...currentAssignment,
+      conditions: newConditions
     });
   };
 
@@ -332,7 +356,7 @@ const CreateAssignment = ({
             </div>
             <div className="col-span-full space-y-2">
               <Label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                Description / Notes
+                Notes
               </Label>
               <div className="relative">
                 <Textarea
@@ -394,6 +418,52 @@ const CreateAssignment = ({
               <p className="text-xs text-muted-foreground/40 italic ml-1">
                 No items added yet...
               </p>
+            )}
+          </div>
+        </section>
+
+        <section className="space-y-6 pt-6 border-t">
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            <h3 className="text-xs font-black uppercase tracking-widest text-primary">
+              Terms & Conditions
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3">
+            {agreements.length === 0 ? (
+              <p className="text-sm text-muted-foreground italic">No agreement templates found. Add them in the Agreements tab.</p>
+            ) : (
+              agreements.map((agreement) => {
+                const isSelected = (currentAssignment.conditions || []).includes(agreement.description);
+                return (
+                  <div
+                    key={agreement._id}
+                    onClick={() => toggleCondition(agreement.description)}
+                    className={cn(
+                      "flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition-all duration-200 group",
+                      isSelected
+                        ? "bg-secondary/10 border-secondary shadow-sm"
+                        : "bg-card hover:bg-muted/50 border-border"
+                    )}
+                  >
+                    <div className={cn(
+                      "mt-0.5 transition-colors",
+                      isSelected ? "text-secondary" : "text-muted-foreground/30 group-hover:text-muted-foreground/50"
+                    )}>
+                      {isSelected ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <p className={cn(
+                        "text-sm font-medium leading-relaxed",
+                        isSelected ? "text-foreground" : "text-muted-foreground"
+                      )}>
+                        {agreement.description}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
             )}
           </div>
         </section>

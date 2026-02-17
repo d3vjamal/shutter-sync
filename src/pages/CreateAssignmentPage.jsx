@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import AppLayout from "../components/layouts/AppLayout";
+import Header from "../components/Header";
 import CreateAssignment from "../components/CreateAssignment";
 import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../hooks/useTheme";
@@ -39,6 +40,12 @@ export default function CreateAssignmentPage() {
       theme={theme}
       setTheme={setTheme}
     >
+      <Header
+        user={user}
+        onLogout={handleLogout}
+        theme={theme}
+        setTheme={setTheme}
+      />
       <CreateAssignment
         onSave={handleSave}
         initialAssignment={assignmentToEdit}

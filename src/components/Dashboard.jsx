@@ -186,7 +186,7 @@ const DashboardSection = ({
   color,
   ...handlers
 }) => (
-  <div className="mb-8">
+  <div className="mb-8 mt-5">
     <div className="flex items-center gap-3 mb-4 px-1">
       <div className={cn("p-2 rounded-lg bg-primary/10", color)}>
         <Icon size={18} className="icon-contrast" />
@@ -225,10 +225,9 @@ const Dashboard = ({
   onUpdateAssignment,
 }) => {
   // 1. Calculate Stats
-  const totalRevenue = assignments.reduce(
-    (sum, a) => sum + Number(a.totalAmount || a.amount || 0),
-    0,
-  );
+  const totalRevenue = assignments
+    .filter((a) => a.status === "Completed")
+    .reduce((sum, a) => sum + Number(a.totalAmount || a.amount || 0), 0);
   const totalCount = assignments.length;
 
   // 2. Group Assignments

@@ -11,28 +11,18 @@ export default defineSchema({
         // Keep legacy `role` for compatibility, and add structured role fields
         role: v.optional(v.string()), // deprecated
         roleName: v.optional(v.string()), // human-friendly name, e.g. "Photographer"
-        roleCode: v.optional(v.string()), // machine code, e.g. "photographer"
+        roleCode: v.optional(v.union(v.number(), v.string())), // 0=admin, 1=photographer, 2=users
         active: v.optional(v.boolean()),
+        bio: v.optional(v.string()),
+        instagram: v.optional(v.string()),
+        facebook: v.optional(v.string()),
+        twitter: v.optional(v.string()),
+        photos: v.optional(v.array(v.string())),
+        avatarUrl: v.optional(v.string()),
     })
         .index("email", ["email"])
         .index("by_role", ["role"]) // legacy
         .index("by_roleCode", ["roleCode"]),
-
-    packages: defineTable({
-        photographerId: v.string(), // TODO: migrate to v.id("users")
-        name: v.string(),
-        description: v.string(),
-        amount: v.string(),
-        services: v.array(v.string()),
-        clientName: v.optional(v.string()),
-        clientContact: v.optional(v.string()),
-        eventStartDate: v.optional(v.string()),
-        eventDuration: v.optional(v.number()),
-        photographerDays: v.optional(v.array(v.string())),
-        location: v.optional(v.string()),
-        venue: v.optional(v.string()),
-        active: v.boolean(),
-    }).index("by_photographer", ["photographerId"]),
 
     assignments: defineTable({
         photographerId: v.string(), // TODO: migrate to v.id("users")
@@ -52,12 +42,14 @@ export default defineSchema({
         photographerDays: v.optional(v.array(v.string())),
         location: v.optional(v.string()),
         venue: v.optional(v.string()),
-
         // Status & Payment
         status: v.string(), // "Ongoing", "Completed"
         captureDate: v.optional(v.string()), // Main shoot date or next action
         paidAmount: v.string(),
-    }).index("by_photographer", ["photographerId"]),
+        conditions: v.optional(v.array(v.string())),
+    })
+        .index("by_photographer", ["photographerId"])
+        .index("by_status", ["status"]),
 
     agreements: defineTable({
         description: v.string(),

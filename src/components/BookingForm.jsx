@@ -23,11 +23,11 @@ import { Badge } from "./ui/badge";
 import { cn } from "../lib/utils";
 
 const DEFAULT_CONFIG = {
-  upiId: "ShutterSync@upi",
-  payeeName: "ShutterSync",
-  amount: "5000",
-  whatsappNumber: "8370993562",
-  mailId: "bichatrophotography@gmail.com",
+  upiId: "",
+  payeeName: "",
+  amount: "0",
+  whatsappNumber: "", // Keep if global, or fetch from photographer too? assuming global for support
+  mailId: "",
 };
 
 function PhonePeLogo({ className, width = 58, height = 58, ...rest }) {

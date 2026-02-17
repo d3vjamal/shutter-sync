@@ -1,5 +1,6 @@
 import React from "react";
 import { Mail, Github, Linkedin, Heart } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Footer() {
   return (
@@ -26,12 +27,12 @@ export default function Footer() {
             </h3>
             <ul className="space-y-2 text-xs">
               <li>
-                <a
-                  href="#dashboard"
+                <Link
+                  to="/dashboard"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Dashboard
-                </a>
+                </Link>
               </li>
               <li>
                 <a
@@ -112,12 +113,12 @@ export default function Footer() {
             >
               Privacy Policy
             </a>
-            <a
-              href="#terms"
+            <Link
+              to="/terms"
               className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
               Terms of Service
-            </a>
+            </Link>
             <a
               href="#contact"
               className="text-xs text-muted-foreground hover:text-foreground transition-colors"

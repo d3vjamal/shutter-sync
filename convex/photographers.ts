@@ -41,6 +41,26 @@ export const list = query({
     },
 });
 
+export const get = query({
+    args: { id: v.id("users") },
+    handler: async (ctx, args) => {
+        const photographer = await ctx.db.get(args.id);
+        if (!photographer) return null;
+
+        return {
+            ...photographer,
+            avatarUrl: (photographer.avatarUrl && !photographer.avatarUrl.startsWith("http"))
+                ? (await ctx.storage.getUrl(photographer.avatarUrl)) ?? photographer.avatarUrl
+                : photographer.avatarUrl,
+            photos: photographer.photos
+                ? await Promise.all(photographer.photos.map(async (id) =>
+                    (id && !id.startsWith("http")) ? (await ctx.storage.getUrl(id)) ?? id : id
+                ))
+                : [],
+        };
+    },
+});
+
 export const getByEmail = query({
     args: { email: v.string() },
     handler: async (ctx, args) => {

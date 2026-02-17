@@ -174,8 +174,8 @@ const ClientView = ({ pkg, onBack, onInitiatePayment, agreed, setAgreed }) => {
               </Card>
 
               <div className="p-8 bg-muted/20 rounded-3xl border border-border/5 text-center flex flex-col items-center justify-center gap-4">
-                <Camera size={24} className="text-primary/20" />
-                <p className="text-[11px] text-muted-foreground/50 font-medium italic leading-relaxed max-w-[200px]">
+                <Camera size={24} className="text-primary/80" />
+                <p className="text-[11px] text-primary text-foreground/50 font-medium italic leading-relaxed max-w-[200px]">
                   "We don't just take pictures, we curate visual legacies that
                   stand the test of time."
                 </p>

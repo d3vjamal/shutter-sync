@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useQuery, useMutation, useConvex } from "convex/react";
+import { useMutation, useConvex } from "convex/react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { api } from "../convex/_generated/api";
 import { ToastContainer } from "react-toastify";
@@ -13,6 +13,7 @@ import LoginPage from "./pages/LoginPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import PublicClientPage from "./pages/PublicClientPage";
 import AgreementsPage from "./pages/AgreementsPage";
+import PublicPhotographerPage from "./pages/PublicPhotographerPage";
 import ProfilePage from "./pages/ProfilePage";
 
 // Components
@@ -21,11 +22,9 @@ import ProtectedRoute from "./components/common/ProtectedRoute";
 
 // Hooks
 import { useAuth } from "./hooks/useAuth";
-import { useTheme } from "./hooks/useTheme";
 
 const AppContent = () => {
   const { user } = useAuth();
-  const { theme } = useTheme();
   const convex = useConvex();
   const seedAdmin = useMutation(api.auth.seedAdmin);
   const updateUserProfile = useMutation(api.users.updateUserProfile);
@@ -107,6 +106,7 @@ const AppContent = () => {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/photographers"
           element={
@@ -136,6 +136,7 @@ const AppContent = () => {
 
         {/* Fallback */}
         <Route path="/client/:id" element={<PublicClientPage />} />
+        <Route path="/photographer/:id" element={<PublicPhotographerPage />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
       <ToastContainer position="top-right" autoClose={3000} />

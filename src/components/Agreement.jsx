@@ -50,7 +50,8 @@ export default function Agreement({ pkg, onAgree, agreed }) {
             </h3>
             {pkg.clientName && (
               <p className="text-[11px] text-primary font-black uppercase tracking-[0.2em] opacity-80">
-                Reserved exclusively for {pkg.clientName}
+                Reserved exclusively for{" "}
+                <span style={{ color: "red" }}> {pkg.clientName}</span>
               </p>
             )}
             <p className="text-sm text-muted-foreground leading-relaxed font-medium">
@@ -125,12 +126,7 @@ export default function Agreement({ pkg, onAgree, agreed }) {
               Terms of Service
             </h4>
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-4">
-              {[
-                "Artist retains full copyright of session media",
-                "Standard gallery delivery: 30-45 business days",
-                "Client covers travel & accommodation for outstation events",
-                "High-resolution archival assets delivered post-settlement",
-              ].map((term, i) => (
+              {pkg.conditions?.map((term, i) => (
                 <li
                   key={i}
                   className="flex items-start gap-3 text-[11px] text-muted-foreground font-semibold leading-snug"
