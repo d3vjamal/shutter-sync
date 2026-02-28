@@ -55,4 +55,13 @@ export default defineSchema({
         description: v.string(),
         photographerId: v.string(),
     }).index("by_photographer", ["photographerId"]),
+
+    packages: defineTable({
+        photographerId: v.string(),
+        name: v.string(),
+        description: v.optional(v.string()),
+        services: v.array(v.string()),
+        price: v.optional(v.string()),
+        popular: v.optional(v.boolean()),
+    }).index("by_photographer", ["photographerId"]),
 });

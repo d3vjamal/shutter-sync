@@ -3,11 +3,12 @@ import { toast } from "react-toastify";
 import { api } from "../../convex/_generated/api";
 
 export function useAssignments(user) {
-    const assignments =
-        useQuery(
-            api.assignments.listByPhotographer,
-            user ? { photographerId: user._id } : "skip"
-        ) || [];
+    const _raw = useQuery(
+        api.assignments.listByPhotographer,
+        user ? { photographerId: user._id } : "skip"
+    );
+    const isLoading = _raw === undefined;
+    const assignments = _raw || [];
 
     const createAssignmentMutation = useMutation(api.assignments.create);
     const updateAssignment = useMutation(api.assignments.update);
@@ -51,6 +52,7 @@ export function useAssignments(user) {
 
     return {
         assignments,
+        isLoading,
         createAssignment,
         updateAssignment: handleUpdateAssignment,
         updateAssignStatus: handleUpdateStatus,

@@ -13,53 +13,22 @@ import {
   CheckCircle2,
   ExternalLink,
   Camera,
-  Share2
+  Share2,
+  Layers,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { Button } from "../components/ui/button";
 
-// Mockup data for missing dynamic fields
-const MOCK_DATA = {
-  coverUrl: "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&q=80&w=2070",
-  socials: [
-    { platform: "Instagram", icon: Instagram, handle: "@shutter_sync_pro", url: "#" },
-    { platform: "Facebook", icon: Facebook, handle: "ShutterSync Studios", url: "#" },
-    { platform: "Twitter", icon: Twitter, handle: "@shutter_sync", url: "#" },
-  ],
-  gallery: [
-    "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&q=80&w=1000",
-    "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=1000",
-    "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&q=80&w=1000",
-    "https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&q=80&w=1000",
-    "https://images.unsplash.com/photo-1532712938310-34cb3982ef74?auto=format&fit=crop&q=80&w=1000",
-    "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=1000",
-  ],
-  packages: [
-    {
-      name: "Lite Session",
-      price: "15,000",
-      description: "Ideal for portraits and small personal events.",
-      features: ["2 Hours Coverage", "20 Retouched Photos", "Digital Gallery", "Single Location"],
-    },
-    {
-      name: "Standard Wedding",
-      price: "45,000",
-      description: "Perfect for full-day wedding coverage and rituals.",
-      features: ["6 Hours Coverage", "100 Retouched Photos", "Premium Album", "Two Locations", "Drone Shots"],
-      popular: true,
-    },
-    {
-      name: "Cinematic Event",
-      price: "75,000",
-      description: "Ultimate luxury for corporate or big fat weddings.",
-      features: ["Full Day Coverage", "Unlimited Photos", "Cinematic Trailer", "Luxe Hardcover Album", "Secondary Photographer"],
-    },
-  ]
-};
+const COVER_URL =
+  "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&q=80&w=2070";
 
 export default function PublicPhotographerPage() {
   const { id } = useParams();
   const photographer = useQuery(api.photographers.get, id ? { id } : "skip");
+  const packages = useQuery(
+    api.packages.listByPhotographer,
+    id ? { photographerId: id } : "skip"
+  ) || [];
 
   // SEO Updates
   React.useEffect(() => {
@@ -103,7 +72,7 @@ export default function PublicPhotographerPage() {
       {/* Hero Section */}
       <div className="relative h-[40vh] md:h-[50vh] overflow-hidden">
         <img
-          src={MOCK_DATA.coverUrl}
+          src={COVER_URL}
           alt="Cover"
           className="w-full h-full object-cover"
         />
@@ -227,40 +196,65 @@ export default function PublicPhotographerPage() {
           </div>
         </div>
 
-        {/* Packages */}
-        <section className="mt-20">
-          <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-primary mb-8 ml-1">Investment Packages</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {MOCK_DATA.packages.map((pkg, idx) => (
-              <div
-                key={idx}
-                className={`glass-card p-8 rounded-3xl flex flex-col h-full hover-lift border-2 ${pkg.popular ? 'border-primary/50 ring-2 ring-primary/10' : 'border-white/5'}`}
-              >
-                {pkg.popular && (
-                  <span className="bg-primary text-white text-[9px] font-black uppercase tracking-widest py-1 px-3 rounded-full self-start mb-4">
-                    Most Popular
-                  </span>
-                )}
-                <h4 className="text-xl font-black uppercase leading-none mb-1">{pkg.name}</h4>
-                <div className="text-3xl font-black mb-4">
-                  <span className="text-sm align-top mr-1">₹</span>
-                  {pkg.price}
+        {/* Photographer Service Packages */}
+        {packages.length > 0 && (
+          <section className="mt-20">
+            <div className="flex items-center gap-2.5 mb-8 ml-1">
+              <Layers size={14} className="text-primary" />
+              <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-primary">
+                Photographer Service Packages
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {packages.map((pkg) => (
+                <div
+                  key={pkg._id}
+                  className={`glass-card p-8 rounded-3xl flex flex-col h-full hover-lift border-2 ${
+                    pkg.popular
+                      ? "border-primary/50 ring-2 ring-primary/10"
+                      : "border-white/5"
+                  }`}
+                >
+                  {pkg.popular && (
+                    <span className="bg-primary text-white text-[9px] font-black uppercase tracking-widest py-1 px-3 rounded-full self-start mb-4">
+                      Most Popular
+                    </span>
+                  )}
+                  <h4 className="text-xl font-black uppercase leading-none mb-1">
+                    {pkg.name}
+                  </h4>
+                  {pkg.price && (
+                    <div className="text-3xl font-black mb-4">
+                      <span className="text-sm align-top mr-1">₹</span>
+                      {pkg.price}
+                    </div>
+                  )}
+                  {pkg.description && (
+                    <p className="text-sm text-muted-foreground mb-6 flex-grow">
+                      {pkg.description}
+                    </p>
+                  )}
+                  {pkg.services?.length > 0 && (
+                    <ul className="space-y-3 mt-auto">
+                      {pkg.services.map((s, i) => (
+                        <li
+                          key={i}
+                          className="flex items-start gap-3 text-xs font-bold text-muted-foreground"
+                        >
+                          <CheckCircle2
+                            size={14}
+                            className="text-primary shrink-0 mt-0.5"
+                          />
+                          <span>{s}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
-                <p className="text-sm text-muted-foreground mb-8 flex-grow">
-                  {pkg.description}
-                </p>
-                <ul className="space-y-4">
-                  {pkg.features.map((feat, fIdx) => (
-                    <li key={fIdx} className="flex items-start gap-3 text-xs font-bold text-muted-foreground">
-                      <CheckCircle2 size={14} className="text-primary shrink-0" />
-                      <span>{feat}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );

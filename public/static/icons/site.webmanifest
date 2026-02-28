@@ -1,21 +1,30 @@
 {
-  "name": "MyWebSite",
-  "short_name": "MySite",
+  "name": "ShutterSync",
+  "short_name": "ShutterSync",
+  "description": "Smart photography management app — manage assignments, clients, and bookings.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#1a56db",
+  "categories": ["business", "productivity", "photo"],
   "icons": [
     {
-      "src": "/web-app-manifest-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
+      "src": "/static/icons/favicon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png"
     },
     {
-      "src": "/web-app-manifest-512x512.png",
+      "src": "/static/icons/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/web-app-manifest-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
-  ],
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff",
-  "display": "standalone"
+  ]
 }

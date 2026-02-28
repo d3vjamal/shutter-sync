@@ -52,7 +52,7 @@ const ClientView = ({ pkg, onBack, onInitiatePayment, agreed, setAgreed }) => {
           ) : null}
           <div>
             <h2 className="text-2xl md:text-3xl font-black text-foreground uppercase tracking-tight">
-              {pkg.name}
+              {pkg.title || pkg.packageName || "Photography Services"}
             </h2>
             <p className="text-[10px] text-primary font-black tracking-[0.2em] uppercase opacity-70">
               {pkg.clientName
@@ -121,7 +121,7 @@ const ClientView = ({ pkg, onBack, onInitiatePayment, agreed, setAgreed }) => {
                       </h3>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {pkg.services.map((service, idx) => (
+                      {(pkg.services || []).map((service, idx) => (
                         <div
                           key={idx}
                           className="flex items-center gap-4 p-5 bg-muted/20 rounded-2xl border border-border/5 group hover:bg-muted/40 transition-all border-l-4 border-l-transparent hover:border-l-primary/50"

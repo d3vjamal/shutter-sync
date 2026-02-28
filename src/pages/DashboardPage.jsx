@@ -12,6 +12,7 @@ export default function DashboardPage() {
   const { theme, setTheme } = useTheme();
   const {
     assignments,
+    isLoading,
     updateAssignStatus,
     updateAssignCaptureDate,
     updateAssignment,
@@ -41,6 +42,7 @@ export default function DashboardPage() {
       />
       <Dashboard
         assignments={assignments}
+        loading={isLoading}
         onUpdateStatus={updateAssignStatus}
         onUpdateCaptureDate={updateAssignCaptureDate}
         onUpdateAssignment={updateAssignment}

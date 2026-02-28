@@ -15,6 +15,7 @@ import PublicClientPage from "./pages/PublicClientPage";
 import AgreementsPage from "./pages/AgreementsPage";
 import PublicPhotographerPage from "./pages/PublicPhotographerPage";
 import ProfilePage from "./pages/ProfilePage";
+import ServicePackagesPage from "./pages/ServicePackagesPage";
 
 // Components
 import LoadingSpinner from "./components/common/LoadingSpinner";
@@ -112,6 +113,15 @@ const AppContent = () => {
           element={
             <ProtectedRoute user={user} requiredRole="admin">
               <PhotographersPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/packages"
+          element={
+            <ProtectedRoute user={user}>
+              <ServicePackagesPage />
             </ProtectedRoute>
           }
         />

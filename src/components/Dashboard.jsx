@@ -1,24 +1,20 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Users,
   PlayCircle,
   CheckCircle,
   Calendar,
-  Clock,
   Edit2,
   ExternalLink,
+  IndianRupee,
+  MapPin,
+  Building2,
+  Briefcase,
+  Wallet,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import { Button } from "./ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "./ui/card";
 import { Badge } from "./ui/badge";
+import { Skeleton } from "./ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -27,35 +23,57 @@ import {
   DialogDescription,
   DialogFooter,
 } from "./ui/dialog";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 import { cn } from "../lib/utils";
-import { isFuture, isSameMonth } from "date-fns";
+import { isFuture, isSameMonth, format } from "date-fns";
+import AssignmentPDFDialog from "./AssignmentPDFDialog";
+
+// ─── Assignment Card ──────────────────────────────────────────────────────────
+
+const ACCENT = {
+  amber:   { bar: "bg-amber-500",   progress: "bg-amber-500"   },
+  primary: { bar: "bg-primary",     progress: "bg-primary"     },
+  emerald: { bar: "bg-emerald-500", progress: "bg-emerald-500" },
+  secondary:{ bar: "bg-secondary",  progress: "bg-secondary"   },
+};
 
 const AssignmentCard = ({
   assignment,
   isCompleted,
+  accentColor = "secondary",
   onUpdateStatus,
-  onUpdateCaptureDate,
-  onEdit,
+  onUpdateAssignment,
 }) => {
   const navigate = useNavigate();
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+  const [paymentInput, setPaymentInput] = useState("");
 
-  const handleEdit = () => {
-    navigate("/create-assignment", { state: { assignment } });
-  };
+  const paid  = Number(assignment.paidAmount || 0);
+  const total = Number(assignment.amount || 0);
+  const pct       = total > 0 ? Math.min(100, Math.round((paid / total) * 100)) : 0;
+  const remaining = total - paid;
+
+  const dateStr      = assignment.eventStartDate || assignment.captureDate;
+  const formattedDate = dateStr
+    ? format(new Date(dateStr), "dd MMM yyyy")
+    : "Date TBD";
+
+  const accent = ACCENT[isCompleted ? "emerald" : accentColor] || ACCENT.secondary;
+
+  const handleEdit  = () => navigate("/create-assignment", { state: { assignment } });
 
   const handleShare = async () => {
     try {
       const url = `${window.location.origin}/client/${assignment._id}`;
-      if (navigator.clipboard && navigator.clipboard.writeText) {
+      if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(url);
-        toast.success("Public link copied to clipboard");
+        toast.success("Link copied!");
       } else {
-        // fallback open in new tab
         window.open(url, "_blank");
       }
-    } catch (err) {
-      console.error("Share failed", err);
+    } catch {
       toast.error("Failed to copy link");
     }
   };
@@ -65,101 +83,124 @@ const AssignmentCard = ({
     await onUpdateStatus(assignment._id, "Completed");
   };
 
+  const handleOpenPayment = () => {
+    setPaymentInput(assignment.paidAmount || "0");
+    setShowPayment(true);
+  };
+
+  const handleSavePayment = async () => {
+    await onUpdateAssignment(assignment._id, { paidAmount: paymentInput });
+    setShowPayment(false);
+  };
+
   return (
-    <Card className="mb-4 group hover:border-primary/50 transition-all duration-300 relative overflow-hidden bg-card/50 backdrop-blur-sm shadow-sm rounded-2xl h-full">
-      <CardContent className="p-4 flex flex-col justify-between h-full">
-        <div className="flex flex-col gap-3">
-          <div className="flex justify-between items-start gap-4">
-            <div className="flex-1 min-w-0">
-              <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors truncate">
-                {assignment.title ||
-                  assignment.packageName ||
-                  "Photography Session"}
-              </h3>
-              <p className="text-xs text-muted-foreground font-medium mt-1 truncate">
-                Client: {assignment.clientName || "—"}
-              </p>
-              <p className="text-xs text-muted-foreground font-medium mt-1 truncate">
-                Photographer:{" "}
-                {assignment.photographerName || "Assigned Photographer"}
-              </p>
-            </div>
-            <div className="flex flex-col items-end gap-1">
-              {isCompleted ? (
-                <Badge
-                  variant="secondary"
-                  className="bg-secondary/10 text-secondary border-secondary/20"
-                >
-                  COMPLETED
-                </Badge>
-              ) : (
-                <span className="text-xl font-bold text-foreground">
-                  ₹{assignment.amount || assignment.totalAmount || 0}
-                </span>
-              )}
-            </div>
-          </div>
+    <div className="group relative bg-card rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 flex flex-col h-full">
+      {/* Top accent bar */}
+      <div className={cn("h-1 w-full shrink-0", accent.bar)} />
 
-          <div className="flex flex-wrap gap-2 text-[11px] font-medium text-muted-foreground">
-            <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md">
-              <Calendar size={12} className="icon-contrast" />
-              <span>
-                {assignment.eventStartDate || assignment.captureDate
-                  ? new Date(
-                      assignment.eventStartDate || assignment.captureDate,
-                    ).toLocaleString()
-                  : "Date TBD"}
+      <div className="p-4 flex flex-col flex-1 gap-3">
+
+        {/* Header: title + amount/status */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-foreground text-sm leading-snug truncate group-hover:text-primary transition-colors duration-200">
+              {assignment.title || assignment.packageName || "Photography Session"}
+            </h3>
+            <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+              {assignment.clientName || "—"}
+            </p>
+          </div>
+          <div className="shrink-0 text-right">
+            {isCompleted ? (
+              <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 text-[10px] font-bold tracking-wide">
+                DONE
+              </Badge>
+            ) : (
+              <span className="text-base font-black text-foreground">
+                ₹{total.toLocaleString()}
               </span>
-            </div>
-            <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md">
-              <span className="text-[11px] font-bold">Venue:</span>
-              <span>{assignment.venue || "—"}</span>
-            </div>
-            <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md">
-              <span className="text-[11px] font-bold">Location:</span>
-              <span>{assignment.location || "—"}</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2 mt-2 pt-4 border-t">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleEdit}
-              className="w-full flex  items-center justify-center gap-2 h-8 text-sm"
-            >
-              <Edit2 size={14} className="icon-contrast" /> Edit
-            </Button>
-            {!isCompleted && (
-              <Button
-                size="sm"
-                onClick={() => setShowConfirm(true)}
-                className="w-full hover:bg-primary/90 text-white   bg-secondary font-bold flex items-center justify-center gap-2 h-8 text-sm shadow-secondary/20"
-              >
-                <CheckCircle size={14} className="icon-contrast" /> Complete
-              </Button>
             )}
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleShare}
-              className="w-full flex items-center justify-center gap-2 h-8 text-sm"
-            >
-              <ExternalLink size={14} /> Share
-            </Button>
           </div>
         </div>
-      </CardContent>
 
-      {/* Confirmation Dialog */}
+        {/* Meta chips */}
+        <div className="flex flex-wrap gap-1.5">
+          <span className="inline-flex items-center gap-1 bg-muted text-muted-foreground text-[10px] font-medium px-2 py-0.5 rounded-full">
+            <Calendar size={9} />
+            {formattedDate}
+          </span>
+          {assignment.venue && (
+            <span className="inline-flex items-center gap-1 bg-muted text-muted-foreground text-[10px] font-medium px-2 py-0.5 rounded-full max-w-[130px]">
+              <Building2 size={9} className="shrink-0" />
+              <span className="truncate">{assignment.venue}</span>
+            </span>
+          )}
+          {assignment.location && (
+            <span className="inline-flex items-center gap-1 bg-muted text-muted-foreground text-[10px] font-medium px-2 py-0.5 rounded-full max-w-[130px]">
+              <MapPin size={9} className="shrink-0" />
+              <span className="truncate">{assignment.location}</span>
+            </span>
+          )}
+        </div>
+
+        {/* Payment progress */}
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+              Payment
+            </span>
+            <span className="text-[10px] font-bold text-foreground">
+              ₹{paid.toLocaleString()}
+              <span className="font-normal text-muted-foreground"> / ₹{total.toLocaleString()}</span>
+            </span>
+          </div>
+          <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+            <div
+              className={cn("h-full rounded-full transition-all duration-700", accent.progress)}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-muted-foreground">{pct}% paid</span>
+            {remaining > 0 && (
+              <span className="text-[10px] text-muted-foreground">
+                ₹{remaining.toLocaleString()} due
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex-1" />
+
+        {/* Action buttons */}
+        <div className="flex items-center justify-around pt-3 border-t border-border/50 -mx-1">
+          <ActionBtn onClick={handleEdit} icon={<Edit2 size={14} />} label="Edit" />
+          {!isCompleted && (
+            <ActionBtn
+              onClick={() => setShowConfirm(true)}
+              icon={<CheckCircle size={14} />}
+              label="Done"
+              className="text-secondary hover:bg-secondary/10 hover:text-secondary"
+            />
+          )}
+          <ActionBtn
+            onClick={handleOpenPayment}
+            icon={<IndianRupee size={14} />}
+            label="Pay"
+            className="hover:text-primary hover:bg-primary/10"
+          />
+          <AssignmentPDFDialog assignment={assignment} />
+          <ActionBtn onClick={handleShare} icon={<ExternalLink size={14} />} label="Share" />
+        </div>
+      </div>
+
+      {/* Complete Confirm Dialog */}
       <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-xs rounded-2xl">
           <DialogHeader>
             <DialogTitle>Mark as Complete?</DialogTitle>
             <DialogDescription>
-              Are you sure you want to mark "
-              {assignment.title || assignment.packageName || "this assignment"}"
-              as completed?
+              "{assignment.title || assignment.packageName || "This assignment"}" will be moved to completed.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
@@ -168,156 +209,302 @@ const AssignmentCard = ({
             </Button>
             <Button
               onClick={handleConfirmComplete}
-              className="bg-secondary hover:bg-secondary/90"
+              className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
             >
-              Yes, Mark Complete
+              <CheckCircle size={13} className="mr-1.5" /> Confirm
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Card>
+
+      {/* Payment Dialog */}
+      <Dialog open={showPayment} onOpenChange={setShowPayment}>
+        <DialogContent className="max-w-xs rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Update Payment</DialogTitle>
+            <DialogDescription>
+              Total:{" "}
+              <span className="font-bold text-foreground">
+                ₹{total.toLocaleString()}
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-1 space-y-3">
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div
+                className={cn("h-full rounded-full transition-all", accent.progress)}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-semibold text-foreground block mb-1.5">
+                Amount Received (₹)
+              </label>
+              <Input
+                type="number"
+                min="0"
+                value={paymentInput}
+                onChange={(e) => setPaymentInput(e.target.value)}
+                placeholder="0"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowPayment(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSavePayment}
+              className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
+            >
+              <IndianRupee size={13} className="mr-1" /> Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
 
-const DashboardSection = ({
-  title,
-  assignments,
-  icon: Icon,
-  color,
-  ...handlers
-}) => (
-  <div className="mb-8 mt-5">
-    <div className="flex items-center gap-3 mb-4 px-1">
-      <div className={cn("p-2 rounded-lg bg-primary/10", color)}>
-        <Icon size={18} className="icon-contrast" />
-      </div>
-      <h3 className="text-lg font-bold text-foreground">{title}</h3>
-      <span className="ml-auto text-xs font-bold px-2 py-1 rounded-full bg-muted text-muted-foreground">
-        {assignments.length}
-      </span>
-    </div>
-    {assignments.length > 0 ? (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {assignments.map((a) => (
-          <AssignmentCard
-            key={a._id}
-            assignment={a}
-            isCompleted={a.status === "Completed"}
-            {...handlers}
-          />
-        ))}
-      </div>
-    ) : (
-      <div className="p-8 text-center border border-dashed rounded-2xl opacity-50 bg-muted/20">
-        <p className="text-sm text-muted-foreground">
-          No {title.toLowerCase()}
-        </p>
-      </div>
+// Small icon-button used in card actions
+const ActionBtn = ({ onClick, icon, label, className }) => (
+  <button
+    onClick={onClick}
+    className={cn(
+      "flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl",
+      "text-muted-foreground hover:bg-muted transition-colors duration-150",
+      className
     )}
+  >
+    {icon}
+    <span className="text-[10px] font-semibold">{label}</span>
+  </button>
+);
+
+// ─── Skeleton card (shown while loading) ─────────────────────────────────────
+
+const SkeletonCard = () => (
+  <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm flex flex-col">
+    <Skeleton className="h-1 w-full rounded-none" />
+    <div className="p-4 flex flex-col gap-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 space-y-1.5">
+          <Skeleton className="h-3.5 w-3/4" />
+          <Skeleton className="h-2.5 w-1/2" />
+        </div>
+        <Skeleton className="h-5 w-14 shrink-0" />
+      </div>
+      <div className="flex gap-1.5">
+        <Skeleton className="h-4 w-20 rounded-full" />
+        <Skeleton className="h-4 w-24 rounded-full" />
+      </div>
+      <div className="space-y-1.5">
+        <Skeleton className="h-2.5 w-full" />
+        <Skeleton className="h-1.5 w-full rounded-full" />
+      </div>
+      <div className="flex justify-around pt-3 border-t border-border/50">
+        {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-8 w-10 rounded-xl" />)}
+      </div>
+    </div>
   </div>
 );
 
+// ─── Stat Card ────────────────────────────────────────────────────────────────
+
+const StatCard = ({ label, value, icon: Icon, from, iconColor }) => (
+  <div
+    className={cn(
+      "relative rounded-2xl p-4 overflow-hidden border border-border/40 shadow-sm",
+      "bg-gradient-to-br",
+      from
+    )}
+  >
+    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+      {label}
+    </p>
+    <p className="text-xl font-black text-foreground leading-tight">{value}</p>
+    <div className={cn("absolute right-3 bottom-2 opacity-10", iconColor)}>
+      <Icon size={38} />
+    </div>
+  </div>
+);
+
+// ─── Section header ───────────────────────────────────────────────────────────
+
+const SECTION_CFG = {
+  ongoing:  { iconBg: "bg-amber-500/10",   iconColor: "text-amber-500",   card: "amber"   },
+  upcoming: { iconBg: "bg-primary/10",     iconColor: "text-primary",     card: "primary" },
+  past:     { iconBg: "bg-emerald-500/10", iconColor: "text-emerald-500", card: "emerald" },
+};
+
+const DashboardSection = ({ title, assignments, icon: Icon, sectionKey, ...handlers }) => {
+  const cfg = SECTION_CFG[sectionKey] || SECTION_CFG.ongoing;
+
+  return (
+    <section>
+      {/* Section header */}
+      <div className="flex items-center gap-2.5 mb-4">
+        <div className={cn("p-1.5 rounded-xl", cfg.iconBg)}>
+          <Icon size={15} className={cfg.iconColor} />
+        </div>
+        <h2 className="text-sm font-bold text-foreground tracking-tight">{title}</h2>
+        <span className="ml-auto text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+          {assignments.length}
+        </span>
+      </div>
+
+      {assignments.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 stagger-children">
+          {assignments.map((a) => (
+            <AssignmentCard
+              key={a._id}
+              assignment={a}
+              isCompleted={a.status === "Completed"}
+              accentColor={cfg.card}
+              {...handlers}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="py-10 flex flex-col items-center justify-center border border-dashed rounded-2xl bg-muted/20 gap-2">
+          <Icon size={26} className={cn("opacity-25", cfg.iconColor)} />
+          <p className="text-xs text-muted-foreground">No {title.toLowerCase()}</p>
+        </div>
+      )}
+    </section>
+  );
+};
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+
 const Dashboard = ({
   assignments = [],
+  loading = false,
   onViewChange,
   onUpdateStatus,
   onUpdateCaptureDate,
   onUpdateAssignment,
 }) => {
-  // 1. Calculate Stats
-  const totalRevenue = assignments
-    .filter((a) => a.status === "Completed")
-    .reduce((sum, a) => sum + Number(a.totalAmount || a.amount || 0), 0);
+  /* ── Stats ── */
+  const totalCollected = assignments.reduce(
+    (s, a) => s + Number(a.paidAmount || 0),
+    0
+  );
+  const totalPending = assignments
+    .filter((a) => a.status !== "Completed")
+    .reduce((s, a) => s + Math.max(0, Number(a.amount || 0) - Number(a.paidAmount || 0)), 0);
   const totalCount = assignments.length;
 
-  // 2. Group Assignments
+  /* ── Group ── */
   const now = new Date();
-  const upcoming = [];
-  const ongoing = [];
-  const past = [];
+  const ongoing = [], upcoming = [], past = [];
 
   assignments.forEach((a) => {
     if (a.status === "Completed") {
       past.push(a);
     } else {
-      const eventDateStr = a.eventStartDate || a.captureDate;
-      if (eventDateStr) {
-        const eventDate = new Date(eventDateStr);
-        if (isFuture(eventDate) && !isSameMonth(eventDate, now)) {
-          upcoming.push(a);
-        } else {
-          ongoing.push(a);
-        }
+      const d = a.eventStartDate || a.captureDate;
+      if (d && isFuture(new Date(d)) && !isSameMonth(new Date(d), now)) {
+        upcoming.push(a);
       } else {
-        ongoing.push(a); // Unscheduled are ongoing
+        ongoing.push(a);
       }
     }
   });
 
-  // Sort groups
-  const sortFn = (a, b) =>
+  const byDate = (a, b) =>
     new Date(a.eventStartDate || a.captureDate) -
     new Date(b.eventStartDate || b.captureDate);
-  ongoing.sort(sortFn);
-  upcoming.sort(sortFn);
+  ongoing.sort(byDate);
+  upcoming.sort(byDate);
   past.sort((a, b) => b._creationTime - a._creationTime);
 
+  const handlers = { onUpdateStatus, onUpdateCaptureDate, onUpdateAssignment };
+
+  /* ── Loading skeleton ── */
+  if (loading) {
+    return (
+      <div className="max-w-5xl mx-auto pb-24 space-y-8 animate-load">
+        {/* Stat strip skeletons */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[1,2,3,4].map(i => <Skeleton key={i} className="h-20 rounded-2xl" />)}
+        </div>
+        {/* Section skeleton */}
+        <div className="space-y-3">
+          <Skeleton className="h-5 w-36 rounded-xl" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[1,2,3].map(i => <SkeletonCard key={i} />)}
+          </div>
+        </div>
+        <div className="space-y-3">
+          <Skeleton className="h-5 w-28 rounded-xl" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[1,2].map(i => <SkeletonCard key={i} />)}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-6xl mx-auto pb-20">
-      {/* Header Stats */}
-      <div className="grid grid-cols-2 gap-4 mb-10">
-        <Card className="relative overflow-hidden shadow-sm border-none bg-secondary text-primary-foreground">
-          <CardContent className="p-6 relative z-10">
-            <p className="text-sm font-medium opacity-80 mb-1">Total Revenue</p>
-            <h2 className="text-3xl font-black">
-              ₹{totalRevenue.toLocaleString()}
-            </h2>
-            <div className="absolute right-0 bottom-0 p-4 opacity-20">
-              &#8377;
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="relative overflow-hidden shadow-sm bg-card/50 backdrop-blur-sm">
-          <CardContent className="p-6 relative z-10">
-            <p className="text-sm font-medium text-muted-foreground mb-1">
-              Total Jobs
-            </p>
-            <h2 className="text-3xl font-black text-foreground">
-              {totalCount}
-            </h2>
-            <div className="absolute right-0 bottom-0 p-4 opacity-10">
-              <Users size={48} />
-            </div>
-          </CardContent>
-        </Card>
+    <div className="max-w-5xl mx-auto pb-24 space-y-8 animate-load">
+
+      {/* ── Stat strip ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 stagger-children">
+        <StatCard
+          label="Collected"
+          value={`₹${totalCollected.toLocaleString()}`}
+          icon={IndianRupee}
+          from="from-secondary/20 to-secondary/5"
+          iconColor="text-secondary"
+        />
+        <StatCard
+          label="Pending"
+          value={`₹${totalPending.toLocaleString()}`}
+          icon={Wallet}
+          from="from-primary/10 to-primary/5"
+          iconColor="text-primary"
+        />
+        <StatCard
+          label="Total Jobs"
+          value={totalCount}
+          icon={Briefcase}
+          from="from-primary/15 to-primary/5"
+          iconColor="text-primary"
+        />
+        <StatCard
+          label="Completed"
+          value={past.length}
+          icon={CheckCircle}
+          from="from-emerald-500/15 to-emerald-500/5"
+          iconColor="text-emerald-500"
+        />
       </div>
 
-      {/* Timeline Sections */}
+      {/* ── Sections ── */}
       <DashboardSection
-        title="Ongoing assignments"
+        title="In Progress"
+        sectionKey="ongoing"
         assignments={ongoing}
         icon={PlayCircle}
-        color="text-yellow-500"
-        onUpdateStatus={onUpdateStatus}
-        onUpdateCaptureDate={onUpdateCaptureDate}
+        {...handlers}
       />
       <DashboardSection
-        title="Upcoming assignments"
+        title="Upcoming"
+        sectionKey="upcoming"
         assignments={upcoming}
         icon={Calendar}
-        color="text-red-500"
-        onUpdateStatus={onUpdateStatus}
-        onUpdateCaptureDate={onUpdateCaptureDate}
+        {...handlers}
       />
       <DashboardSection
-        title="Past assignments"
+        title="Past Assignments"
+        sectionKey="past"
         assignments={past}
         icon={CheckCircle}
-        color="text-green-500"
-        onUpdateStatus={onUpdateStatus}
-        onUpdateCaptureDate={onUpdateCaptureDate}
+        {...handlers}
       />
     </div>
   );
 };
+
 export default Dashboard;
