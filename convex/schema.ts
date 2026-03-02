@@ -19,6 +19,7 @@ export default defineSchema({
         twitter: v.optional(v.string()),
         photos: v.optional(v.array(v.string())),
         avatarUrl: v.optional(v.string()),
+        brandLogoUrl: v.optional(v.string()),
     })
         .index("email", ["email"])
         .index("by_role", ["role"]) // legacy

@@ -170,16 +170,65 @@ export default function AgreementPDF({ assignment, photographer }) {
       <div
         style={{
           display: "flex",
+          alignItems: "center",
           justifyContent: "space-between",
-          alignItems: "flex-start",
           marginBottom: 20,
+          gap: 12,
         }}
       >
-        {/* Left: brand */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        {/* Left: photographer brand logo only */}
+        <div style={{ flex: 1, display: "flex", alignItems: "center" }}>
+          {photographer?.brandLogoUrl && (
+            <img
+              src={photographer.brandLogoUrl}
+              alt="Brand"
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 8,
+                objectFit: "contain",
+                border: "1px solid #e2e8f0",
+                background: "#f8fafc",
+                padding: 4,
+              }}
+              onError={(e) => {
+                e.target.style.display = "none";
+              }}
+            />
+          )}
+        </div>
+
+        {/* Center: title + meta */}
+        <div style={{ flex: 1, textAlign: "center" }}>
+          <div
+            style={{
+              fontSize: 15,
+              fontWeight: 900,
+              letterSpacing: "0.15em",
+              textTransform: "uppercase",
+              color: "#1a56db",
+              lineHeight: 1.2,
+            }}
+          >
+            Service Agreement
+          </div>
+          <div style={{ fontSize: 8, color: "#94a3b8", marginTop: 4 }}>
+            Ref: {refId} &nbsp;·&nbsp; {today}
+          </div>
+        </div>
+
+        {/* Right: ShutterSync app logo only */}
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+          }}
+        >
           <img
             src="/static/icons/logo.png"
-            alt="logo"
+            alt="ShutterSync"
             style={{
               width: 42,
               height: 42,
@@ -190,39 +239,6 @@ export default function AgreementPDF({ assignment, photographer }) {
               e.target.style.display = "none";
             }}
           />
-          <div>
-            <div
-              style={{
-                fontSize: 16,
-                fontWeight: 800,
-                color: "#0f172a",
-                letterSpacing: "-0.02em",
-              }}
-            >
-              ShutterSync
-            </div>
-          </div>
-        </div>
-
-        {/* Right: title + ref */}
-        <div style={{ textAlign: "right" }}>
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 800,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: "#1a56db",
-            }}
-          >
-            Service Agreement
-          </div>
-          <div style={{ fontSize: 9, color: "#94a3b8", marginTop: 2 }}>
-            Ref: {refId}
-          </div>
-          <div style={{ fontSize: 9, color: "#94a3b8" }}>
-            Generated: {today}
-          </div>
         </div>
       </div>
 

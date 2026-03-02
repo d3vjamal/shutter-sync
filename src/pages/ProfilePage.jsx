@@ -30,7 +30,8 @@ import {
   X,
   Loader2,
   CheckCircle2,
-  Share2
+  Share2,
+  Briefcase,
 } from "lucide-react";
 
 export default function ProfilePage() {
@@ -50,12 +51,14 @@ export default function ProfilePage() {
   });
 
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [brandLogoUrl, setBrandLogoUrl] = useState("");
   const [photos, setPhotos] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [activeTab, setActiveTab] = useState("identity"); // identity, socials, portfolio
+  const [activeTab, setActiveTab] = useState("identity"); // identity, socials, portfolio, brand
 
   const avatarInputRef = useRef(null);
   const galleryInputRef = useRef(null);
+  const brandLogoInputRef = useRef(null);
 
   useEffect(() => {
     if (user) {
@@ -69,6 +72,7 @@ export default function ProfilePage() {
         twitter: user.twitter || "",
       });
       setAvatarUrl(user.avatarUrl || "");
+      setBrandLogoUrl(user.brandLogoUrl || "");
       setPhotos(user.photos || []);
     }
   }, [user]);
@@ -105,6 +109,9 @@ export default function ProfilePage() {
       if (type === "avatar") {
         await updateUserProfile({ avatarUrl: storageId });
         toast.success("Profile photo updated");
+      } else if (type === "brandLogo") {
+        await updateUserProfile({ brandLogoUrl: storageId });
+        toast.success("Brand logo updated");
       } else {
         const currentPhotos = user.photos || [];
         const updatedPhotos = [...currentPhotos, storageId].slice(0, 6);
@@ -158,6 +165,7 @@ export default function ProfilePage() {
           <div className="w-full md:w-1/4 space-y-2">
             {[
               { id: "identity", label: "Identity", icon: User },
+              { id: "brand", label: "Brand", icon: Briefcase },
               { id: "socials", label: "Social Presence", icon: Instagram },
               { id: "portfolio", label: "Portfolio", icon: ImageIcon },
             ].map(tab => (
@@ -243,6 +251,126 @@ export default function ProfilePage() {
                         <Textarea id="bio" value={formData.bio} onChange={handleInputChange} className="min-h-[120px] rounded-xl bg-background/50 py-3" placeholder="Describe your style and passion..." />
                       </div>
                     </div>
+                  </div>
+                )}
+
+                {activeTab === "brand" && (
+                  <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
+                    <div>
+                      <h3 className="text-lg font-black uppercase tracking-tight mb-1">Brand Identity</h3>
+                      <p className="text-xs text-muted-foreground font-medium">
+                        Your brand logo appears on the top-left of every Service Agreement PDF.
+                      </p>
+                    </div>
+
+                    {/* Brand Logo Upload */}
+                    <div className="flex flex-col items-center gap-6">
+                      <div
+                        className="relative group cursor-pointer"
+                        onClick={() => brandLogoInputRef.current.click()}
+                      >
+                        {brandLogoUrl ? (
+                          <img
+                            src={brandLogoUrl}
+                            alt="Brand Logo"
+                            className="w-40 h-40 rounded-2xl object-contain border-4 border-background shadow-xl bg-white hover:opacity-80 transition-opacity p-2"
+                          />
+                        ) : (
+                          <div className="w-40 h-40 rounded-2xl border-2 border-dashed border-primary/30 bg-primary/5 flex flex-col items-center justify-center gap-3 hover:border-primary/60 hover:bg-primary/10 transition-all">
+                            <Briefcase size={32} className="text-primary/40" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                              Upload Logo
+                            </span>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="bg-black/40 backdrop-blur-md p-2 rounded-xl text-white">
+                            <Upload size={20} />
+                          </div>
+                        </div>
+                        <input
+                          type="file"
+                          ref={brandLogoInputRef}
+                          className="hidden"
+                          accept="image/*"
+                          onChange={(e) => handleFileUpload(e, "brandLogo")}
+                        />
+                      </div>
+
+                      <div className="text-center space-y-1">
+                        <p className="text-sm font-bold text-foreground">
+                          {formData.name || "Your Studio"}
+                        </p>
+                        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
+                          Brand / Studio Logo
+                        </p>
+                        {brandLogoUrl && (
+                          <button
+                            onClick={async () => {
+                              try {
+                                await updateUserProfile({ brandLogoUrl: "" });
+                                setBrandLogoUrl("");
+                                toast.info("Brand logo removed");
+                              } catch {
+                                toast.error("Failed to remove logo");
+                              }
+                            }}
+                            className="text-[10px] font-bold text-red-400 hover:text-red-500 uppercase tracking-widest mt-2 block mx-auto"
+                          >
+                            Remove Logo
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Preview card */}
+                    <div className="rounded-2xl border border-white/10 bg-background/40 p-5">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">
+                        Agreement Header Preview
+                      </p>
+                      <div className="bg-white rounded-xl p-4 flex items-center justify-between gap-4">
+                        {/* Left: brand logo */}
+                        <div className="flex items-center gap-3 flex-1">
+                          {brandLogoUrl ? (
+                            <img
+                              src={brandLogoUrl}
+                              alt="Brand"
+                              className="w-10 h-10 rounded-lg object-contain"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center">
+                              <Briefcase size={16} className="text-slate-400" />
+                            </div>
+                          )}
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            {formData.name || "Your Brand"}
+                          </span>
+                        </div>
+                        {/* Center: title */}
+                        <div className="text-center flex-1">
+                          <div className="text-[11px] font-black uppercase tracking-[0.15em] text-blue-700">
+                            Service Agreement
+                          </div>
+                        </div>
+                        {/* Right: app logo */}
+                        <div className="flex items-center gap-2 flex-1 justify-end">
+                          <img
+                            src="/static/icons/logo.png"
+                            alt="ShutterSync"
+                            className="w-8 h-8 rounded-lg object-cover"
+                            onError={(e) => { e.target.style.display = "none"; }}
+                          />
+                          <span className="text-[10px] font-bold text-slate-700">ShutterSync</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {isUploading && (
+                      <div className="flex items-center gap-2 justify-center text-muted-foreground text-xs">
+                        <Loader2 size={14} className="animate-spin" />
+                        Uploading…
+                      </div>
+                    )}
                   </div>
                 )}
 

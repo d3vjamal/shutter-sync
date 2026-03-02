@@ -18,6 +18,9 @@ export const viewer = query({
             avatarUrl: (user.avatarUrl && !user.avatarUrl.startsWith("http"))
                 ? (await ctx.storage.getUrl(user.avatarUrl)) ?? user.avatarUrl
                 : user.avatarUrl,
+            brandLogoUrl: (user.brandLogoUrl && !user.brandLogoUrl.startsWith("http"))
+                ? (await ctx.storage.getUrl(user.brandLogoUrl)) ?? user.brandLogoUrl
+                : user.brandLogoUrl,
             photos: user.photos
                 ? await Promise.all(user.photos.map(async (id) =>
                     (id && !id.startsWith("http")) ? (await ctx.storage.getUrl(id)) ?? id : id
@@ -38,6 +41,7 @@ export const updateUserProfile = mutation({
         twitter: v.optional(v.string()),
         photos: v.optional(v.array(v.string())),
         avatarUrl: v.optional(v.string()),
+        brandLogoUrl: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         const userId = await auth.getUserId(ctx);
@@ -61,6 +65,7 @@ export const updateUserProfile = mutation({
         if (args.twitter !== undefined) updates.twitter = args.twitter;
         if (args.photos !== undefined) updates.photos = args.photos;
         if (args.avatarUrl !== undefined) updates.avatarUrl = args.avatarUrl;
+        if (args.brandLogoUrl !== undefined) updates.brandLogoUrl = args.brandLogoUrl;
 
         if (Object.keys(updates).length > 0) {
             await ctx.db.patch(userId, updates);
