@@ -2,6 +2,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { auth } from "./auth";
+import { Id } from "./_generated/dataModel";
 
 export const viewer = query({
     args: {},
@@ -42,6 +43,7 @@ export const updateUserProfile = mutation({
         photos: v.optional(v.array(v.string())),
         avatarUrl: v.optional(v.string()),
         brandLogoUrl: v.optional(v.string()),
+        username: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         const userId = await auth.getUserId(ctx);
@@ -66,6 +68,7 @@ export const updateUserProfile = mutation({
         if (args.photos !== undefined) updates.photos = args.photos;
         if (args.avatarUrl !== undefined) updates.avatarUrl = args.avatarUrl;
         if (args.brandLogoUrl !== undefined) updates.brandLogoUrl = args.brandLogoUrl;
+        if (args.username !== undefined) updates.username = args.username || undefined;
 
         if (Object.keys(updates).length > 0) {
             await ctx.db.patch(userId, updates);
@@ -77,6 +80,21 @@ export const updateUserProfile = mutation({
 
 export const generateUploadUrl = mutation(async (ctx) => {
     return await ctx.storage.generateUploadUrl();
+});
+
+export const checkUsername = query({
+    args: { username: v.string() },
+    handler: async (ctx, args) => {
+        if (!args.username) return { available: false };
+        const existing = await ctx.db
+            .query("users")
+            .withIndex("by_username", (q) => q.eq("username", args.username))
+            .unique();
+        const currentUserId = await auth.getUserId(ctx);
+        // Available if nobody has it, or it belongs to the current user
+        const available = !existing || existing._id === currentUserId;
+        return { available };
+    },
 });
 
 export const listPhotographers = query({

@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { Id } from "./_generated/dataModel";
 
 export const create = mutation({
     args: {
@@ -55,6 +56,43 @@ export const get = query({
             photos: photographer.photos
                 ? await Promise.all(photographer.photos.map(async (id) =>
                     (id && !id.startsWith("http")) ? (await ctx.storage.getUrl(id)) ?? id : id
+                ))
+                : [],
+        };
+    },
+});
+
+export const getBySlug = query({
+    args: { slug: v.string() },
+    handler: async (ctx, args) => {
+        // 1. Try username lookup first
+        let photographer = await ctx.db
+            .query("users")
+            .withIndex("by_username", (q) => q.eq("username", args.slug))
+            .unique();
+
+        // 2. Fall back to raw document ID
+        if (!photographer) {
+            try {
+                photographer = await ctx.db.get(args.slug as Id<"users">);
+            } catch {
+                return null;
+            }
+        }
+
+        if (!photographer) return null;
+
+        return {
+            ...photographer,
+            avatarUrl: (photographer.avatarUrl && !photographer.avatarUrl.startsWith("http"))
+                ? (await ctx.storage.getUrl(photographer.avatarUrl)) ?? photographer.avatarUrl
+                : photographer.avatarUrl,
+            brandLogoUrl: (photographer.brandLogoUrl && !photographer.brandLogoUrl.startsWith("http"))
+                ? (await ctx.storage.getUrl(photographer.brandLogoUrl)) ?? photographer.brandLogoUrl
+                : photographer.brandLogoUrl,
+            photos: photographer.photos
+                ? await Promise.all(photographer.photos.map(async (photoId) =>
+                    (photoId && !photoId.startsWith("http")) ? (await ctx.storage.getUrl(photoId)) ?? photoId : photoId
                 ))
                 : [],
         };

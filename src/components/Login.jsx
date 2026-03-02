@@ -161,7 +161,7 @@ export default function Login({ onLogin }) {
       } else if (errorMsg.includes("already exists")) {
         setError("This email is already registered. Please log in instead.");
       } else {
-        setError(errorMsg || "Authentication failed. Please try again.");
+        setError("Authentication failed. Please try again.");
       }
       setLoading(false);
     }

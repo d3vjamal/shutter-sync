@@ -23,11 +23,11 @@ const COVER_URL =
   "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&q=80&w=2070";
 
 export default function PublicPhotographerPage() {
-  const { id } = useParams();
-  const photographer = useQuery(api.photographers.get, id ? { id } : "skip");
+  const { id } = useParams(); // may be a username or a raw Convex ID
+  const photographer = useQuery(api.photographers.getBySlug, id ? { slug: id } : "skip");
   const packages = useQuery(
     api.packages.listByPhotographer,
-    id ? { photographerId: id } : "skip"
+    photographer?._id ? { photographerId: photographer._id } : "skip"
   ) || [];
 
   // SEO Updates

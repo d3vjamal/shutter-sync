@@ -20,10 +20,12 @@ export default defineSchema({
         photos: v.optional(v.array(v.string())),
         avatarUrl: v.optional(v.string()),
         brandLogoUrl: v.optional(v.string()),
+        username: v.optional(v.string()),
     })
         .index("email", ["email"])
         .index("by_role", ["role"]) // legacy
-        .index("by_roleCode", ["roleCode"]),
+        .index("by_roleCode", ["roleCode"])
+        .index("by_username", ["username"]),
 
     assignments: defineTable({
         photographerId: v.string(), // TODO: migrate to v.id("users")

@@ -26,7 +26,7 @@ export function useAssignments(user) {
             toast.success("Assignment created successfully! 📸");
             return true;
         } catch (err) {
-            toast.error("Failed to create assignment: " + err.message);
+            toast.error("Failed to create assignment. Please try again.");
             return false;
         }
     };
@@ -40,12 +40,21 @@ export function useAssignments(user) {
     };
 
     const handleUpdateAssignment = async (id, data) => {
+        // Strip Convex system fields and read-only fields before sending to the validator
+        const {
+            _creationTime,
+            _id,
+            photographerId,
+            status,
+            captureDate,
+            ...updateFields
+        } = data;
         try {
-            await updateAssignment({ id, ...data });
+            await updateAssignment({ id, ...updateFields });
             toast.success("Assignment updated successfully!");
             return true;
         } catch (err) {
-            toast.error("Failed to update assignment: " + err.message);
+            toast.error("Failed to update assignment. Please try again.");
             return false;
         }
     };

@@ -42,7 +42,7 @@ export default function AdminLogin({ onLogin, loading: externalLoading }) {
     try {
       await onLogin(email, password, "admin");
     } catch (err) {
-      setError(err.message || "Invalid admin credentials");
+      setError("Invalid admin credentials. Please check your details and try again.");
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useMutation } from "convex/react";
+import React, { useState, useEffect, useRef, useDeferredValue } from "react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../hooks/useTheme";
@@ -48,13 +48,35 @@ export default function ProfilePage() {
     instagram: "",
     facebook: "",
     twitter: "",
+    username: "",
   });
+  const [usernameInput, setUsernameInput] = useState(""); // raw value before debounce
+  const deferredUsername = useDeferredValue(usernameInput);
 
   const [avatarUrl, setAvatarUrl] = useState("");
   const [brandLogoUrl, setBrandLogoUrl] = useState("");
   const [photos, setPhotos] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [activeTab, setActiveTab] = useState("identity"); // identity, socials, portfolio, brand
+
+  // Live username availability — only fires when deferredUsername is valid
+  const usernameValid = /^[a-z0-9_]{3,20}$/.test(deferredUsername);
+  const usernameCheck = useQuery(
+    api.users.checkUsername,
+    usernameValid ? { username: deferredUsername } : "skip"
+  );
+  // Determine status for UI
+  const usernameStatus = !usernameInput
+    ? "empty"
+    : !/^[a-z0-9_]{3,20}$/.test(usernameInput)
+      ? "invalid"
+      : deferredUsername !== usernameInput
+        ? "checking"
+        : usernameCheck === undefined
+          ? "checking"
+          : usernameCheck.available
+            ? "available"
+            : "taken";
 
   const avatarInputRef = useRef(null);
   const galleryInputRef = useRef(null);
@@ -70,7 +92,9 @@ export default function ProfilePage() {
         instagram: user.instagram || "",
         facebook: user.facebook || "",
         twitter: user.twitter || "",
+        username: user.username || "",
       });
+      setUsernameInput(user.username || "");
       setAvatarUrl(user.avatarUrl || "");
       setBrandLogoUrl(user.brandLogoUrl || "");
       setPhotos(user.photos || []);
@@ -79,12 +103,19 @@ export default function ProfilePage() {
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: value }));
+    if (id === "username") {
+      const sanitized = value.toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 20);
+      setUsernameInput(sanitized);
+      setFormData(prev => ({ ...prev, username: sanitized }));
+    } else {
+      setFormData(prev => ({ ...prev, [id]: value }));
+    }
   };
 
   const shareProfile = () => {
     if (!user?._id) return;
-    const url = `${window.location.origin}/photographer/${user._id}`;
+    const slug = user.username || user._id;
+    const url = `${window.location.origin}/photographer/${slug}`;
     navigator.clipboard.writeText(url).then(() => {
       toast.success("Public profile link copied!");
     }).catch(() => {
@@ -138,6 +169,21 @@ export default function ProfilePage() {
   };
 
   const handleSaveAll = async () => {
+    // Guard: if username is non-empty, it must pass validation and be available
+    if (formData.username) {
+      if (!/^[a-z0-9_]{3,20}$/.test(formData.username)) {
+        toast.error("Username must be 3–20 characters: letters, numbers, underscores only.");
+        return;
+      }
+      if (usernameStatus === "taken") {
+        toast.error("That username is already taken. Choose another.");
+        return;
+      }
+      if (usernameStatus === "checking") {
+        toast.error("Still checking username availability — please wait a moment.");
+        return;
+      }
+    }
     try {
       await updateUserProfile(formData);
       toast.success("All profile details updated");
@@ -242,6 +288,55 @@ export default function ProfilePage() {
                         <Label htmlFor="contact" className="text-[10px] font-black uppercase tracking-widest ml-1 text-muted-foreground">Contact Number</Label>
                         <Input id="contact" value={formData.contact} onChange={handleInputChange} className="h-12 rounded-xl bg-background/50" />
                       </div>
+                      {/* Username */}
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="username" className="text-[10px] font-black uppercase tracking-widest ml-1 text-muted-foreground">
+                          Public Username
+                        </Label>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground select-none">@</span>
+                          <Input
+                            id="username"
+                            value={formData.username}
+                            onChange={handleInputChange}
+                            className="h-12 pl-9 pr-28 rounded-xl bg-background/50 font-mono"
+                            placeholder="yourname"
+                            maxLength={20}
+                          />
+                          {/* Status badge */}
+                          <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full ${
+                            usernameStatus === "available"
+                              ? "bg-green-500/15 text-green-600"
+                              : usernameStatus === "taken"
+                                ? "bg-red-500/15 text-red-500"
+                                : usernameStatus === "checking"
+                                  ? "bg-yellow-500/15 text-yellow-600"
+                                  : usernameStatus === "invalid"
+                                    ? "bg-red-500/10 text-red-400"
+                                    : "hidden"
+                          }`}>
+                            {usernameStatus === "available" && "✓ Available"}
+                            {usernameStatus === "taken" && "✗ Taken"}
+                            {usernameStatus === "checking" && "Checking…"}
+                            {usernameStatus === "invalid" && "Invalid"}
+                          </span>
+                        </div>
+                        {/* URL preview */}
+                        {formData.username && usernameStatus === "available" && (
+                          <p className="text-[10px] text-muted-foreground ml-1 font-mono">
+                            {window.location.origin}/photographer/<span className="text-primary font-bold">{formData.username}</span>
+                          </p>
+                        )}
+                        {!formData.username && user?.username && (
+                          <p className="text-[10px] text-muted-foreground ml-1 font-mono">
+                            Current: {window.location.origin}/photographer/<span className="text-primary font-bold">{user.username}</span>
+                          </p>
+                        )}
+                        <p className="text-[10px] text-muted-foreground/60 ml-1">
+                          3–20 chars · letters, numbers and _ only · no spaces
+                        </p>
+                      </div>
+
                       <div className="space-y-2 md:col-span-2">
                         <Label htmlFor="upiId" className="text-[10px] font-black uppercase tracking-widest ml-1 text-muted-foreground">UPI ID for Payments</Label>
                         <Input id="upiId" value={formData.upiId} onChange={handleInputChange} className="h-12 rounded-xl bg-background/50 font-mono" />
