@@ -12,14 +12,9 @@ export default function ProtectedRoute({ children, user, requiredRole }) {
         return <Navigate to="/login" replace />;
     }
 
-    // Check role if required
-    if (requiredRole) {
-        const userRole = user.roleCode || user.role || "photographer";
-        const isAdmin = userRole === "admin" || user.email === "admin@shuttersync.com";
-
-        if (requiredRole === "admin" && !isAdmin) {
-            return <Navigate to="/dashboard" replace />;
-        }
+    // Check role if required (roleCode: 0 = admin, 1 = photographer)
+    if (requiredRole === "admin" && user.roleCode !== 0) {
+        return <Navigate to="/dashboard" replace />;
     }
 
     return children;

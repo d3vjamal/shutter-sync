@@ -13,14 +13,9 @@ export function useAuth() {
         navigate("/login");
     };
 
+    // Authenticates only — caller must verify roleCode === 0 before navigating
     const handleAdminLogin = async (email, password) => {
-        try {
-            await signIn("password", { email, password, flow: "signIn" });
-            navigate("/dashboard");
-        } catch (err) {
-            console.error("Admin login error:", err);
-            throw err;
-        }
+        await signIn("password", { email, password, flow: "signIn" });
     };
 
     return {

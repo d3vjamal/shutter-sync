@@ -23,10 +23,8 @@ export const create = mutation({
         const { password, ...userData } = args;
         const id = await ctx.db.insert("users", {
             ...userData,
-            // new structured role fields
-            role: "photographer",
             roleName: "Photographer",
-            roleCode: "photographer",
+            roleCode: 1,
             active: true,
         });
         return id;
@@ -35,10 +33,9 @@ export const create = mutation({
 
 export const list = query({
     handler: async (ctx) => {
-        return await ctx.db
-            .query("users")
-            .withIndex("by_roleCode", (q) => q.eq("roleCode", "photographer"))
-            .collect();
+        // Return all non-admin users (supports both legacy string roleCode and new numeric 1)
+        const all = await ctx.db.query("users").collect();
+        return all.filter((u) => u.roleCode !== 0);
     },
 });
 
@@ -127,5 +124,12 @@ export const remove = mutation({
     args: { id: v.id("users") },
     handler: async (ctx, args) => {
         await ctx.db.delete(args.id);
+    },
+});
+
+export const toggleActive = mutation({
+    args: { id: v.id("users"), active: v.boolean() },
+    handler: async (ctx, args) => {
+        await ctx.db.patch(args.id, { active: args.active });
     },
 });

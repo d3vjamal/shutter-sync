@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import AppLayout from "../components/layouts/AppLayout";
 import Header from "../components/Header";
 import Dashboard from "../components/Dashboard";
 import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../hooks/useTheme";
 import { useAssignments } from "../hooks/useAssignments";
+import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 
 export default function DashboardPage() {
@@ -17,15 +18,7 @@ export default function DashboardPage() {
     updateAssignCaptureDate,
     updateAssignment,
   } = useAssignments(user);
-  const [totalRevenue, setTotalRevenue] = useState(0);
-
-  useEffect(() => {
-    async function fetchTotalRevenue() {
-      const revenue = await api.calculateTotalRevenue();
-      setTotalRevenue(revenue);
-    }
-    fetchTotalRevenue();
-  }, []);
+  const totalRevenue = useQuery(api.assignments.calculateTotalRevenue) ?? 0;
 
   return (
     <AppLayout

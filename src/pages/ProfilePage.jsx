@@ -63,7 +63,7 @@ export default function ProfilePage() {
   const usernameValid = /^[a-z0-9_]{3,20}$/.test(deferredUsername);
   const usernameCheck = useQuery(
     api.users.checkUsername,
-    usernameValid ? { username: deferredUsername } : "skip"
+    usernameValid ? { username: deferredUsername } : "skip",
   );
   // Determine status for UI
   const usernameStatus = !usernameInput
@@ -104,11 +104,14 @@ export default function ProfilePage() {
   const handleInputChange = (e) => {
     const { id, value } = e.target;
     if (id === "username") {
-      const sanitized = value.toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 20);
+      const sanitized = value
+        .toLowerCase()
+        .replace(/[^a-z0-9_]/g, "")
+        .slice(0, 20);
       setUsernameInput(sanitized);
-      setFormData(prev => ({ ...prev, username: sanitized }));
+      setFormData((prev) => ({ ...prev, username: sanitized }));
     } else {
-      setFormData(prev => ({ ...prev, [id]: value }));
+      setFormData((prev) => ({ ...prev, [id]: value }));
     }
   };
 
@@ -116,11 +119,14 @@ export default function ProfilePage() {
     if (!user?._id) return;
     const slug = user.username || user._id;
     const url = `${window.location.origin}/photographer/${slug}`;
-    navigator.clipboard.writeText(url).then(() => {
-      toast.success("Public profile link copied!");
-    }).catch(() => {
-      toast.error("Failed to copy link");
-    });
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        toast.success("Public profile link copied!");
+      })
+      .catch(() => {
+        toast.error("Failed to copy link");
+      });
   };
 
   const handleFileUpload = async (event, type) => {
@@ -172,7 +178,9 @@ export default function ProfilePage() {
     // Guard: if username is non-empty, it must pass validation and be available
     if (formData.username) {
       if (!/^[a-z0-9_]{3,20}$/.test(formData.username)) {
-        toast.error("Username must be 3–20 characters: letters, numbers, underscores only.");
+        toast.error(
+          "Username must be 3–20 characters: letters, numbers, underscores only.",
+        );
         return;
       }
       if (usernameStatus === "taken") {
@@ -180,7 +188,9 @@ export default function ProfilePage() {
         return;
       }
       if (usernameStatus === "checking") {
-        toast.error("Still checking username availability — please wait a moment.");
+        toast.error(
+          "Still checking username availability — please wait a moment.",
+        );
         return;
       }
     }
@@ -214,14 +224,15 @@ export default function ProfilePage() {
               { id: "brand", label: "Brand", icon: Briefcase },
               { id: "socials", label: "Social Presence", icon: Instagram },
               { id: "portfolio", label: "Portfolio", icon: ImageIcon },
-            ].map(tab => (
+            ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-black uppercase tracking-widest transition-all ${activeTab === tab.id
-                  ? "bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]"
-                  : "text-muted-foreground hover:bg-accent/10"
-                  }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-black uppercase tracking-widest transition-all ${
+                  activeTab === tab.id
+                    ? "bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]"
+                    : "text-muted-foreground hover:bg-accent/10"
+                }`}
               >
                 <tab.icon size={18} />
                 {tab.label}
@@ -229,10 +240,14 @@ export default function ProfilePage() {
             ))}
             <div className="pt-8 px-2 space-y-4">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-4">Account Health</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-4">
+                  Account Health
+                </p>
                 <div className="flex items-center gap-2 text-primary">
                   <CheckCircle2 size={14} />
-                  <span className="text-xs font-bold">Public Profile Verified</span>
+                  <span className="text-xs font-bold">
+                    Public Profile Verified
+                  </span>
                 </div>
               </div>
 
@@ -254,7 +269,10 @@ export default function ProfilePage() {
                 {activeTab === "identity" && (
                   <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
                     <div className="flex flex-col items-center gap-6 pb-8 border-b border-white/10">
-                      <div className="relative group cursor-pointer" onClick={() => avatarInputRef.current.click()}>
+                      <div
+                        className="relative group cursor-pointer"
+                        onClick={() => avatarInputRef.current.click()}
+                      >
                         <img
                           src={avatarUrl || "/static/icons/logo.png"}
                           alt="Avatar"
@@ -274,27 +292,56 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="text-center">
-                        <h2 className="text-xl font-black uppercase tracking-tight">{formData.name}</h2>
-                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Public Identity</p>
+                        <h2 className="text-xl font-black uppercase tracking-tight">
+                          {formData.name}
+                        </h2>
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                          Public Identity
+                        </p>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest ml-1 text-muted-foreground">Full Name</Label>
-                        <Input id="name" value={formData.name} onChange={handleInputChange} className="h-12 rounded-xl bg-background/50" />
+                        <Label
+                          htmlFor="name"
+                          className="text-[10px] font-black uppercase tracking-widest ml-1 text-muted-foreground"
+                        >
+                          Full Name
+                        </Label>
+                        <Input
+                          id="name"
+                          value={formData.name}
+                          onChange={handleInputChange}
+                          className="h-12 rounded-xl bg-background/50"
+                        />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="contact" className="text-[10px] font-black uppercase tracking-widest ml-1 text-muted-foreground">Contact Number</Label>
-                        <Input id="contact" value={formData.contact} onChange={handleInputChange} className="h-12 rounded-xl bg-background/50" />
+                        <Label
+                          htmlFor="contact"
+                          className="text-[10px] font-black uppercase tracking-widest ml-1 text-muted-foreground"
+                        >
+                          Contact Number
+                        </Label>
+                        <Input
+                          id="contact"
+                          value={formData.contact}
+                          onChange={handleInputChange}
+                          className="h-12 rounded-xl bg-background/50"
+                        />
                       </div>
                       {/* Username */}
                       <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="username" className="text-[10px] font-black uppercase tracking-widest ml-1 text-muted-foreground">
+                        <Label
+                          htmlFor="username"
+                          className="text-[10px] font-black uppercase tracking-widest ml-1 text-muted-foreground"
+                        >
                           Public Username
                         </Label>
                         <div className="relative">
-                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground select-none">@</span>
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground select-none">
+                            @
+                          </span>
                           <Input
                             id="username"
                             value={formData.username}
@@ -304,17 +351,19 @@ export default function ProfilePage() {
                             maxLength={20}
                           />
                           {/* Status badge */}
-                          <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full ${
-                            usernameStatus === "available"
-                              ? "bg-green-500/15 text-green-600"
-                              : usernameStatus === "taken"
-                                ? "bg-red-500/15 text-red-500"
-                                : usernameStatus === "checking"
-                                  ? "bg-yellow-500/15 text-yellow-600"
-                                  : usernameStatus === "invalid"
-                                    ? "bg-red-500/10 text-red-400"
-                                    : "hidden"
-                          }`}>
+                          <span
+                            className={`absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full ${
+                              usernameStatus === "available"
+                                ? "bg-green-500/15 text-green-600"
+                                : usernameStatus === "taken"
+                                  ? "bg-red-500/15 text-red-500"
+                                  : usernameStatus === "checking"
+                                    ? "bg-yellow-500/15 text-yellow-600"
+                                    : usernameStatus === "invalid"
+                                      ? "bg-red-500/10 text-red-400"
+                                      : "hidden"
+                            }`}
+                          >
                             {usernameStatus === "available" && "✓ Available"}
                             {usernameStatus === "taken" && "✗ Taken"}
                             {usernameStatus === "checking" && "Checking…"}
@@ -322,14 +371,21 @@ export default function ProfilePage() {
                           </span>
                         </div>
                         {/* URL preview */}
-                        {formData.username && usernameStatus === "available" && (
-                          <p className="text-[10px] text-muted-foreground ml-1 font-mono">
-                            {window.location.origin}/photographer/<span className="text-primary font-bold">{formData.username}</span>
-                          </p>
-                        )}
+                        {formData.username &&
+                          usernameStatus === "available" && (
+                            <p className="text-[10px] text-muted-foreground ml-1 font-mono">
+                              {window.location.origin}/photographer/
+                              <span className="text-primary font-bold">
+                                {formData.username}
+                              </span>
+                            </p>
+                          )}
                         {!formData.username && user?.username && (
                           <p className="text-[10px] text-muted-foreground ml-1 font-mono">
-                            Current: {window.location.origin}/photographer/<span className="text-primary font-bold">{user.username}</span>
+                            Current: {window.location.origin}/photographer/
+                            <span className="text-primary font-bold">
+                              {user.username}
+                            </span>
                           </p>
                         )}
                         <p className="text-[10px] text-muted-foreground/60 ml-1">
@@ -338,12 +394,33 @@ export default function ProfilePage() {
                       </div>
 
                       <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="upiId" className="text-[10px] font-black uppercase tracking-widest ml-1 text-muted-foreground">UPI ID for Payments</Label>
-                        <Input id="upiId" value={formData.upiId} onChange={handleInputChange} className="h-12 rounded-xl bg-background/50 font-mono" />
+                        <Label
+                          htmlFor="upiId"
+                          className="text-[10px] font-black uppercase tracking-widest ml-1 text-muted-foreground"
+                        >
+                          UPI ID for Payments
+                        </Label>
+                        <Input
+                          id="upiId"
+                          value={formData.upiId}
+                          onChange={handleInputChange}
+                          className="h-12 rounded-xl bg-background/50 font-mono"
+                        />
                       </div>
                       <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="bio" className="text-[10px] font-black uppercase tracking-widest ml-1 text-muted-foreground">About the Storyteller</Label>
-                        <Textarea id="bio" value={formData.bio} onChange={handleInputChange} className="min-h-[120px] rounded-xl bg-background/50 py-3" placeholder="Describe your style and passion..." />
+                        <Label
+                          htmlFor="bio"
+                          className="text-[10px] font-black uppercase tracking-widest ml-1 text-muted-foreground"
+                        >
+                          About the Storyteller
+                        </Label>
+                        <Textarea
+                          id="bio"
+                          value={formData.bio}
+                          onChange={handleInputChange}
+                          className="min-h-[120px] rounded-xl bg-background/50 py-3"
+                          placeholder="Describe your style and passion..."
+                        />
                       </div>
                     </div>
                   </div>
@@ -352,9 +429,12 @@ export default function ProfilePage() {
                 {activeTab === "brand" && (
                   <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
                     <div>
-                      <h3 className="text-lg font-black uppercase tracking-tight mb-1">Brand Identity</h3>
+                      <h3 className="text-lg font-black uppercase tracking-tight mb-1">
+                        Brand Identity
+                      </h3>
                       <p className="text-xs text-muted-foreground font-medium">
-                        Your brand logo appears on the top-left of every Service Agreement PDF.
+                        Your brand logo appears on the top-left of every Service
+                        Agreement PDF.
                       </p>
                     </div>
 
@@ -437,9 +517,6 @@ export default function ProfilePage() {
                               <Briefcase size={16} className="text-slate-400" />
                             </div>
                           )}
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                            {formData.name || "Your Brand"}
-                          </span>
                         </div>
                         {/* Center: title */}
                         <div className="text-center flex-1">
@@ -453,9 +530,10 @@ export default function ProfilePage() {
                             src="/static/icons/logo.png"
                             alt="ShutterSync"
                             className="w-8 h-8 rounded-lg object-cover"
-                            onError={(e) => { e.target.style.display = "none"; }}
+                            onError={(e) => {
+                              e.target.style.display = "none";
+                            }}
                           />
-                          <span className="text-[10px] font-bold text-slate-700">ShutterSync</span>
                         </div>
                       </div>
                     </div>
@@ -472,30 +550,76 @@ export default function ProfilePage() {
                 {activeTab === "socials" && (
                   <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
                     <div className="pb-4">
-                      <h3 className="text-lg font-black uppercase tracking-tight mb-1">Social Ecosystem</h3>
-                      <p className="text-xs text-muted-foreground font-medium">Connect your platforms to build credibility.</p>
+                      <h3 className="text-lg font-black uppercase tracking-tight mb-1">
+                        Social Ecosystem
+                      </h3>
+                      <p className="text-xs text-muted-foreground font-medium">
+                        Connect your platforms to build credibility.
+                      </p>
                     </div>
 
                     <div className="space-y-6">
                       <div className="space-y-2">
-                        <Label htmlFor="instagram" className="text-[10px] font-black uppercase tracking-widest ml-1 text-muted-foreground">Instagram Handle</Label>
+                        <Label
+                          htmlFor="instagram"
+                          className="text-[10px] font-black uppercase tracking-widest ml-1 text-muted-foreground"
+                        >
+                          Instagram Handle
+                        </Label>
                         <div className="relative">
-                          <Input id="instagram" value={formData.instagram} onChange={handleInputChange} className="h-12 pl-12 rounded-xl bg-background/50" placeholder="@handle" />
-                          <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/60" size={20} />
+                          <Input
+                            id="instagram"
+                            value={formData.instagram}
+                            onChange={handleInputChange}
+                            className="h-12 pl-12 rounded-xl bg-background/50"
+                            placeholder="@handle"
+                          />
+                          <Instagram
+                            className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/60"
+                            size={20}
+                          />
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="facebook" className="text-[10px] font-black uppercase tracking-widest ml-1 text-muted-foreground">Facebook Page</Label>
+                        <Label
+                          htmlFor="facebook"
+                          className="text-[10px] font-black uppercase tracking-widest ml-1 text-muted-foreground"
+                        >
+                          Facebook Page
+                        </Label>
                         <div className="relative">
-                          <Input id="facebook" value={formData.facebook} onChange={handleInputChange} className="h-12 pl-12 rounded-xl bg-background/50" placeholder="Studio Name" />
-                          <Facebook className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/60" size={20} />
+                          <Input
+                            id="facebook"
+                            value={formData.facebook}
+                            onChange={handleInputChange}
+                            className="h-12 pl-12 rounded-xl bg-background/50"
+                            placeholder="Studio Name"
+                          />
+                          <Facebook
+                            className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/60"
+                            size={20}
+                          />
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="twitter" className="text-[10px] font-black uppercase tracking-widest ml-1 text-muted-foreground">Twitter Account</Label>
+                        <Label
+                          htmlFor="twitter"
+                          className="text-[10px] font-black uppercase tracking-widest ml-1 text-muted-foreground"
+                        >
+                          Twitter Account
+                        </Label>
                         <div className="relative">
-                          <Input id="twitter" value={formData.twitter} onChange={handleInputChange} className="h-12 pl-12 rounded-xl bg-background/50" placeholder="@handle" />
-                          <Twitter className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/60" size={20} />
+                          <Input
+                            id="twitter"
+                            value={formData.twitter}
+                            onChange={handleInputChange}
+                            className="h-12 pl-12 rounded-xl bg-background/50"
+                            placeholder="@handle"
+                          />
+                          <Twitter
+                            className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/60"
+                            size={20}
+                          />
                         </div>
                       </div>
                     </div>
@@ -506,8 +630,12 @@ export default function ProfilePage() {
                   <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="text-lg font-black uppercase tracking-tight mb-1">Visual Portfolio</h3>
-                        <p className="text-xs text-muted-foreground font-medium">Upload up to 6 of your best shots.</p>
+                        <h3 className="text-lg font-black uppercase tracking-tight mb-1">
+                          Visual Portfolio
+                        </h3>
+                        <p className="text-xs text-muted-foreground font-medium">
+                          Upload up to 6 of your best shots.
+                        </p>
                       </div>
                       <span className="text-[10px] font-black text-primary bg-primary/10 px-3 py-1 rounded-full uppercase tracking-widest">
                         {photos.length}/6 Slots
@@ -516,8 +644,15 @@ export default function ProfilePage() {
 
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       {photos.map((url, idx) => (
-                        <div key={idx} className="relative group aspect-square rounded-2xl overflow-hidden shadow-lg border-2 border-transparent hover:border-primary transition-all">
-                          <img src={url} alt="Gallery" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                        <div
+                          key={idx}
+                          className="relative group aspect-square rounded-2xl overflow-hidden shadow-lg border-2 border-transparent hover:border-primary transition-all"
+                        >
+                          <img
+                            src={url}
+                            alt="Gallery"
+                            className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                          />
                           <button
                             onClick={() => removePhoto(idx)}
                             className="absolute top-2 right-2 bg-black/60 text-white p-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"
@@ -532,8 +667,14 @@ export default function ProfilePage() {
                           onClick={() => galleryInputRef.current.click()}
                           className="aspect-square rounded-2xl border-2 border-dashed border-primary/20 hover:border-primary/50 flex flex-col items-center justify-center gap-2 bg-primary/5 transition-all text-muted-foreground hover:text-primary animate-pulse-subtle"
                         >
-                          {isUploading ? <Loader2 className="animate-spin" size={24} /> : <Plus size={24} />}
-                          <span className="text-[10px] font-black uppercase tracking-widest">Add Work</span>
+                          {isUploading ? (
+                            <Loader2 className="animate-spin" size={24} />
+                          ) : (
+                            <Plus size={24} />
+                          )}
+                          <span className="text-[10px] font-black uppercase tracking-widest">
+                            Add Work
+                          </span>
                         </button>
                       )}
                       <input
@@ -548,8 +689,17 @@ export default function ProfilePage() {
                 )}
 
                 <div className="mt-12 pt-8 border-t border-white/10 flex justify-between items-center">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Last Sync: Today, {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                  <Button onClick={handleSaveAll} className="h-12 px-8 rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl hover-lift">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                    Last Sync: Today,{" "}
+                    {new Date().toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                  <Button
+                    onClick={handleSaveAll}
+                    className="h-12 px-8 rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl hover-lift"
+                  >
                     Preserve Changes
                   </Button>
                 </div>
@@ -565,4 +715,3 @@ export default function ProfilePage() {
 function Plus({ size }) {
   return <Upload size={size} />;
 }
-

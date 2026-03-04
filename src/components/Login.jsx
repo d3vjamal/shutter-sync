@@ -21,7 +21,9 @@ import {
   CardFooter,
 } from "./ui/card";
 import { useAuthActions } from "@convex-dev/auth/react";
+import { useConvex } from "convex/react";
 import { useNavigate } from "react-router-dom";
+import { api } from "../../convex/_generated/api";
 import { cn } from "../lib/utils";
 
 function GoogleIcon() {
@@ -56,6 +58,7 @@ function GoogleIcon() {
 
 export default function Login({ onLogin }) {
   const { signIn } = useAuthActions();
+  const convex = useConvex();
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
@@ -121,6 +124,17 @@ export default function Login({ onLogin }) {
 
     setLoading(true);
     try {
+      if (!isLogin) {
+        const exists = await convex.query(api.users.emailExists, {
+          email: formData.email,
+        });
+        if (exists) {
+          setError("This email is already registered. Please sign in instead.");
+          setLoading(false);
+          return;
+        }
+      }
+
       if (isLogin) {
         await signIn("password", {
           email: formData.email,

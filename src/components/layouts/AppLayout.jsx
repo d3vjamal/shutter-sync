@@ -12,6 +12,8 @@ import {
   Moon,
   Laptop,
   Layers,
+  ShieldCheck,
+  Users,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 
@@ -25,10 +27,17 @@ const NAV_ITEMS = [
   { to: "/profile",           icon: User,      label: "Profile"        },
 ];
 
+const ADMIN_NAV_ITEMS = [
+  { to: "/admin/dashboard", icon: ShieldCheck, label: "Admin Dashboard" },
+  { to: "/photographers",   icon: Users,       label: "Photographers"   },
+];
+
 // ─── Sidebar ─────────────────────────────────────────────────────────────────
 
 function Sidebar({ user, onLogout, onClose }) {
   const { pathname } = useLocation();
+  const isAdmin = user?.roleCode === 0;
+  const navItems = isAdmin ? ADMIN_NAV_ITEMS : NAV_ITEMS;
 
   return (
     <aside className="flex flex-col h-full bg-card border-r border-border">
@@ -56,7 +65,7 @@ function Sidebar({ user, onLogout, onClose }) {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-2.5 py-4 space-y-0.5">
-        {NAV_ITEMS.map(({ to, icon: Icon, label }) => {
+        {navItems.map(({ to, icon: Icon, label }) => {
           const active = pathname === to;
           return (
             <Link
@@ -96,13 +105,11 @@ function Sidebar({ user, onLogout, onClose }) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-bold text-foreground truncate leading-none">
-                {user.name || "Photographer"}
+                {user.name || (user.roleCode === 0 ? "Admin" : "Photographer")}
               </p>
-              {user.email && (
-                <p className="text-[10px] text-muted-foreground truncate mt-0.5">
-                  {user.email}
-                </p>
-              )}
+              <p className="text-[10px] text-muted-foreground truncate mt-0.5">
+                {user.roleCode === 0 ? "Administrator" : user.email}
+              </p>
             </div>
           </div>
 

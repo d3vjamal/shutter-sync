@@ -14,12 +14,15 @@ import {
 import { useNavigate } from "react-router-dom";
 import { cn } from "../lib/utils";
 
-export default function AdminLogin({ onLogin, loading: externalLoading }) {
+export default function AdminLogin({ onLogin, loading: externalLoading, serverError }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Show server-side role error (e.g. logged in but not admin)
+  const displayError = serverError || error;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -118,11 +121,11 @@ export default function AdminLogin({ onLogin, loading: externalLoading }) {
                 </div>
               </div>
 
-              {error && (
+              {displayError && (
                 <div className="flex items-center gap-2 p-3 bg-secondary/10 border border-secondary/20 rounded-xl mt-2 animate-in fade-in zoom-in-95 duration-200">
                   <AlertCircle size={14} className="text-secondary" />
                   <p className="text-[11px] font-bold text-secondary">
-                    {error}
+                    {displayError}
                   </p>
                 </div>
               )}

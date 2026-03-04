@@ -144,12 +144,10 @@ export default function AgreementPDF({ assignment, photographer }) {
       ? [fmtDate(assignment.eventStartDate)]
       : [];
 
-  const dateRange =
+  const dateDisplay =
     dates.length === 0
       ? "TBD"
-      : dates.length === 1
-        ? dates[0]
-        : `${dates[0]} – ${dates[dates.length - 1]}`;
+      : dates.join("  ·  ");
 
   return (
     <div
@@ -308,7 +306,7 @@ export default function AgreementPDF({ assignment, photographer }) {
             gap: "4px 24px",
           }}
         >
-          <InfoRow label="Date(s)" value={dateRange} />
+          <InfoRow label="Date(s)" value={dateDisplay} />
           <InfoRow
             label="Duration"
             value={

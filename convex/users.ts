@@ -97,6 +97,17 @@ export const checkUsername = query({
     },
 });
 
+export const emailExists = query({
+    args: { email: v.string() },
+    handler: async (ctx, args) => {
+        const user = await ctx.db
+            .query("users")
+            .withIndex("email", (q) => q.eq("email", args.email))
+            .unique();
+        return !!user;
+    },
+});
+
 export const listPhotographers = query({
     args: {},
     handler: async (ctx) => {

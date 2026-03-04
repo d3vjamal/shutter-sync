@@ -1,6 +1,7 @@
 import { useQuery, useMutation } from "convex/react";
 import { toast } from "react-toastify";
 import { api } from "../../convex/_generated/api";
+import { downloadICS } from "../lib/calendarUtils";
 
 export function useAssignments(user) {
     const _raw = useQuery(
@@ -24,6 +25,10 @@ export function useAssignments(user) {
                 status: "Ongoing",
             });
             toast.success("Assignment created successfully! 📸");
+
+            // Auto-download calendar event if dates were set
+            downloadICS(assignmentData);
+
             return true;
         } catch (err) {
             toast.error("Failed to create assignment. Please try again.");

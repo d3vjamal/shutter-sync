@@ -99,6 +99,13 @@ export const update = mutation({
     },
 });
 
+export const listAll = query({
+    args: {},
+    handler: async (ctx) => {
+        return await ctx.db.query("assignments").collect();
+    },
+});
+
 export const calculateTotalRevenue = query({
     args: {},
     handler: async (ctx) => {

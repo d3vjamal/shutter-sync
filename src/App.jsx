@@ -9,6 +9,7 @@ import "react-toastify/dist/ReactToastify.css";
 import DashboardPage from "./pages/DashboardPage";
 import CreateAssignmentPage from "./pages/CreateAssignmentPage";
 import PhotographersPage from "./pages/PhotographersPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
 import LoginPage from "./pages/LoginPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import PublicClientPage from "./pages/PublicClientPage";
@@ -27,7 +28,6 @@ import { useAuth } from "./hooks/useAuth";
 const AppContent = () => {
   const { user } = useAuth();
   const convex = useConvex();
-  const seedAdmin = useMutation(api.auth.seedAdmin);
   const updateUserProfile = useMutation(api.users.updateUserProfile);
 
   // Diagnostic logging
@@ -40,11 +40,6 @@ const AppContent = () => {
       convexConnected: !!convex,
     });
   }, [user, convex]);
-
-  // Seed admin on mount
-  useEffect(() => {
-    seedAdmin();
-  }, [seedAdmin]);
 
   // Handle post-signup profile update
   useEffect(() => {
@@ -90,12 +85,30 @@ const AppContent = () => {
         />
 
         {/* Protected Routes - Default to Dashboard */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route
+          path="/"
+          element={
+            <Navigate
+              to={user?.roleCode === 0 ? "/admin/dashboard" : "/dashboard"}
+              replace
+            />
+          }
+        />
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute user={user}>
-              <DashboardPage />
+              {user?.roleCode === 0
+                ? <Navigate to="/admin/dashboard" replace />
+                : <DashboardPage />}
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute user={user} requiredRole="admin">
+              <AdminDashboardPage />
             </ProtectedRoute>
           }
         />
