@@ -11,6 +11,7 @@ import {
   Building2,
   Briefcase,
   Wallet,
+  Trash2,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { Badge } from "./ui/badge";
@@ -44,10 +45,12 @@ const AssignmentCard = ({
   accentColor = "secondary",
   onUpdateStatus,
   onUpdateAssignment,
+  onDeleteAssignment,
 }) => {
   const navigate = useNavigate();
   const [showConfirm, setShowConfirm] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [paymentInput, setPaymentInput] = useState("");
 
   const paid  = Number(assignment.paidAmount || 0);
@@ -91,6 +94,11 @@ const AssignmentCard = ({
   const handleSavePayment = async () => {
     await onUpdateAssignment(assignment._id, { paidAmount: paymentInput });
     setShowPayment(false);
+  };
+
+  const handleConfirmDelete = async () => {
+    setShowDeleteConfirm(false);
+    await onDeleteAssignment(assignment._id);
   };
 
   return (
@@ -174,7 +182,9 @@ const AssignmentCard = ({
 
         {/* Action buttons */}
         <div className="flex items-center justify-around pt-3 border-t border-border/50 -mx-1">
-          <ActionBtn onClick={handleEdit} icon={<Edit2 size={14} />} label="Edit" />
+          {!isCompleted && (
+            <ActionBtn onClick={handleEdit} icon={<Edit2 size={14} />} label="Edit" />
+          )}
           {!isCompleted && (
             <ActionBtn
               onClick={() => setShowConfirm(true)}
@@ -183,14 +193,24 @@ const AssignmentCard = ({
               className="text-secondary hover:bg-secondary/10 hover:text-secondary"
             />
           )}
-          <ActionBtn
-            onClick={handleOpenPayment}
-            icon={<IndianRupee size={14} />}
-            label="Pay"
-            className="hover:text-primary hover:bg-primary/10"
-          />
+          {!isCompleted && (
+            <ActionBtn
+              onClick={handleOpenPayment}
+              icon={<IndianRupee size={14} />}
+              label="Pay"
+              className="hover:text-primary hover:bg-primary/10"
+            />
+          )}
           <AssignmentPDFDialog assignment={assignment} />
           <ActionBtn onClick={handleShare} icon={<ExternalLink size={14} />} label="Share" />
+          {!isCompleted && (
+            <ActionBtn
+              onClick={() => setShowDeleteConfirm(true)}
+              icon={<Trash2 size={14} />}
+              label="Delete"
+              className="hover:text-destructive hover:bg-destructive/10"
+            />
+          )}
         </div>
       </div>
 
@@ -258,6 +278,28 @@ const AssignmentCard = ({
               className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
             >
               <IndianRupee size={13} className="mr-1" /> Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Delete Confirm Dialog */}
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent className="max-w-xs rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Delete Assignment?</DialogTitle>
+            <DialogDescription>
+              "{assignment.title || assignment.packageName || "This assignment"}" will be permanently deleted. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmDelete}
+            >
+              <Trash2 size={13} className="mr-1.5" /> Delete
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -384,6 +426,7 @@ const Dashboard = ({
   onUpdateStatus,
   onUpdateCaptureDate,
   onUpdateAssignment,
+  onDeleteAssignment,
 }) => {
   /* ── Stats ── */
   const totalCollected = assignments.reduce(
@@ -419,7 +462,7 @@ const Dashboard = ({
   upcoming.sort(byDate);
   past.sort((a, b) => b._creationTime - a._creationTime);
 
-  const handlers = { onUpdateStatus, onUpdateCaptureDate, onUpdateAssignment };
+  const handlers = { onUpdateStatus, onUpdateCaptureDate, onUpdateAssignment, onDeleteAssignment };
 
   /* ── Loading skeleton ── */
   if (loading) {

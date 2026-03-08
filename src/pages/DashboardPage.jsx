@@ -17,6 +17,7 @@ export default function DashboardPage() {
     updateAssignStatus,
     updateAssignCaptureDate,
     updateAssignment,
+    deleteAssignment,
   } = useAssignments(user);
   const totalRevenue = useQuery(api.assignments.calculateTotalRevenue) ?? 0;
 
@@ -39,6 +40,7 @@ export default function DashboardPage() {
         onUpdateStatus={updateAssignStatus}
         onUpdateCaptureDate={updateAssignCaptureDate}
         onUpdateAssignment={updateAssignment}
+        onDeleteAssignment={deleteAssignment}
       />
     </AppLayout>
   );

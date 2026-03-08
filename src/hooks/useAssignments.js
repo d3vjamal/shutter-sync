@@ -15,6 +15,7 @@ export function useAssignments(user) {
     const updateAssignment = useMutation(api.assignments.update);
     const updateAssignStatus = useMutation(api.assignments.updateStatus);
     const updateAssignCaptureDate = useMutation(api.assignments.updateCaptureDate);
+    const deleteAssignmentMutation = useMutation(api.assignments.remove);
 
     const createAssignment = async (assignmentData) => {
         if (!user) return;
@@ -64,6 +65,17 @@ export function useAssignments(user) {
         }
     };
 
+    const handleDeleteAssignment = async (id) => {
+        try {
+            await deleteAssignmentMutation({ id });
+            toast.success("Assignment deleted.");
+            return true;
+        } catch (err) {
+            toast.error("Failed to delete assignment.");
+            return false;
+        }
+    };
+
     return {
         assignments,
         isLoading,
@@ -71,5 +83,6 @@ export function useAssignments(user) {
         updateAssignment: handleUpdateAssignment,
         updateAssignStatus: handleUpdateStatus,
         updateAssignCaptureDate: handleUpdateCaptureDate,
+        deleteAssignment: handleDeleteAssignment,
     };
 }

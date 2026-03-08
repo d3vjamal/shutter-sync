@@ -2,83 +2,38 @@ import React from "react";
 import { format } from "date-fns";
 
 /**
- * AgreementPDF
- * Pure presentational component — always renders in light/white mode
- * so it prints cleanly regardless of the app's current theme.
+ * AgreementPDF — always light/white, theme-independent.
+ *
+ * Single page  : conditions ≤ 3 — everything on one page.
+ * Two pages    : conditions > 3 — Page 1 has all core sections + acknowledgement.
+ *                                  Page 2 is Terms appendix with same header/footer.
+ * Watermark    : tiled ShutterSync logo at very low opacity on every page.
  */
 
-const LINE = () => (
-  <div style={{ height: 1, background: "#e2e8f0", margin: "16px 0" }} />
-);
+// ─── Primitives ───────────────────────────────────────────────────────────────
 
-const SectionTitle = ({ children }) => (
-  <div
-    style={{
-      fontSize: 9,
-      fontWeight: 800,
-      letterSpacing: "0.12em",
-      textTransform: "uppercase",
-      color: "#1a56db",
-      marginBottom: 10,
-      paddingBottom: 4,
-      borderBottom: "2px solid #1a56db",
-    }}
-  >
-    {children}
-  </div>
-);
-
-const InfoRow = ({ label, value }) =>
-  value ? (
-    <div style={{ display: "flex", gap: 6, marginBottom: 4 }}>
-      <span
-        style={{ fontSize: 9, color: "#64748b", minWidth: 80, fontWeight: 600 }}
-      >
-        {label}
-      </span>
-      <span style={{ fontSize: 9, color: "#1e293b", flex: 1 }}>{value}</span>
-    </div>
-  ) : null;
-
-const PartyBox = ({ title, name, contact, extra, extraLabel }) => (
-  <div
-    style={{
-      flex: 1,
-      border: "1px solid #e2e8f0",
-      borderRadius: 8,
-      padding: "12px 14px",
-      background: "#f8fafc",
-    }}
-  >
+const SectionLabel = ({ children }) => (
+  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 9 }}>
     <div
+      style={{
+        width: 3,
+        height: 13,
+        background: "#1a56db",
+        borderRadius: 2,
+        flexShrink: 0,
+      }}
+    />
+    <span
       style={{
         fontSize: 8,
         fontWeight: 800,
-        letterSpacing: "0.1em",
+        letterSpacing: "0.14em",
         textTransform: "uppercase",
-        color: "#94a3b8",
-        marginBottom: 8,
+        color: "#475569",
       }}
     >
-      {title}
-    </div>
-    <div
-      style={{
-        fontSize: 13,
-        fontWeight: 700,
-        color: "#0f172a",
-        marginBottom: 4,
-      }}
-    >
-      {name || "—"}
-    </div>
-    {contact && <div style={{ fontSize: 10, color: "#475569" }}>{contact}</div>}
-    {extra && (
-      <div style={{ fontSize: 9, color: "#64748b", marginTop: 3 }}>
-        {extraLabel && <span style={{ fontWeight: 600 }}>{extraLabel}: </span>}
-        {extra}
-      </div>
-    )}
+      {children}
+    </span>
   </div>
 );
 
@@ -87,29 +42,30 @@ const AmountBox = ({ label, value, highlight }) => (
     style={{
       flex: 1,
       textAlign: "center",
-      padding: "10px 8px",
+      padding: "9px 8px",
       borderRadius: 8,
-      background: highlight ? "#1a56db" : "#f1f5f9",
+      background: highlight ? "#1a56db" : "#f8fafc",
       border: highlight ? "none" : "1px solid #e2e8f0",
     }}
   >
     <div
       style={{
-        fontSize: 8,
+        fontSize: 7.5,
         fontWeight: 700,
         textTransform: "uppercase",
         letterSpacing: "0.08em",
-        color: highlight ? "rgba(255,255,255,0.75)" : "#64748b",
-        marginBottom: 4,
+        color: highlight ? "rgba(255,255,255,0.7)" : "#64748b",
+        marginBottom: 5,
       }}
     >
       {label}
     </div>
     <div
       style={{
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: 800,
         color: highlight ? "#ffffff" : "#0f172a",
+        lineHeight: 1,
       }}
     >
       {value}
@@ -117,25 +73,195 @@ const AmountBox = ({ label, value, highlight }) => (
   </div>
 );
 
+// ─── Watermark ────────────────────────────────────────────────────────────────
+
+const Watermark = () => (
+  <div
+    style={{
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      pointerEvents: "none",
+      overflow: "hidden",
+      zIndex: 0,
+    }}
+  >
+    <div
+      style={{
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%) rotate(-35deg)",
+        display: "grid",
+        gridTemplateColumns: "repeat(4, 80px)",
+        gap: "52px 64px",
+        opacity: 0.05,
+      }}
+    >
+      {Array.from({ length: 20 }).map((_, i) => (
+        <img
+          key={i}
+          src="/static/icons/logo.png"
+          alt=""
+          style={{ width: 72, height: 72, objectFit: "contain" }}
+          onError={(e) => {
+            e.target.style.display = "none";
+          }}
+        />
+      ))}
+    </div>
+  </div>
+);
+
+// ─── Shared Header — full-width blue banner ───────────────────────────────────
+
+const PDFHeader = ({ photographer, refId, today }) => (
+  <div style={{ marginBottom: 20 }}>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 12,
+        paddingBottom: 14,
+        borderBottom: "2px solid #1a56db",
+      }}
+    >
+      {/* Brand logo */}
+      <div style={{ width: 48, height: 48, flexShrink: 0 }}>
+        {photographer?.brandLogoUrl ? (
+          <img
+            src={photographer.brandLogoUrl}
+            alt="Brand"
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 6,
+              objectFit: "contain",
+              border: "1px solid #e2e8f0",
+              background: "#f8fafc",
+              padding: 4,
+            }}
+            onError={(e) => {
+              e.target.style.display = "none";
+            }}
+          />
+        ) : (
+          <div style={{ width: 48 }} />
+        )}
+      </div>
+
+      {/* Center */}
+      <div style={{ flex: 1, textAlign: "center" }}>
+        <div
+          style={{
+            fontSize: 16,
+            fontWeight: 900,
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+            color: "#1a56db",
+            lineHeight: 1.1,
+          }}
+        >
+          Service Agreement
+        </div>
+        <div
+          style={{
+            fontSize: 7.5,
+            color: "#94a3b8",
+            marginTop: 5,
+            letterSpacing: "0.04em",
+          }}
+        >
+          {refId} &nbsp;·&nbsp; {today}
+        </div>
+      </div>
+
+      {/* ShutterSync logo */}
+      <div
+        style={{
+          width: 48,
+          height: 48,
+          flexShrink: 0,
+          display: "flex",
+          justifyContent: "flex-end",
+        }}
+      >
+        <img
+          src="/static/icons/logo.png"
+          alt="ShutterSync"
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: 6,
+            objectFit: "cover",
+          }}
+          onError={(e) => {
+            e.target.style.display = "none";
+          }}
+        />
+      </div>
+    </div>
+  </div>
+);
+
+// ─── Shared Footer ────────────────────────────────────────────────────────────
+
+const PDFFooter = ({ photographer, refId }) => (
+  <div
+    style={{
+      marginTop: 18,
+      paddingTop: 10,
+      borderTop: "1px solid #e2e8f0",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      fontSize: 7.5,
+      color: "#94a3b8",
+    }}
+  >
+    <span>
+      Generated on ShutterSync
+      {photographer?.name ? ` · ${photographer.name}` : ""}
+    </span>
+    <span style={{ fontStyle: "italic", color: "#b0bec5" }}>
+      Computer-generated · No signature required
+    </span>
+    <span>Ref: {refId}</span>
+  </div>
+);
+
+// ─── Page wrapper style ───────────────────────────────────────────────────────
+
+const pageStyle = {
+  width: "100%",
+  maxWidth: 720,
+  margin: "0 auto",
+  padding: "28px 36px 28px",
+  background: "#ffffff",
+  color: "#1e293b",
+  fontFamily: "'Lato', 'Helvetica Neue', Arial, sans-serif",
+  fontSize: 10,
+  lineHeight: 1.5,
+  boxSizing: "border-box",
+  position: "relative",
+};
+
 // ─── Main Document ────────────────────────────────────────────────────────────
 
 export default function AgreementPDF({ assignment, photographer }) {
-  const paid = Number(assignment.paidAmount || 0);
-  const total = Number(assignment.amount || 0);
+  const paid    = Number(assignment.paidAmount || 0);
+  const total   = Number(assignment.amount || 0);
   const pending = Math.max(0, total - paid);
-  const pct = total > 0 ? Math.min(100, Math.round((paid / total) * 100)) : 0;
+  const pct     = total > 0 ? Math.min(100, Math.round((paid / total) * 100)) : 0;
 
-  const refId = `#${String(assignment._id || "")
-    .slice(-7)
-    .toUpperCase()}`;
+  const refId = `#${String(assignment._id || "").slice(-7).toUpperCase()}`;
   const today = format(new Date(), "dd MMMM yyyy");
 
   const fmtDate = (d) => {
-    try {
-      return format(new Date(d), "dd MMM yyyy");
-    } catch {
-      return d;
-    }
+    try { return format(new Date(d), "dd MMM yyyy"); } catch { return d; }
   };
 
   const dates = assignment.photographerDays?.length
@@ -144,357 +270,309 @@ export default function AgreementPDF({ assignment, photographer }) {
       ? [fmtDate(assignment.eventStartDate)]
       : [];
 
-  const dateDisplay =
-    dates.length === 0
-      ? "TBD"
-      : dates.join("  ·  ");
+  const dateDisplay = dates.length === 0 ? "TBD" : dates.join("  ·  ");
 
-  return (
-    <div
-      style={{
-        width: "100%",
-        maxWidth: 720,
-        margin: "0 auto",
-        padding: "32px 36px",
-        background: "#ffffff",
-        color: "#1e293b",
-        fontFamily: "'Lato', 'Helvetica Neue', Arial, sans-serif",
-        fontSize: 10,
-        lineHeight: 1.5,
-        boxSizing: "border-box",
-      }}
-    >
-      {/* ── Header ── */}
+  const conditions = assignment.conditions || [];
+  const multiPage  = conditions.length > 3;
+
+  const headerProps = { photographer, refId, today };
+  const footerProps = { photographer, refId };
+
+  // ── Section: Title ──────────────────────────────────────────────────────────
+  const TitleSection = (
+    <div style={{ marginBottom: 18 }}>
+      <div
+        style={{
+          fontSize: 19,
+          fontWeight: 800,
+          color: "#0f172a",
+          letterSpacing: "-0.02em",
+          lineHeight: 1.2,
+        }}
+      >
+        {assignment.title || assignment.packageName || "Photography Services"}
+      </div>
+      {assignment.description && (
+        <div style={{ fontSize: 9.5, color: "#64748b", marginTop: 4, maxWidth: 500 }}>
+          {assignment.description}
+        </div>
+      )}
+    </div>
+  );
+
+  // ── Section: Parties ────────────────────────────────────────────────────────
+  const PartiesSection = (
+    <div style={{ marginBottom: 16 }}>
+      <SectionLabel>Parties Involved</SectionLabel>
+      <div style={{ display: "flex", gap: 10 }}>
+        {/* Photographer */}
+        <div
+          style={{
+            flex: 1,
+            border: "1px solid #e2e8f0",
+            borderRadius: 8,
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              background: "#f1f5f9",
+              padding: "5px 12px",
+              borderBottom: "1px solid #e2e8f0",
+              fontSize: 7.5,
+              fontWeight: 800,
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              color: "#64748b",
+            }}
+          >
+            Photographer
+          </div>
+          <div style={{ padding: "10px 12px" }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginBottom: 3 }}>
+              {photographer?.name || "—"}
+            </div>
+            {(photographer?.contact || photographer?.email) && (
+              <div style={{ fontSize: 9, color: "#475569" }}>
+                {photographer.contact || photographer.email}
+              </div>
+            )}
+            {photographer?.upiId && (
+              <div style={{ fontSize: 8.5, color: "#64748b", marginTop: 2 }}>
+                <span style={{ fontWeight: 700 }}>UPI: </span>
+                {photographer.upiId}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Client */}
+        <div
+          style={{
+            flex: 1,
+            border: "1px solid #e2e8f0",
+            borderRadius: 8,
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              background: "#f1f5f9",
+              padding: "5px 12px",
+              borderBottom: "1px solid #e2e8f0",
+              fontSize: 7.5,
+              fontWeight: 800,
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              color: "#64748b",
+            }}
+          >
+            Client
+          </div>
+          <div style={{ padding: "10px 12px" }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginBottom: 3 }}>
+              {assignment.clientName || "—"}
+            </div>
+            {assignment.clientContact && (
+              <div style={{ fontSize: 9, color: "#475569" }}>
+                {assignment.clientContact}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ── Section: Event Details (table style) ────────────────────────────────────
+  const eventRows = [
+    { label: "Date(s)",   value: dateDisplay },
+    {
+      label: "Duration",
+      value: assignment.eventDuration
+        ? `${assignment.eventDuration} Day${assignment.eventDuration !== 1 ? "s" : ""}`
+        : null,
+    },
+    { label: "Venue",    value: assignment.venue },
+    { label: "Location", value: assignment.location },
+  ].filter((r) => r.value);
+
+  const EventSection = eventRows.length > 0 && (
+    <div style={{ marginBottom: 16 }}>
+      <SectionLabel>Event Details</SectionLabel>
+      <div
+        style={{
+          border: "1px solid #e2e8f0",
+          borderRadius: 8,
+          overflow: "hidden",
+        }}
+      >
+        {eventRows.map((row, i) => (
+          <div
+            key={i}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              background: i % 2 === 0 ? "#f8fafc" : "#ffffff",
+              borderBottom: i < eventRows.length - 1 ? "1px solid #f1f5f9" : "none",
+              padding: "5.5px 12px",
+            }}
+          >
+            <span
+              style={{
+                fontSize: 8.5,
+                color: "#64748b",
+                fontWeight: 600,
+                width: 80,
+                flexShrink: 0,
+              }}
+            >
+              {row.label}
+            </span>
+            <span style={{ fontSize: 8.5, color: "#1e293b" }}>{row.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  // ── Section: Payment Summary ─────────────────────────────────────────────────
+  const PaymentSection = (
+    <div style={{ marginBottom: 16 }}>
+      <SectionLabel>Payment Summary</SectionLabel>
+      <div style={{ display: "flex", gap: 8, marginBottom: 9 }}>
+        <AmountBox label="Total Amount" value={`₹${total.toLocaleString()}`} />
+        <AmountBox label="Amount Paid"  value={`₹${paid.toLocaleString()}`}  highlight />
+        <AmountBox label="Balance Due"  value={`₹${pending.toLocaleString()}`} />
+      </div>
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 20,
-          gap: 12,
+          gap: 10,
+          fontSize: 8.5,
+          color: "#64748b",
         }}
       >
-        {/* Left: photographer brand logo only */}
-        <div style={{ flex: 1, display: "flex", alignItems: "center" }}>
-          {photographer?.brandLogoUrl && (
-            <img
-              src={photographer.brandLogoUrl}
-              alt="Brand"
-              style={{
-                width: 52,
-                height: 52,
-                borderRadius: 8,
-                objectFit: "contain",
-                border: "1px solid #e2e8f0",
-                background: "#f8fafc",
-                padding: 4,
-              }}
-              onError={(e) => {
-                e.target.style.display = "none";
-              }}
-            />
-          )}
-        </div>
-
-        {/* Center: title + meta */}
-        <div style={{ flex: 1, textAlign: "center" }}>
-          <div
-            style={{
-              fontSize: 15,
-              fontWeight: 900,
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              color: "#1a56db",
-              lineHeight: 1.2,
-            }}
-          >
-            Service Agreement
-          </div>
-          <div style={{ fontSize: 8, color: "#94a3b8", marginTop: 4 }}>
-            Ref: {refId} &nbsp;·&nbsp; {today}
-          </div>
-        </div>
-
-        {/* Right: ShutterSync app logo only */}
         <div
           style={{
             flex: 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
-          }}
-        >
-          <img
-            src="/static/icons/logo.png"
-            alt="ShutterSync"
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: 8,
-              objectFit: "cover",
-            }}
-            onError={(e) => {
-              e.target.style.display = "none";
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Primary divider */}
-      <div
-        style={{
-          height: 3,
-          background: "#1a56db",
-          borderRadius: 2,
-          marginBottom: 20,
-        }}
-      />
-
-      {/* ── Assignment title ── */}
-      <div style={{ marginBottom: 20 }}>
-        <div
-          style={{
-            fontSize: 18,
-            fontWeight: 800,
-            color: "#0f172a",
-            letterSpacing: "-0.01em",
-            lineHeight: 1.2,
-          }}
-        >
-          {assignment.title || assignment.packageName || "Photography Services"}
-        </div>
-        {assignment.description && (
-          <div
-            style={{
-              fontSize: 10,
-              color: "#64748b",
-              marginTop: 4,
-              maxWidth: 480,
-            }}
-          >
-            {assignment.description}
-          </div>
-        )}
-      </div>
-
-      {/* ── Parties ── */}
-      <div style={{ marginBottom: 20 }}>
-        <SectionTitle>Parties Involved</SectionTitle>
-        <div style={{ display: "flex", gap: 12 }}>
-          <PartyBox
-            title="Photographer"
-            name={photographer?.name || "—"}
-            contact={photographer?.contact || photographer?.email || ""}
-            extra={photographer?.upiId}
-            extraLabel="UPI"
-          />
-          <PartyBox
-            title="Client"
-            name={assignment.clientName || "—"}
-            contact={assignment.clientContact || ""}
-          />
-        </div>
-      </div>
-
-      {/* ── Event details ── */}
-      <div style={{ marginBottom: 20 }}>
-        <SectionTitle>Event Details</SectionTitle>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "4px 24px",
-          }}
-        >
-          <InfoRow label="Date(s)" value={dateDisplay} />
-          <InfoRow
-            label="Duration"
-            value={
-              assignment.eventDuration
-                ? `${assignment.eventDuration} Day${assignment.eventDuration !== 1 ? "s" : ""}`
-                : null
-            }
-          />
-          <InfoRow label="Venue" value={assignment.venue} />
-          <InfoRow label="Location" value={assignment.location} />
-        </div>
-      </div>
-
-      {/* ── Payment summary ── */}
-      <div style={{ marginBottom: 20 }}>
-        <SectionTitle>Payment Summary</SectionTitle>
-        <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-          <AmountBox
-            label="Total Amount"
-            value={`₹${total.toLocaleString()}`}
-          />
-          <AmountBox
-            label="Amount Paid"
-            value={`₹${paid.toLocaleString()}`}
-            highlight
-          />
-          <AmountBox
-            label="Balance Due"
-            value={`₹${pending.toLocaleString()}`}
-          />
-        </div>
-
-        {/* Progress bar */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            fontSize: 9,
-            color: "#64748b",
+            height: 5,
+            background: "#e2e8f0",
+            borderRadius: 99,
+            overflow: "hidden",
           }}
         >
           <div
             style={{
-              flex: 1,
-              height: 5,
-              background: "#e2e8f0",
+              width: `${pct}%`,
+              height: "100%",
+              background: pct === 100 ? "#10b981" : "#e8a647",
               borderRadius: 99,
-              overflow: "hidden",
             }}
-          >
-            <div
-              style={{
-                width: `${pct}%`,
-                height: "100%",
-                background: pct === 100 ? "#10b981" : "#e8a647",
-                borderRadius: 99,
-              }}
-            />
-          </div>
-          <span style={{ fontWeight: 700, whiteSpace: "nowrap" }}>
-            {pct}% paid
-          </span>
+          />
         </div>
+        <span style={{ fontWeight: 700, whiteSpace: "nowrap" }}>{pct}% paid</span>
       </div>
+    </div>
+  );
 
-      {/* ── Deliverables ── */}
-      {assignment.services?.length > 0 && (
-        <div style={{ marginBottom: 20 }}>
-          <SectionTitle>Deliverables & Inclusions</SectionTitle>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "3px 24px",
-            }}
-          >
-            {assignment.services.map((s, i) => (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: 6,
-                  fontSize: 9.5,
-                  color: "#334155",
-                }}
-              >
-                <span
-                  style={{
-                    color: "#1a56db",
-                    fontWeight: 800,
-                    marginTop: 1,
-                    flexShrink: 0,
-                  }}
-                >
-                  {String(i + 1).padStart(2, "0")}.
-                </span>
-                {s}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── Terms ── */}
-      {assignment.conditions?.length > 0 && (
-        <div style={{ marginBottom: 24 }}>
-          <SectionTitle>Terms &amp; Conditions</SectionTitle>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {assignment.conditions.map((c, i) => (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  gap: 8,
-                  fontSize: 9.5,
-                  color: "#334155",
-                  paddingLeft: 4,
-                  borderLeft: "2px solid #e2e8f0",
-                  paddingTop: 2,
-                  paddingBottom: 2,
-                }}
-              >
-                <span
-                  style={{
-                    color: "#1a56db",
-                    fontWeight: 800,
-                    flexShrink: 0,
-                    marginTop: 0,
-                  }}
-                >
-                  {i + 1}.
-                </span>
-                {c}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── Acknowledgement + Stamp ── */}
+  // ── Section: Deliverables ────────────────────────────────────────────────────
+  const DeliverablesSection = assignment.services?.length > 0 && (
+    <div style={{ marginBottom: 16 }}>
+      <SectionLabel>Deliverables &amp; Inclusions</SectionLabel>
       <div
         style={{
-          pageBreakInside: "avoid",
-          marginBottom: 20,
-          display: "flex",
-          gap: 24,
-          alignItems: "flex-start",
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "4px 20px",
         }}
       >
-        {/* Parties */}
+        {assignment.services.map((s, i) => (
+          <div
+            key={i}
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 7,
+              fontSize: 9,
+              color: "#334155",
+              padding: "3px 0",
+              borderBottom: "1px solid #f1f5f9",
+            }}
+          >
+            <span
+              style={{
+                fontSize: 8,
+                fontWeight: 800,
+                color: "#1a56db",
+                flexShrink: 0,
+                marginTop: 1,
+                minWidth: 18,
+              }}
+            >
+              {String(i + 1).padStart(2, "0")}.
+            </span>
+            {s}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  // ── Section: Acknowledgement + Stamp (always on Page 1) ──────────────────────
+  const AcknowledgementSection = (
+    <div style={{ marginTop: 6, marginBottom: 4 }}>
+      <SectionLabel>Acknowledgement</SectionLabel>
+      <div style={{ display: "flex", gap: 16, alignItems: "flex-end" }}>
+        {/* Photographer sig */}
         <div style={{ flex: 1 }}>
-          <SectionTitle>Acknowledged By</SectionTitle>
-          <div style={{ display: "flex", gap: 32 }}>
-            {/* Photographer */}
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: "#0f172a" }}>
-                {photographer?.name || "Photographer"}
-              </div>
-              <div style={{ fontSize: 9, color: "#64748b" }}>Photographer</div>
-              {photographer?.contact && (
-                <div style={{ fontSize: 9, color: "#94a3b8", marginTop: 2 }}>
-                  {photographer.contact}
-                </div>
-              )}
+          <div
+            style={{
+              borderTop: "1.5px dashed #cbd5e1",
+              paddingTop: 8,
+              marginTop: 24,
+            }}
+          >
+            <div style={{ fontSize: 9.5, fontWeight: 700, color: "#0f172a" }}>
+              {photographer?.name || "Photographer"}
             </div>
-            {/* Client */}
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: "#0f172a" }}>
-                {assignment.clientName || "Client"}
+            <div style={{ fontSize: 8, color: "#64748b" }}>Photographer</div>
+            {photographer?.contact && (
+              <div style={{ fontSize: 8, color: "#94a3b8", marginTop: 1 }}>
+                {photographer.contact}
               </div>
-              <div style={{ fontSize: 9, color: "#64748b" }}>Client</div>
-              {assignment.clientContact && (
-                <div style={{ fontSize: 9, color: "#94a3b8", marginTop: 2 }}>
-                  {assignment.clientContact}
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </div>
 
-        {/* Official round stamp */}
+        {/* Client sig */}
+        <div style={{ flex: 1 }}>
+          <div
+            style={{
+              borderTop: "1.5px dashed #cbd5e1",
+              paddingTop: 8,
+              marginTop: 24,
+            }}
+          >
+            <div style={{ fontSize: 9.5, fontWeight: 700, color: "#0f172a" }}>
+              {assignment.clientName || "Client"}
+            </div>
+            <div style={{ fontSize: 8, color: "#64748b" }}>Client</div>
+            {assignment.clientContact && (
+              <div style={{ fontSize: 8, color: "#94a3b8", marginTop: 1 }}>
+                {assignment.clientContact}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Stamp */}
         <div
           style={{
             flexShrink: 0,
-            width: 90,
-            height: 90,
+            width: 86,
+            height: 86,
             borderRadius: "50%",
             border: "2.5px solid #1a56db",
             display: "flex",
@@ -504,10 +582,9 @@ export default function AgreementPDF({ assignment, photographer }) {
             gap: 2,
             padding: 8,
             position: "relative",
-            opacity: 0.85,
+            opacity: 0.82,
           }}
         >
-          {/* Outer ring text effect via dashed inner border */}
           <div
             style={{
               position: "absolute",
@@ -530,7 +607,6 @@ export default function AgreementPDF({ assignment, photographer }) {
           >
             ShutterSync
           </div>
-          {/* Green tick mark */}
           <div
             style={{
               fontSize: 20,
@@ -571,31 +647,126 @@ export default function AgreementPDF({ assignment, photographer }) {
           </div>
         </div>
       </div>
+    </div>
+  );
 
-      {/* ── Footer ── */}
-      <LINE />
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          fontSize: 8,
-          color: "#94a3b8",
-        }}
-      >
-        <span>
-          Generated on ShutterSync by
-          {photographer?.name ? ` · ${photographer.name}` : ""}
-        </span>
-        <span
+  // ── Section: Terms & Conditions ──────────────────────────────────────────────
+  const TermsSection = conditions.length > 0 && (
+    <div style={{ marginBottom: 20 }}>
+      {/* Context strip — only shown on page 2 */}
+      {multiPage && (
+        <div
           style={{
-            fontStyle: "italic",
-            color: "#b0bec5",
+            background: "#f8fafc",
+            border: "1px solid #e2e8f0",
+            borderRadius: 8,
+            padding: "7px 12px",
+            marginBottom: 16,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
           }}
         >
-          This is a computer-generated agreement — no signature required.
-        </span>
-        <span>Ref: {refId}</span>
+          <span style={{ fontSize: 8.5, fontWeight: 700, color: "#475569" }}>
+            {assignment.title || assignment.packageName || "Photography Services"}
+          </span>
+          <span style={{ fontSize: 7.5, color: "#94a3b8", fontStyle: "italic" }}>
+            Appendix · Page 2 of 2
+          </span>
+        </div>
+      )}
+      <SectionLabel>Terms &amp; Conditions</SectionLabel>
+      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+        {conditions.map((c, i) => (
+          <div
+            key={i}
+            style={{
+              display: "flex",
+              gap: 10,
+              fontSize: 9,
+              color: "#334155",
+              paddingLeft: 10,
+              borderLeft: "2px solid #e2e8f0",
+              paddingTop: 3,
+              paddingBottom: 3,
+              lineHeight: 1.6,
+            }}
+          >
+            <span
+              style={{
+                color: "#1a56db",
+                fontWeight: 800,
+                flexShrink: 0,
+                minWidth: 16,
+              }}
+            >
+              {i + 1}.
+            </span>
+            {c}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  // ── Two-page layout ──────────────────────────────────────────────────────────
+  if (multiPage) {
+    return (
+      <div style={{ fontFamily: "'Lato', 'Helvetica Neue', Arial, sans-serif" }}>
+        {/* Page 1: all core sections + acknowledgement */}
+        <div
+          style={{
+            ...pageStyle,
+            pageBreakAfter: "always",
+            breakAfter: "page",
+          }}
+        >
+          <Watermark />
+          <div style={{ position: "relative", zIndex: 1 }}>
+            <PDFHeader {...headerProps} />
+            {TitleSection}
+            {PartiesSection}
+            {EventSection}
+            {PaymentSection}
+            {DeliverablesSection}
+            {AcknowledgementSection}
+            <PDFFooter {...footerProps} />
+          </div>
+        </div>
+
+        {/* Page 2: Terms appendix */}
+        <div
+          style={{
+            ...pageStyle,
+            pageBreakBefore: "always",
+            breakBefore: "page",
+          }}
+        >
+          <Watermark />
+          <div style={{ position: "relative", zIndex: 1 }}>
+            <PDFHeader {...headerProps} />
+            {TermsSection}
+            <PDFFooter {...footerProps} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Single-page layout ───────────────────────────────────────────────────────
+  return (
+    <div style={pageStyle}>
+      <Watermark />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <PDFHeader {...headerProps} />
+        {TitleSection}
+        {PartiesSection}
+        {EventSection}
+        {PaymentSection}
+        {DeliverablesSection}
+        {TermsSection}
+        {AcknowledgementSection}
+        <PDFFooter {...footerProps} />
       </div>
     </div>
   );

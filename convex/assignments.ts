@@ -106,6 +106,13 @@ export const listAll = query({
     },
 });
 
+export const remove = mutation({
+    args: { id: v.id("assignments") },
+    handler: async (ctx, args) => {
+        await ctx.db.delete(args.id);
+    },
+});
+
 export const calculateTotalRevenue = query({
     args: {},
     handler: async (ctx) => {
