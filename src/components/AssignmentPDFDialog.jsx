@@ -17,8 +17,11 @@ function printNode(node, filename) {
 
   const iframe = document.createElement("iframe");
   iframe.setAttribute("aria-hidden", "true");
+  // Must have explicit A4 width (794px) so mobile browsers render content at
+  // the correct width before applying @page size — a 0-width iframe causes
+  // mobile to use a narrow viewport, breaking layout and page breaks.
   iframe.style.cssText =
-    "position:absolute;width:0;height:0;border:0;top:-9999px;left:-9999px;";
+    "position:fixed;width:794px;height:1px;border:0;top:-10000px;left:-10000px;visibility:hidden;";
   document.body.appendChild(iframe);
 
   const doc = iframe.contentWindow.document;
@@ -27,12 +30,13 @@ function printNode(node, filename) {
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
+  <meta name="viewport" content="width=794, initial-scale=1.0, shrink-to-fit=no"/>
   <title>${filename}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;600;700;900&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; background: #fff; }
+    html, body { margin: 0; padding: 0; background: #fff; width: 794px; }
     body {
       font-family: 'Lato', 'Helvetica Neue', Arial, sans-serif;
       -webkit-print-color-adjust: exact;

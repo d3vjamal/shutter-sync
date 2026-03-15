@@ -13,7 +13,9 @@ import { format } from "date-fns";
 // ─── Primitives ───────────────────────────────────────────────────────────────
 
 const SectionLabel = ({ children }) => (
-  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 9 }}>
+  <div
+    style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 9 }}
+  >
     <div
       style={{
         width: 3,
@@ -237,9 +239,11 @@ const PDFFooter = ({ photographer, refId }) => (
 
 const pageStyle = {
   width: "100%",
-  maxWidth: 720,
+  // A4 at 96dpi = 794px; @page margin 14mm each side ≈ 106px total → ~688px
+  // usable. Keep maxWidth inside that so nothing is clipped on print.
+  maxWidth: 680,
   margin: "0 auto",
-  padding: "28px 36px 28px",
+  padding: "28px 32px 28px",
   background: "#ffffff",
   color: "#1e293b",
   fontFamily: "'Lato', 'Helvetica Neue', Arial, sans-serif",
@@ -252,16 +256,22 @@ const pageStyle = {
 // ─── Main Document ────────────────────────────────────────────────────────────
 
 export default function AgreementPDF({ assignment, photographer }) {
-  const paid    = Number(assignment.paidAmount || 0);
-  const total   = Number(assignment.amount || 0);
+  const paid = Number(assignment.paidAmount || 0);
+  const total = Number(assignment.amount || 0);
   const pending = Math.max(0, total - paid);
-  const pct     = total > 0 ? Math.min(100, Math.round((paid / total) * 100)) : 0;
+  const pct = total > 0 ? Math.min(100, Math.round((paid / total) * 100)) : 0;
 
-  const refId = `#${String(assignment._id || "").slice(-7).toUpperCase()}`;
+  const refId = `#${String(assignment._id || "")
+    .slice(-7)
+    .toUpperCase()}`;
   const today = format(new Date(), "dd MMMM yyyy");
 
   const fmtDate = (d) => {
-    try { return format(new Date(d), "dd MMM yyyy"); } catch { return d; }
+    try {
+      return format(new Date(d), "dd MMM yyyy");
+    } catch {
+      return d;
+    }
   };
 
   const dates = assignment.photographerDays?.length
@@ -273,7 +283,7 @@ export default function AgreementPDF({ assignment, photographer }) {
   const dateDisplay = dates.length === 0 ? "TBD" : dates.join("  ·  ");
 
   const conditions = assignment.conditions || [];
-  const multiPage  = conditions.length > 3;
+  const multiPage = conditions.length > 3;
 
   const headerProps = { photographer, refId, today };
   const footerProps = { photographer, refId };
@@ -293,7 +303,14 @@ export default function AgreementPDF({ assignment, photographer }) {
         {assignment.title || assignment.packageName || "Photography Services"}
       </div>
       {assignment.description && (
-        <div style={{ fontSize: 9.5, color: "#64748b", marginTop: 4, maxWidth: 500 }}>
+        <div
+          style={{
+            fontSize: 9.5,
+            color: "#64748b",
+            marginTop: 4,
+            maxWidth: 500,
+          }}
+        >
           {assignment.description}
         </div>
       )}
@@ -329,7 +346,14 @@ export default function AgreementPDF({ assignment, photographer }) {
             Photographer
           </div>
           <div style={{ padding: "10px 12px" }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginBottom: 3 }}>
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 700,
+                color: "#0f172a",
+                marginBottom: 3,
+              }}
+            >
               {photographer?.name || "—"}
             </div>
             {(photographer?.contact || photographer?.email) && (
@@ -370,7 +394,14 @@ export default function AgreementPDF({ assignment, photographer }) {
             Client
           </div>
           <div style={{ padding: "10px 12px" }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginBottom: 3 }}>
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 700,
+                color: "#0f172a",
+                marginBottom: 3,
+              }}
+            >
               {assignment.clientName || "—"}
             </div>
             {assignment.clientContact && (
@@ -386,14 +417,14 @@ export default function AgreementPDF({ assignment, photographer }) {
 
   // ── Section: Event Details (table style) ────────────────────────────────────
   const eventRows = [
-    { label: "Date(s)",   value: dateDisplay },
+    { label: "Date(s)", value: dateDisplay },
     {
       label: "Duration",
       value: assignment.eventDuration
         ? `${assignment.eventDuration} Day${assignment.eventDuration !== 1 ? "s" : ""}`
         : null,
     },
-    { label: "Venue",    value: assignment.venue },
+    { label: "Venue", value: assignment.venue },
     { label: "Location", value: assignment.location },
   ].filter((r) => r.value);
 
@@ -414,7 +445,8 @@ export default function AgreementPDF({ assignment, photographer }) {
               display: "flex",
               alignItems: "center",
               background: i % 2 === 0 ? "#f8fafc" : "#ffffff",
-              borderBottom: i < eventRows.length - 1 ? "1px solid #f1f5f9" : "none",
+              borderBottom:
+                i < eventRows.length - 1 ? "1px solid #f1f5f9" : "none",
               padding: "5.5px 12px",
             }}
           >
@@ -442,8 +474,12 @@ export default function AgreementPDF({ assignment, photographer }) {
       <SectionLabel>Payment Summary</SectionLabel>
       <div style={{ display: "flex", gap: 8, marginBottom: 9 }}>
         <AmountBox label="Total Amount" value={`₹${total.toLocaleString()}`} />
-        <AmountBox label="Amount Paid"  value={`₹${paid.toLocaleString()}`}  highlight />
-        <AmountBox label="Balance Due"  value={`₹${pending.toLocaleString()}`} />
+        <AmountBox
+          label="Amount Paid"
+          value={`₹${paid.toLocaleString()}`}
+          highlight
+        />
+        <AmountBox label="Balance Due" value={`₹${pending.toLocaleString()}`} />
       </div>
       <div
         style={{
@@ -472,7 +508,9 @@ export default function AgreementPDF({ assignment, photographer }) {
             }}
           />
         </div>
-        <span style={{ fontWeight: 700, whiteSpace: "nowrap" }}>{pct}% paid</span>
+        <span style={{ fontWeight: 700, whiteSpace: "nowrap" }}>
+          {pct}% paid
+        </span>
       </div>
     </div>
   );
@@ -668,9 +706,13 @@ export default function AgreementPDF({ assignment, photographer }) {
           }}
         >
           <span style={{ fontSize: 8.5, fontWeight: 700, color: "#475569" }}>
-            {assignment.title || assignment.packageName || "Photography Services"}
+            {assignment.title ||
+              assignment.packageName ||
+              "Photography Services"}
           </span>
-          <span style={{ fontSize: 7.5, color: "#94a3b8", fontStyle: "italic" }}>
+          <span
+            style={{ fontSize: 7.5, color: "#94a3b8", fontStyle: "italic" }}
+          >
             Appendix · Page 2 of 2
           </span>
         </div>
@@ -712,7 +754,9 @@ export default function AgreementPDF({ assignment, photographer }) {
   // ── Two-page layout ──────────────────────────────────────────────────────────
   if (multiPage) {
     return (
-      <div style={{ fontFamily: "'Lato', 'Helvetica Neue', Arial, sans-serif" }}>
+      <div
+        style={{ fontFamily: "'Lato', 'Helvetica Neue', Arial, sans-serif" }}
+      >
         {/* Page 1: all core sections + acknowledgement */}
         <div
           style={{
