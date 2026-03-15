@@ -17,6 +17,7 @@ import AgreementsPage from "./pages/AgreementsPage";
 import PublicPhotographerPage from "./pages/PublicPhotographerPage";
 import ProfilePage from "./pages/ProfilePage";
 import ServicePackagesPage from "./pages/ServicePackagesPage";
+import LandingPage from "./pages/LandingPage";
 
 // Components
 import LoadingSpinner from "./components/common/LoadingSpinner";
@@ -84,14 +85,13 @@ const AppContent = () => {
           }
         />
 
-        {/* Protected Routes - Default to Dashboard */}
+        {/* Root: landing page for guests, dashboard for authenticated users */}
         <Route
           path="/"
           element={
-            <Navigate
-              to={user?.roleCode === 0 ? "/admin/dashboard" : "/dashboard"}
-              replace
-            />
+            user
+              ? <Navigate to={user.roleCode === 0 ? "/admin/dashboard" : "/dashboard"} replace />
+              : <LandingPage />
           }
         />
         <Route
@@ -160,7 +160,7 @@ const AppContent = () => {
         {/* Fallback */}
         <Route path="/client/:id" element={<PublicClientPage />} />
         <Route path="/photographer/:id" element={<PublicPhotographerPage />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to={user ? "/dashboard" : "/"} replace />} />
       </Routes>
       <ToastContainer position="top-right" autoClose={3000} />
     </div>
