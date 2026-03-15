@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useDeferredValue } from "react";
-import { useMutation, useQuery } from "convex/react";
+import React, { useState, useEffect, useRef, useDeferredValue, useCallback } from "react";
+import { useMutation, useQuery, useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../hooks/useAuth";
 import { useTheme } from "../hooks/useTheme";
@@ -32,6 +32,9 @@ import {
   CheckCircle2,
   Share2,
   Briefcase,
+  Lock,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 export default function ProfilePage() {
@@ -57,7 +60,13 @@ export default function ProfilePage() {
   const [brandLogoUrl, setBrandLogoUrl] = useState("");
   const [photos, setPhotos] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [activeTab, setActiveTab] = useState("identity"); // identity, socials, portfolio, brand
+  const [activeTab, setActiveTab] = useState("identity");
+
+  // Password change state
+  const updatePassword = useAction(api.users.updatePassword);
+  const [pwForm, setPwForm] = useState({ current: "", next: "", confirm: "" });
+  const [pwVisible, setPwVisible] = useState({ current: false, next: false, confirm: false });
+  const [pwSaving, setPwSaving] = useState(false);
 
   // Live username availability — only fires when deferredUsername is valid
   const usernameValid = /^[a-z0-9_]{3,20}$/.test(deferredUsername);
@@ -174,6 +183,29 @@ export default function ProfilePage() {
     }
   };
 
+  const handlePasswordChange = async () => {
+    if (!pwForm.current) { toast.error("Enter your current password"); return; }
+    if (pwForm.next.length < 8) { toast.error("New password must be at least 8 characters"); return; }
+    if (pwForm.next !== pwForm.confirm) { toast.error("New passwords do not match"); return; }
+    setPwSaving(true);
+    try {
+      await updatePassword({ currentPassword: pwForm.current, newPassword: pwForm.next });
+      toast.success("Password updated successfully");
+      setPwForm({ current: "", next: "", confirm: "" });
+    } catch (err) {
+      const msg = err?.message || "";
+      if (msg.includes("InvalidSecret") || msg.includes("invalid")) {
+        toast.error("Current password is incorrect");
+      } else if (msg.includes("TooManyFailed") || msg.includes("rate")) {
+        toast.error("Too many failed attempts — try again later");
+      } else {
+        toast.error(msg || "Failed to update password");
+      }
+    } finally {
+      setPwSaving(false);
+    }
+  };
+
   const handleSaveAll = async () => {
     // Guard: if username is non-empty, it must pass validation and be available
     if (formData.username) {
@@ -224,6 +256,7 @@ export default function ProfilePage() {
               { id: "brand", label: "Brand", icon: Briefcase },
               { id: "socials", label: "Social Presence", icon: Instagram },
               { id: "portfolio", label: "Portfolio", icon: ImageIcon },
+              { id: "security", label: "Security", icon: Lock },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -688,21 +721,85 @@ export default function ProfilePage() {
                   </div>
                 )}
 
-                <div className="mt-12 pt-8 border-t border-white/10 flex justify-between items-center">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                    Last Sync: Today,{" "}
-                    {new Date().toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
-                  <Button
-                    onClick={handleSaveAll}
-                    className="h-12 px-8 rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl hover-lift"
-                  >
-                    Preserve Changes
-                  </Button>
-                </div>
+                {activeTab === "security" && (
+                  <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
+                    <div>
+                      <h3 className="text-lg font-black uppercase tracking-tight mb-1">Change Password</h3>
+                      <p className="text-xs text-muted-foreground font-medium">
+                        Update your login password. You'll need your current password to confirm.
+                      </p>
+                    </div>
+
+                    {[
+                      { key: "current", label: "Current Password" },
+                      { key: "next", label: "New Password" },
+                      { key: "confirm", label: "Confirm New Password" },
+                    ].map(({ key, label }) => (
+                      <div key={key} className="space-y-2">
+                        <Label
+                          htmlFor={`pw-${key}`}
+                          className="text-[10px] font-black uppercase tracking-widest ml-1 text-muted-foreground"
+                        >
+                          {label}
+                        </Label>
+                        <div className="relative">
+                          <Input
+                            id={`pw-${key}`}
+                            type={pwVisible[key] ? "text" : "password"}
+                            value={pwForm[key]}
+                            onChange={(e) => setPwForm((p) => ({ ...p, [key]: e.target.value }))}
+                            className="h-12 pr-11 rounded-xl bg-background/50"
+                            placeholder="••••••••"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setPwVisible((p) => ({ ...p, [key]: !p[key] }))}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                            tabIndex={-1}
+                          >
+                            {pwVisible[key] ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                        {key === "next" && pwForm.next && pwForm.next.length < 8 && (
+                          <p className="text-[10px] text-red-400 ml-1">Minimum 8 characters</p>
+                        )}
+                        {key === "confirm" && pwForm.confirm && pwForm.next !== pwForm.confirm && (
+                          <p className="text-[10px] text-red-400 ml-1">Passwords do not match</p>
+                        )}
+                      </div>
+                    ))}
+
+                    <Button
+                      onClick={handlePasswordChange}
+                      disabled={pwSaving}
+                      className="h-12 px-8 rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl hover-lift"
+                    >
+                      {pwSaving ? (
+                        <><Loader2 size={14} className="mr-2 animate-spin" />Updating…</>
+                      ) : (
+                        <><Lock size={14} className="mr-2" />Update Password</>
+                      )}
+                    </Button>
+                  </div>
+                )}
+
+                {activeTab !== "security" && (
+                  <div className="mt-12 pt-8 border-t border-white/10 flex justify-between items-center">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                      Last Sync: Today,{" "}
+                      {new Date().toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                    <Button
+                      onClick={handleSaveAll}
+                      className="h-12 px-8 rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl hover-lift"
+                    >
+                      Preserve Changes
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

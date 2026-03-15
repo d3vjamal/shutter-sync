@@ -97,12 +97,12 @@ const Watermark = () => (
         left: "50%",
         transform: "translate(-50%, -50%) rotate(-35deg)",
         display: "grid",
-        gridTemplateColumns: "repeat(4, 80px)",
-        gap: "52px 64px",
-        opacity: 0.05,
+        gridTemplateColumns: "repeat(3, 80px)",
+        gap: "60px 80px",
+        opacity: 0.12,
       }}
     >
-      {Array.from({ length: 20 }).map((_, i) => (
+      {Array.from({ length: 9 }).map((_, i) => (
         <img
           key={i}
           src="/static/icons/logo.png"
@@ -604,86 +604,6 @@ export default function AgreementPDF({ assignment, photographer }) {
             )}
           </div>
         </div>
-
-        {/* Stamp */}
-        <div
-          style={{
-            flexShrink: 0,
-            width: 86,
-            height: 86,
-            borderRadius: "50%",
-            border: "2.5px solid #1a56db",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 2,
-            padding: 8,
-            position: "relative",
-            opacity: 0.82,
-          }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              inset: 4,
-              borderRadius: "50%",
-              border: "1px dashed #1a56db",
-            }}
-          />
-          <div
-            style={{
-              fontSize: 7,
-              fontWeight: 800,
-              color: "#1a56db",
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              textAlign: "center",
-              lineHeight: 1.3,
-              position: "relative",
-            }}
-          >
-            ShutterSync
-          </div>
-          <div
-            style={{
-              fontSize: 20,
-              fontWeight: 900,
-              color: "#16a34a",
-              textAlign: "center",
-              lineHeight: 1,
-              position: "relative",
-            }}
-          >
-            ✓
-          </div>
-          <div
-            style={{
-              fontSize: 7,
-              fontWeight: 700,
-              color: "#1a56db",
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              textAlign: "center",
-              lineHeight: 1.3,
-              position: "relative",
-            }}
-          >
-            {today}
-          </div>
-          <div
-            style={{
-              fontSize: 6,
-              fontWeight: 600,
-              color: "#1a56db",
-              textAlign: "center",
-              position: "relative",
-              lineHeight: 1.3,
-            }}
-          >
-            VERIFIED
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -755,16 +675,10 @@ export default function AgreementPDF({ assignment, photographer }) {
   if (multiPage) {
     return (
       <div
-        style={{ fontFamily: "'Lato', 'Helvetica Neue', Arial, sans-serif" }}
+        style={{ fontFamily: "'Lato', 'Helvetica Neue', Arial, sans-serif", display: "block" }}
       >
         {/* Page 1: all core sections + acknowledgement */}
-        <div
-          style={{
-            ...pageStyle,
-            pageBreakAfter: "always",
-            breakAfter: "page",
-          }}
-        >
+        <div style={{ ...pageStyle }}>
           <Watermark />
           <div style={{ position: "relative", zIndex: 1 }}>
             <PDFHeader {...headerProps} />
@@ -778,14 +692,26 @@ export default function AgreementPDF({ assignment, photographer }) {
           </div>
         </div>
 
-        {/* Page 2: Terms appendix */}
+        {/*
+          Android-safe page break: a zero-height block with no position context.
+          Android Chrome ignores page-break on position:relative containers —
+          a plain block sibling element is respected reliably.
+        */}
         <div
+          data-pdf-break="1"
           style={{
-            ...pageStyle,
-            pageBreakBefore: "always",
-            breakBefore: "page",
+            display: "block",
+            width: "100%",
+            height: 0,
+            overflow: "hidden",
+            visibility: "hidden",
+            pageBreakAfter: "always",
+            breakAfter: "page",
           }}
-        >
+        />
+
+        {/* Page 2: Terms appendix */}
+        <div style={{ ...pageStyle }}>
           <Watermark />
           <div style={{ position: "relative", zIndex: 1 }}>
             <PDFHeader {...headerProps} />

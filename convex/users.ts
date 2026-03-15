@@ -1,7 +1,9 @@
 
-import { query, mutation } from "./_generated/server";
+import { query, mutation, action, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 import { auth } from "./auth";
+import { retrieveAccount, modifyAccountCredentials } from "@convex-dev/auth/server";
+import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 
 export const viewer = query({
@@ -115,5 +117,46 @@ export const listPhotographers = query({
             .query("users")
             .withIndex("by_roleCode", (q) => q.eq("roleCode", 1))
             .collect();
+    },
+});
+
+// Internal — used only by the updatePassword action below
+export const getViewerEmail = internalQuery({
+    args: {},
+    handler: async (ctx) => {
+        const userId = await auth.getUserId(ctx);
+        if (!userId) return null;
+        const user = await ctx.db.get(userId);
+        return (user as any)?.email ?? null;
+    },
+});
+
+export const updatePassword = action({
+    args: {
+        currentPassword: v.string(),
+        newPassword: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const userId = await auth.getUserId(ctx);
+        if (!userId) throw new Error("Not authenticated");
+
+        if (args.newPassword.length < 8) {
+            throw new Error("New password must be at least 8 characters");
+        }
+
+        const email = await ctx.runQuery(internal.users.getViewerEmail);
+        if (!email) throw new Error("Could not resolve account email");
+
+        // Verifies current password — throws on wrong password or rate limit
+        await retrieveAccount(ctx, {
+            provider: "password",
+            account: { id: email, secret: args.currentPassword },
+        });
+
+        // Update to new password (hashed internally by convex-auth)
+        await modifyAccountCredentials(ctx, {
+            provider: "password",
+            account: { id: email, secret: args.newPassword },
+        });
     },
 });

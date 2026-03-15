@@ -6,31 +6,19 @@ import AgreementPDF from "./AgreementPDF";
 import { useAuth } from "../hooks/useAuth";
 
 /**
- * Prints by cloning the rendered document's innerHTML into a hidden <iframe>
- * that is completely outside the Dialog portal — no overlay interference.
+ * Builds the standalone print HTML document string.
  * AgreementPDF uses only inline styles, so the copy is fully self-contained.
  */
-function printNode(node, filename) {
-  if (!node) return;
-
-  const html = node.innerHTML;
-
-  const iframe = document.createElement("iframe");
-  iframe.setAttribute("aria-hidden", "true");
-  // Must have explicit A4 width (794px) so mobile browsers render content at
-  // the correct width before applying @page size — a 0-width iframe causes
-  // mobile to use a narrow viewport, breaking layout and page breaks.
-  iframe.style.cssText =
-    "position:fixed;width:794px;height:1px;border:0;top:-10000px;left:-10000px;visibility:hidden;";
-  document.body.appendChild(iframe);
-
-  const doc = iframe.contentWindow.document;
-  doc.open();
-  doc.write(`<!DOCTYPE html>
+function buildPrintHTML(html, filename) {
+  // Base href makes relative paths (e.g. /static/icons/logo.png) resolve
+  // correctly inside a blob: document, which has no origin of its own.
+  const base = `${window.location.origin}/`;
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=794, initial-scale=1.0, shrink-to-fit=no"/>
+  <base href="${base}"/>
   <title>${filename}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;600;700;900&display=swap" rel="stylesheet">
@@ -44,10 +32,78 @@ function printNode(node, filename) {
       color-adjust: exact;
     }
     @page { size: A4 portrait; margin: 10mm 14mm; }
+    /* Android Chrome: page-break on position:relative divs is unreliable.
+       A zero-height sibling block (data-pdf-break) is respected reliably. */
+    [data-pdf-break] {
+      display: block !important;
+      width: 100% !important;
+      height: 0 !important;
+      overflow: hidden !important;
+      visibility: hidden !important;
+      page-break-after: always !important;
+      break-after: page !important;
+    }
+    @media print {
+      [data-pdf-break] {
+        display: block !important;
+        page-break-after: always !important;
+        break-after: page !important;
+      }
+    }
   </style>
 </head>
 <body>${html}</body>
-</html>`);
+</html>`;
+}
+
+/**
+ * Primary strategy: window.open() — works correctly on Android Chrome because
+ * the new tab is the print target, so only the PDF content is printed.
+ * iframe.contentWindow.print() on Android often prints the parent page instead,
+ * causing the dialog header/buttons to appear in the output.
+ *
+ * Fallback: hidden iframe — used when popups are blocked.
+ */
+function printNode(node, filename) {
+  if (!node) return;
+
+  const html = node.innerHTML;
+  const docHTML = buildPrintHTML(html, filename);
+
+  // Primary: open a Blob URL in a new tab.
+  // Blob URL avoids document.write() cross-window access issues (noopener) that
+  // leave the tab empty on Android. The new tab also ensures only PDF content
+  // is printed — iframe.contentWindow.print() on Android prints the parent page.
+  try {
+    const blob = new Blob([docHTML], { type: "text/html;charset=utf-8" });
+    const blobUrl = URL.createObjectURL(blob);
+    const win = window.open(blobUrl, "_blank");
+    if (win) {
+      let fired = false;
+      const doPrint = () => {
+        if (fired) return;
+        fired = true;
+        try { win.focus(); win.print(); } catch (e) { console.warn("Print failed", e); }
+        // Revoke blob URL after the print dialog has had time to open
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+      };
+      win.addEventListener("load", () => setTimeout(doPrint, 400));
+      setTimeout(doPrint, 1800);
+      return;
+    }
+    URL.revokeObjectURL(blobUrl);
+  } catch (_) { /* fall through to iframe */ }
+
+  // Fallback: hidden iframe (when popup blocked on desktop)
+  const iframe = document.createElement("iframe");
+  iframe.setAttribute("aria-hidden", "true");
+  iframe.style.cssText =
+    "position:fixed;width:794px;height:1px;border:0;top:-10000px;left:-10000px;visibility:hidden;";
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow.document;
+  doc.open();
+  doc.write(docHTML);
   doc.close();
 
   let fired = false;
@@ -65,7 +121,6 @@ function printNode(node, filename) {
     }, 3000);
   };
 
-  // Try after fonts are likely ready; also set a fallback
   iframe.contentWindow.addEventListener("load", () => setTimeout(doPrint, 350));
   setTimeout(doPrint, 1800);
 }
