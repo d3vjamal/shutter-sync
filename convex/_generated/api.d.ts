@@ -11,6 +11,7 @@
 import type * as agreements from "../agreements.js";
 import type * as assignments from "../assignments.js";
 import type * as auth from "../auth.js";
+import type * as freelanceAssignments from "../freelanceAssignments.js";
 import type * as http from "../http.js";
 import type * as packages from "../packages.js";
 import type * as photographers from "../photographers.js";
@@ -26,6 +27,7 @@ declare const fullApi: ApiFromModules<{
   agreements: typeof agreements;
   assignments: typeof assignments;
   auth: typeof auth;
+  freelanceAssignments: typeof freelanceAssignments;
   http: typeof http;
   packages: typeof packages;
   photographers: typeof photographers;

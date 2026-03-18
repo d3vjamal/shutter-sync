@@ -239,11 +239,11 @@ const PDFFooter = ({ photographer, refId }) => (
 
 const pageStyle = {
   width: "100%",
-  // A4 at 96dpi = 794px; @page margin 14mm each side ≈ 106px total → ~688px
+  // A4 at 96dpi = 794px; @page margin 8mm each side ≈ 61px total → ~732px
   // usable. Keep maxWidth inside that so nothing is clipped on print.
-  maxWidth: 680,
+  maxWidth: 720,
   margin: "0 auto",
-  padding: "28px 32px 28px",
+  padding: "14px 18px 14px",
   background: "#ffffff",
   color: "#1e293b",
   fontFamily: "'Lato', 'Helvetica Neue', Arial, sans-serif",

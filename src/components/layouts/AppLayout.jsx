@@ -14,17 +14,19 @@ import {
   Layers,
   ShieldCheck,
   Users,
+  Briefcase,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 
 // ─── Nav items ────────────────────────────────────────────────────────────────
 
 const NAV_ITEMS = [
-  { to: "/dashboard",         icon: BarChart3, label: "Dashboard"      },
-  { to: "/create-assignment", icon: Camera,    label: "New Assignment" },
-  { to: "/packages",          icon: Layers,    label: "My Packages"    },
-  { to: "/agreements",        icon: FileText,  label: "Agreements"     },
-  { to: "/profile",           icon: User,      label: "Profile"        },
+  { to: "/dashboard",                   icon: BarChart3,  label: "Dashboard"       },
+  { to: "/create-assignment",           icon: Camera,     label: "New Assignment"  },
+  { to: "/freelance",                   icon: Briefcase,  label: "Freelance Jobs"  },
+  { to: "/packages",                    icon: Layers,     label: "My Packages"     },
+  { to: "/agreements",                  icon: FileText,   label: "Agreements"      },
+  { to: "/profile",                     icon: User,       label: "Profile"         },
 ];
 
 const ADMIN_NAV_ITEMS = [
@@ -66,7 +68,10 @@ function Sidebar({ user, onLogout, onClose }) {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-2.5 py-4 space-y-0.5">
         {navItems.map(({ to, icon: Icon, label }) => {
-          const active = pathname === to;
+          const active =
+            pathname === to ||
+            (to === "/freelance" && pathname === "/create-freelance-assignment") ||
+            (to === "/create-assignment" && pathname === "/create-assignment");
           return (
             <Link
               key={to}

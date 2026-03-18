@@ -33,10 +33,10 @@ import AssignmentPDFDialog from "./AssignmentPDFDialog";
 // ─── Assignment Card ──────────────────────────────────────────────────────────
 
 const ACCENT = {
-  amber:   { bar: "bg-amber-500",   progress: "bg-amber-500"   },
-  primary: { bar: "bg-primary",     progress: "bg-primary"     },
+  amber: { bar: "bg-amber-500", progress: "bg-amber-500" },
+  primary: { bar: "bg-primary", progress: "bg-primary" },
   emerald: { bar: "bg-emerald-500", progress: "bg-emerald-500" },
-  secondary:{ bar: "bg-secondary",  progress: "bg-secondary"   },
+  secondary: { bar: "bg-secondary", progress: "bg-secondary" },
 };
 
 const AssignmentCard = ({
@@ -53,19 +53,21 @@ const AssignmentCard = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [paymentInput, setPaymentInput] = useState("");
 
-  const paid  = Number(assignment.paidAmount || 0);
+  const paid = Number(assignment.paidAmount || 0);
   const total = Number(assignment.amount || 0);
-  const pct       = total > 0 ? Math.min(100, Math.round((paid / total) * 100)) : 0;
+  const pct = total > 0 ? Math.min(100, Math.round((paid / total) * 100)) : 0;
   const remaining = total - paid;
 
-  const dateStr      = assignment.eventStartDate || assignment.captureDate;
+  const dateStr = assignment.eventStartDate || assignment.captureDate;
   const formattedDate = dateStr
     ? format(new Date(dateStr), "dd MMM yyyy")
     : "Date TBD";
 
-  const accent = ACCENT[isCompleted ? "emerald" : accentColor] || ACCENT.secondary;
+  const accent =
+    ACCENT[isCompleted ? "emerald" : accentColor] || ACCENT.secondary;
 
-  const handleEdit  = () => navigate("/create-assignment", { state: { assignment } });
+  const handleEdit = () =>
+    navigate("/create-assignment", { state: { assignment } });
 
   const handleShare = async () => {
     try {
@@ -107,12 +109,13 @@ const AssignmentCard = ({
       <div className={cn("h-1 w-full shrink-0", accent.bar)} />
 
       <div className="p-4 flex flex-col flex-1 gap-3">
-
         {/* Header: title + amount/status */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <h3 className="font-bold text-foreground text-sm leading-snug truncate group-hover:text-primary transition-colors duration-200">
-              {assignment.title || assignment.packageName || "Photography Session"}
+              {assignment.title ||
+                assignment.packageName ||
+                "Photography Session"}
             </h3>
             <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
               {assignment.clientName || "—"}
@@ -159,17 +162,25 @@ const AssignmentCard = ({
             </span>
             <span className="text-[10px] font-bold text-foreground">
               ₹{paid.toLocaleString()}
-              <span className="font-normal text-muted-foreground"> / ₹{total.toLocaleString()}</span>
+              <span className="font-normal text-muted-foreground">
+                {" "}
+                / ₹{total.toLocaleString()}
+              </span>
             </span>
           </div>
           <div className="h-1.5 bg-muted rounded-full overflow-hidden">
             <div
-              className={cn("h-full rounded-full transition-all duration-700", accent.progress)}
+              className={cn(
+                "h-full rounded-full transition-all duration-700",
+                accent.progress,
+              )}
               style={{ width: `${pct}%` }}
             />
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-muted-foreground">{pct}% paid</span>
+            <span className="text-[10px] text-muted-foreground">
+              {pct}% paid
+            </span>
             {remaining > 0 && (
               <span className="text-[10px] text-muted-foreground">
                 ₹{remaining.toLocaleString()} due
@@ -183,7 +194,11 @@ const AssignmentCard = ({
         {/* Action buttons */}
         <div className="flex items-center justify-around pt-3 border-t border-border/50 -mx-1">
           {!isCompleted && (
-            <ActionBtn onClick={handleEdit} icon={<Edit2 size={14} />} label="Edit" />
+            <ActionBtn
+              onClick={handleEdit}
+              icon={<Edit2 size={14} />}
+              label="Edit"
+            />
           )}
           {!isCompleted && (
             <ActionBtn
@@ -202,7 +217,11 @@ const AssignmentCard = ({
             />
           )}
           <AssignmentPDFDialog assignment={assignment} />
-          <ActionBtn onClick={handleShare} icon={<ExternalLink size={14} />} label="Share" />
+          <ActionBtn
+            onClick={handleShare}
+            icon={<ExternalLink size={14} />}
+            label="Share"
+          />
           {!isCompleted && (
             <ActionBtn
               onClick={() => setShowDeleteConfirm(true)}
@@ -220,7 +239,8 @@ const AssignmentCard = ({
           <DialogHeader>
             <DialogTitle>Mark as Complete?</DialogTitle>
             <DialogDescription>
-              "{assignment.title || assignment.packageName || "This assignment"}" will be moved to completed.
+              "{assignment.title || assignment.packageName || "This assignment"}
+              " will be moved to completed.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
@@ -252,7 +272,10 @@ const AssignmentCard = ({
           <div className="py-1 space-y-3">
             <div className="h-2 bg-muted rounded-full overflow-hidden">
               <div
-                className={cn("h-full rounded-full transition-all", accent.progress)}
+                className={cn(
+                  "h-full rounded-full transition-all",
+                  accent.progress,
+                )}
                 style={{ width: `${pct}%` }}
               />
             </div>
@@ -288,17 +311,18 @@ const AssignmentCard = ({
           <DialogHeader>
             <DialogTitle>Delete Assignment?</DialogTitle>
             <DialogDescription>
-              "{assignment.title || assignment.packageName || "This assignment"}" will be permanently deleted. This cannot be undone.
+              "{assignment.title || assignment.packageName || "This assignment"}
+              " will be permanently deleted. This cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteConfirm(false)}
+            >
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleConfirmDelete}
-            >
+            <Button variant="destructive" onClick={handleConfirmDelete}>
               <Trash2 size={13} className="mr-1.5" /> Delete
             </Button>
           </DialogFooter>
@@ -315,7 +339,7 @@ const ActionBtn = ({ onClick, icon, label, className }) => (
     className={cn(
       "flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl",
       "text-muted-foreground hover:bg-muted transition-colors duration-150",
-      className
+      className,
     )}
   >
     {icon}
@@ -345,7 +369,9 @@ const SkeletonCard = () => (
         <Skeleton className="h-1.5 w-full rounded-full" />
       </div>
       <div className="flex justify-around pt-3 border-t border-border/50">
-        {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-8 w-10 rounded-xl" />)}
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Skeleton key={i} className="h-8 w-10 rounded-xl" />
+        ))}
       </div>
     </div>
   </div>
@@ -358,7 +384,7 @@ const StatCard = ({ label, value, icon: Icon, from, iconColor }) => (
     className={cn(
       "relative rounded-2xl p-4 overflow-hidden border border-border/40 shadow-sm",
       "bg-gradient-to-br",
-      from
+      from,
     )}
   >
     <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">
@@ -374,12 +400,30 @@ const StatCard = ({ label, value, icon: Icon, from, iconColor }) => (
 // ─── Section header ───────────────────────────────────────────────────────────
 
 const SECTION_CFG = {
-  ongoing:  { iconBg: "bg-amber-500/10",   iconColor: "text-amber-500",   card: "amber"   },
-  upcoming: { iconBg: "bg-primary/10",     iconColor: "text-primary",     card: "primary" },
-  past:     { iconBg: "bg-emerald-500/10", iconColor: "text-emerald-500", card: "emerald" },
+  ongoing: {
+    iconBg: "bg-amber-500/10",
+    iconColor: "text-amber-500",
+    card: "amber",
+  },
+  upcoming: {
+    iconBg: "bg-primary/10",
+    iconColor: "text-primary",
+    card: "primary",
+  },
+  past: {
+    iconBg: "bg-emerald-500/10",
+    iconColor: "text-emerald-500",
+    card: "emerald",
+  },
 };
 
-const DashboardSection = ({ title, assignments, icon: Icon, sectionKey, ...handlers }) => {
+const DashboardSection = ({
+  title,
+  assignments,
+  icon: Icon,
+  sectionKey,
+  ...handlers
+}) => {
   const cfg = SECTION_CFG[sectionKey] || SECTION_CFG.ongoing;
 
   return (
@@ -389,7 +433,9 @@ const DashboardSection = ({ title, assignments, icon: Icon, sectionKey, ...handl
         <div className={cn("p-1.5 rounded-xl", cfg.iconBg)}>
           <Icon size={15} className={cfg.iconColor} />
         </div>
-        <h2 className="text-sm font-bold text-foreground tracking-tight">{title}</h2>
+        <h2 className="text-sm font-bold text-foreground tracking-tight">
+          {title}
+        </h2>
         <span className="ml-auto text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground">
           {assignments.length}
         </span>
@@ -410,7 +456,9 @@ const DashboardSection = ({ title, assignments, icon: Icon, sectionKey, ...handl
       ) : (
         <div className="py-10 flex flex-col items-center justify-center border border-dashed rounded-2xl bg-muted/20 gap-2">
           <Icon size={26} className={cn("opacity-25", cfg.iconColor)} />
-          <p className="text-xs text-muted-foreground">No {title.toLowerCase()}</p>
+          <p className="text-xs text-muted-foreground">
+            No {title.toLowerCase()}
+          </p>
         </div>
       )}
     </section>
@@ -431,16 +479,22 @@ const Dashboard = ({
   /* ── Stats ── */
   const totalCollected = assignments.reduce(
     (s, a) => s + Number(a.paidAmount || 0),
-    0
+    0,
   );
   const totalPending = assignments
     .filter((a) => a.status !== "Completed")
-    .reduce((s, a) => s + Math.max(0, Number(a.amount || 0) - Number(a.paidAmount || 0)), 0);
+    .reduce(
+      (s, a) =>
+        s + Math.max(0, Number(a.amount || 0) - Number(a.paidAmount || 0)),
+      0,
+    );
   const totalCount = assignments.length;
 
   /* ── Group ── */
   const now = new Date();
-  const ongoing = [], upcoming = [], past = [];
+  const ongoing = [],
+    upcoming = [],
+    past = [];
 
   assignments.forEach((a) => {
     if (a.status === "Completed") {
@@ -462,7 +516,12 @@ const Dashboard = ({
   upcoming.sort(byDate);
   past.sort((a, b) => b._creationTime - a._creationTime);
 
-  const handlers = { onUpdateStatus, onUpdateCaptureDate, onUpdateAssignment, onDeleteAssignment };
+  const handlers = {
+    onUpdateStatus,
+    onUpdateCaptureDate,
+    onUpdateAssignment,
+    onDeleteAssignment,
+  };
 
   /* ── Loading skeleton ── */
   if (loading) {
@@ -470,19 +529,25 @@ const Dashboard = ({
       <div className="max-w-5xl mx-auto pb-24 space-y-8 animate-load">
         {/* Stat strip skeletons */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {[1,2,3,4].map(i => <Skeleton key={i} className="h-20 rounded-2xl" />)}
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-20 rounded-2xl" />
+          ))}
         </div>
         {/* Section skeleton */}
         <div className="space-y-3">
           <Skeleton className="h-5 w-36 rounded-xl" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {[1,2,3].map(i => <SkeletonCard key={i} />)}
+            {[1, 2, 3].map((i) => (
+              <SkeletonCard key={i} />
+            ))}
           </div>
         </div>
         <div className="space-y-3">
           <Skeleton className="h-5 w-28 rounded-xl" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {[1,2].map(i => <SkeletonCard key={i} />)}
+            {[1, 2].map((i) => (
+              <SkeletonCard key={i} />
+            ))}
           </div>
         </div>
       </div>
@@ -491,7 +556,6 @@ const Dashboard = ({
 
   return (
     <div className="max-w-5xl mx-auto pb-24 space-y-8 animate-load">
-
       {/* ── Stat strip ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 stagger-children">
         <StatCard
@@ -509,7 +573,7 @@ const Dashboard = ({
           iconColor="text-primary"
         />
         <StatCard
-          label="Total Jobs"
+          label="Assignments"
           value={totalCount}
           icon={Briefcase}
           from="from-primary/15 to-primary/5"

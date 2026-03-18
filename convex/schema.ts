@@ -67,4 +67,56 @@ export default defineSchema({
         price: v.optional(v.string()),
         popular: v.optional(v.boolean()),
     }).index("by_photographer", ["photographerId"]),
+
+    freelanceAssignments: defineTable({
+        photographerId: v.string(),
+
+        // Studio Info
+        studioName:      v.string(),
+        studioOwnerName: v.string(),
+        studioMobile:    v.string(),
+        studioEmail:     v.optional(v.string()),
+        studioArea:      v.optional(v.string()),
+
+        // Work Details
+        venue:    v.string(),
+        location: v.optional(v.string()),
+        dates:    v.array(v.string()),
+
+        // Photography
+        photographerName:          v.string(),
+        photographerMobile:        v.optional(v.string()),
+        photographerEmail:         v.optional(v.string()),
+        photographyAmount:         v.optional(v.string()),
+        photographyReceived:       v.optional(v.string()),
+        photographyFootageTypes:   v.optional(v.array(v.string())),
+
+        // Videography (optional section)
+        hasVideography:            v.optional(v.boolean()),
+        videographerName:          v.optional(v.string()),
+        videographerMobile:        v.optional(v.string()),
+        videographerEmail:         v.optional(v.string()),
+        videographyAmount:         v.optional(v.string()),
+        videographyReceived:       v.optional(v.string()),
+        videographyFootageTypes:   v.optional(v.array(v.string())),
+
+        // Legacy fields — kept optional so existing documents remain valid
+        totalAmount:        v.optional(v.string()),
+        photographerAmount: v.optional(v.string()),
+        videographerAmount: v.optional(v.string()),
+        footageTypes:       v.optional(v.array(v.string())),
+        teamMobile:         v.optional(v.string()),
+        teamEmail:          v.optional(v.string()),
+
+        // Equipment
+        gadgets: v.optional(v.array(v.string())),
+
+        // Terms
+        conditions: v.optional(v.array(v.string())),
+
+        // Status
+        status: v.string(),
+    })
+        .index("by_photographer", ["photographerId"])
+        .index("by_status", ["status"]),
 });

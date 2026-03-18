@@ -18,6 +18,8 @@ import PublicPhotographerPage from "./pages/PublicPhotographerPage";
 import ProfilePage from "./pages/ProfilePage";
 import ServicePackagesPage from "./pages/ServicePackagesPage";
 import LandingPage from "./pages/LandingPage";
+import FreelancePage from "./pages/FreelancePage";
+import CreateFreelanceAssignmentPage from "./pages/CreateFreelanceAssignmentPage";
 
 // Components
 import LoadingSpinner from "./components/common/LoadingSpinner";
@@ -117,6 +119,22 @@ const AppContent = () => {
           element={
             <ProtectedRoute user={user}>
               <CreateAssignmentPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/freelance"
+          element={
+            <ProtectedRoute user={user}>
+              <FreelancePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/create-freelance-assignment"
+          element={
+            <ProtectedRoute user={user}>
+              <CreateFreelanceAssignmentPage />
             </ProtectedRoute>
           }
         />

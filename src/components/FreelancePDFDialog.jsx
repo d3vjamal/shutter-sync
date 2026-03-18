@@ -2,16 +2,10 @@ import React, { useState, useRef, useCallback } from "react";
 import { FileDown, Printer, Loader2, X } from "lucide-react";
 import { Dialog, DialogContent, DialogClose, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
-import AgreementPDF from "./AgreementPDF";
+import FreelanceAgreementPDF from "./FreelanceAgreementPDF";
 import { useAuth } from "../hooks/useAuth";
 
-/**
- * Builds the standalone print HTML document string.
- * AgreementPDF uses only inline styles, so the copy is fully self-contained.
- */
 function buildPrintHTML(html, filename) {
-  // Base href makes relative paths (e.g. /static/icons/logo.png) resolve
-  // correctly inside a blob: document, which has no origin of its own.
   const base = `${window.location.origin}/`;
   return `<!DOCTYPE html>
 <html lang="en">
@@ -32,23 +26,13 @@ function buildPrintHTML(html, filename) {
       color-adjust: exact;
     }
     @page { size: A4 portrait; margin: 6mm 8mm; }
-    /* Android Chrome: page-break on position:relative divs is unreliable.
-       A zero-height sibling block (data-pdf-break) is respected reliably. */
     [data-pdf-break] {
-      display: block !important;
-      width: 100% !important;
-      height: 0 !important;
-      overflow: hidden !important;
-      visibility: hidden !important;
-      page-break-after: always !important;
-      break-after: page !important;
+      display: block !important; width: 100% !important; height: 0 !important;
+      overflow: hidden !important; visibility: hidden !important;
+      page-break-after: always !important; break-after: page !important;
     }
     @media print {
-      [data-pdf-break] {
-        display: block !important;
-        page-break-after: always !important;
-        break-after: page !important;
-      }
+      [data-pdf-break] { display: block !important; page-break-after: always !important; break-after: page !important; }
     }
   </style>
 </head>
@@ -56,24 +40,11 @@ function buildPrintHTML(html, filename) {
 </html>`;
 }
 
-/**
- * Primary strategy: window.open() — works correctly on Android Chrome because
- * the new tab is the print target, so only the PDF content is printed.
- * iframe.contentWindow.print() on Android often prints the parent page instead,
- * causing the dialog header/buttons to appear in the output.
- *
- * Fallback: hidden iframe — used when popups are blocked.
- */
 function printNode(node, filename) {
   if (!node) return;
-
   const html = node.innerHTML;
   const docHTML = buildPrintHTML(html, filename);
 
-  // Primary: open a Blob URL in a new tab.
-  // Blob URL avoids document.write() cross-window access issues (noopener) that
-  // leave the tab empty on Android. The new tab also ensures only PDF content
-  // is printed — iframe.contentWindow.print() on Android prints the parent page.
   try {
     const blob = new Blob([docHTML], { type: "text/html;charset=utf-8" });
     const blobUrl = URL.createObjectURL(blob);
@@ -84,7 +55,6 @@ function printNode(node, filename) {
         if (fired) return;
         fired = true;
         try { win.focus(); win.print(); } catch (e) { console.warn("Print failed", e); }
-        // Revoke blob URL after the print dialog has had time to open
         setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
       };
       win.addEventListener("load", () => setTimeout(doPrint, 400));
@@ -92,9 +62,8 @@ function printNode(node, filename) {
       return;
     }
     URL.revokeObjectURL(blobUrl);
-  } catch (_) { /* fall through to iframe */ }
+  } catch (_) { /* fall through */ }
 
-  // Fallback: hidden iframe (when popup blocked on desktop)
   const iframe = document.createElement("iframe");
   iframe.setAttribute("aria-hidden", "true");
   iframe.style.cssText =
@@ -102,42 +71,27 @@ function printNode(node, filename) {
   document.body.appendChild(iframe);
 
   const doc = iframe.contentWindow.document;
-  doc.open();
-  doc.write(docHTML);
-  doc.close();
+  doc.open(); doc.write(docHTML); doc.close();
 
   let fired = false;
   const doPrint = () => {
     if (fired) return;
     fired = true;
-    try {
-      iframe.contentWindow.focus();
-      iframe.contentWindow.print();
-    } catch (e) {
-      console.warn("Print failed", e);
-    }
-    setTimeout(() => {
-      if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-    }, 3000);
+    try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch (e) { console.warn("Print failed", e); }
+    setTimeout(() => { if (iframe.parentNode) iframe.parentNode.removeChild(iframe); }, 3000);
   };
 
   iframe.contentWindow.addEventListener("load", () => setTimeout(doPrint, 350));
   setTimeout(doPrint, 1800);
 }
 
-// ─── Dialog ──────────────────────────────────────────────────────────────────
-
-export default function AssignmentPDFDialog({ assignment }) {
-  const [open, setOpen] = useState(false);
+export default function FreelancePDFDialog({ job }) {
+  const [open, setOpen]       = useState(false);
   const [printing, setPrinting] = useState(false);
-  const { user } = useAuth();
-  const docRef = useRef(null);
+  const { user }              = useAuth();
+  const docRef                = useRef(null);
 
-  const filename = `ShutterSync-${(
-    assignment.title ||
-    assignment.clientName ||
-    "Agreement"
-  )
+  const filename = `ShutterSync-Freelance-${(job.studioName || "Agreement")
     .replace(/[^a-zA-Z0-9 ]/g, "")
     .trim()
     .replace(/\s+/g, "-")
@@ -147,13 +101,11 @@ export default function AssignmentPDFDialog({ assignment }) {
     if (printing) return;
     setPrinting(true);
     printNode(docRef.current, filename);
-    // Re-enable button after reasonable delay
     setTimeout(() => setPrinting(false), 2000);
   }, [printing, filename]);
 
   return (
     <>
-      {/* ── Card trigger button ── */}
       <button
         onClick={() => setOpen(true)}
         title="Generate Agreement PDF"
@@ -165,23 +117,17 @@ export default function AssignmentPDFDialog({ assignment }) {
         <span className="text-[10px] font-semibold">PDF</span>
       </button>
 
-      {/* ── Preview modal ── */}
       <Dialog open={open} onOpenChange={setOpen}>
-        {/* [&>button:last-child]:hidden suppresses the default absolute close X
-            that Radix injects — we provide our own close button in the header */}
         <DialogContent
           className="max-w-3xl w-full p-0 gap-0 overflow-hidden rounded-2xl border border-border
             [&>button:last-child]:hidden"
           style={{ maxHeight: "92vh" }}
         >
-          {/* Top bar */}
           <DialogHeader className="flex flex-row items-center gap-2 px-4 py-3 border-b border-border shrink-0">
             <FileDown size={14} className="text-primary shrink-0" />
             <DialogTitle className="text-sm font-bold flex-1 min-w-0 truncate">
-              {assignment.title || assignment.clientName || "Agreement"} — PDF Preview
+              {job.studioName || "Freelance Agreement"} — PDF Preview
             </DialogTitle>
-
-            {/* Print button */}
             <Button
               onClick={handlePrint}
               disabled={printing}
@@ -195,8 +141,6 @@ export default function AssignmentPDFDialog({ assignment }) {
                 <><Printer size={13} className="mr-1.5" />Save PDF</>
               )}
             </Button>
-
-            {/* Close button — explicit, sits in the header flow */}
             <DialogClose asChild>
               <button
                 className="shrink-0 p-1.5 rounded-lg text-muted-foreground
@@ -208,26 +152,20 @@ export default function AssignmentPDFDialog({ assignment }) {
             </DialogClose>
           </DialogHeader>
 
-          {/* Scrollable preview — grey bg mimics print paper */}
           <div
             className="overflow-y-auto"
             style={{ background: "#e5e7eb", maxHeight: "calc(92vh - 57px)" }}
           >
             <div className="py-3 px-2 flex justify-center">
-              {/* Paper shadow */}
               <div
                 ref={docRef}
                 style={{
-                  background: "#ffffff",
-                  width: "100%",
-                  maxWidth: 720,
-                  borderRadius: 8,
-                  overflow: "hidden",
-                  boxShadow:
-                    "0 2px 8px rgba(0,0,0,0.08), 0 8px 32px rgba(0,0,0,0.10)",
+                  background: "#ffffff", width: "100%", maxWidth: 720,
+                  borderRadius: 8, overflow: "hidden",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.08), 0 8px 32px rgba(0,0,0,0.10)",
                 }}
               >
-                <AgreementPDF assignment={assignment} photographer={user} />
+                <FreelanceAgreementPDF job={job} photographer={user} />
               </div>
             </div>
           </div>
