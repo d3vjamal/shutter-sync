@@ -23,16 +23,17 @@ import {
 import { cn } from "../lib/utils";
 import Agreement from "./Agreement";
 import BookingForm from "./BookingForm";
+import { t } from "../lib/clientTranslations";
 
-const ClientView = ({ pkg, onBack, onInitiatePayment, agreed, setAgreed }) => {
+const ClientView = ({ pkg, lang = "en", onBack, onInitiatePayment, agreed, setAgreed }) => {
   const [step, setStep] = useState(1); // 1: Overview, 2: Agreement, 3: Payment
 
   if (!pkg) return null;
 
   const steps = [
-    { id: 1, label: "Discovery", icon: Camera },
-    { id: 2, label: "Agreement", icon: FileText },
-    { id: 3, label: "Reservation", icon: CreditCard },
+    { id: 1, label: t(lang, "stepDiscovery"), icon: Camera },
+    { id: 2, label: t(lang, "stepAgreement"), icon: FileText },
+    { id: 3, label: t(lang, "stepReservation"), icon: CreditCard },
   ];
 
   return (
@@ -56,8 +57,8 @@ const ClientView = ({ pkg, onBack, onInitiatePayment, agreed, setAgreed }) => {
             </h2>
             <p className="text-[10px] text-primary font-black tracking-[0.2em] uppercase opacity-70">
               {pkg.clientName
-                ? `Exclusively curated for ${pkg.clientName}`
-                : "Signature Experience Portal"}
+                ? t(lang, "curatedFor", pkg.clientName)
+                : t(lang, "signaturePortal")}
             </p>
           </div>
         </div>
@@ -91,13 +92,13 @@ const ClientView = ({ pkg, onBack, onInitiatePayment, agreed, setAgreed }) => {
                 <CardHeader className="p-8 md:p-12 pb-4">
                   <div className="flex items-center gap-3 mb-6">
                     <Badge className="bg-primary/10 text-primary border-primary/20 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full">
-                      Signature Collection
+                      {t(lang, "signatureCollection")}
                     </Badge>
                     <Badge
                       variant="outline"
                       className="border-border/10 text-muted-foreground px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full"
                     >
-                      Ref: {pkg._id?.slice(-6) || "N/A"}
+                      {t(lang, "ref")}: {pkg._id?.slice(-6) || "N/A"}
                     </Badge>
                   </div>
                   <div className="space-y-4">
@@ -117,7 +118,7 @@ const ClientView = ({ pkg, onBack, onInitiatePayment, agreed, setAgreed }) => {
                     <div className="flex items-center gap-4">
                       <div className="h-px w-12 bg-primary/30"></div>
                       <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">
-                        Experience Inclusions
+                        {t(lang, "experienceInclusions")}
                       </h3>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -146,7 +147,7 @@ const ClientView = ({ pkg, onBack, onInitiatePayment, agreed, setAgreed }) => {
                   <Sparkles size={120} className="text-primary" />
                 </div>
                 <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60 mb-8 ml-1">
-                  Assigned Artist
+                  {t(lang, "assignedArtist")}
                 </h3>
                 <div className="flex items-center gap-5 mb-10 relative z-10">
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-2xl font-black text-primary-foreground shadow-2xl shadow-primary/20">
@@ -165,7 +166,7 @@ const ClientView = ({ pkg, onBack, onInitiatePayment, agreed, setAgreed }) => {
                   onClick={() => setStep(2)}
                   className="w-full h-14 rounded-2xl flex items-center justify-center gap-3 font-black uppercase tracking-widest text-[10px] shadow-xl shadow-primary/20 group relative z-10"
                 >
-                  Proceed to Agreement
+                  {t(lang, "proceedAgreement")}
                   <ArrowRight
                     size={18}
                     className="group-hover:translate-x-1.5 transition-transform"
@@ -176,8 +177,7 @@ const ClientView = ({ pkg, onBack, onInitiatePayment, agreed, setAgreed }) => {
               <div className="p-8 bg-muted/20 rounded-3xl border border-border/5 text-center flex flex-col items-center justify-center gap-4">
                 <Camera size={24} className="text-primary/80" />
                 <p className="text-[11px] text-primary text-foreground/50 font-medium italic leading-relaxed max-w-[200px]">
-                  "We don't just take pictures, we curate visual legacies that
-                  stand the test of time."
+                  {t(lang, "quote")}
                 </p>
               </div>
             </div>
@@ -188,6 +188,7 @@ const ClientView = ({ pkg, onBack, onInitiatePayment, agreed, setAgreed }) => {
           <div className="animate-in slide-in-from-right-8 duration-700 space-y-10">
             <Agreement
               pkg={pkg}
+              lang={lang}
               onAgree={(checked) => setAgreed(checked)}
               agreed={agreed}
             />
@@ -195,9 +196,9 @@ const ClientView = ({ pkg, onBack, onInitiatePayment, agreed, setAgreed }) => {
               <Button
                 onClick={() => setStep(3)}
                 disabled={!agreed}
-                className="h-16 px-12 rounded-2xl flex items-center gap-4 font-black  tracking-[0.2em] text-[10px] shadow-2xl shadow-primary/20 disabled:opacity-30 disabled:grayscale transition-all hover:-translate-y-1"
+                className="h-16 px-12 rounded-2xl flex items-center gap-4 font-black tracking-[0.2em] text-[10px] shadow-2xl shadow-primary/20 disabled:opacity-30 disabled:grayscale transition-all hover:-translate-y-1"
               >
-                Continue to Secure Reservation
+                {t(lang, "continueReservation")}
                 <CreditCard size={20} />
               </Button>
             </div>
@@ -211,16 +212,17 @@ const ClientView = ({ pkg, onBack, onInitiatePayment, agreed, setAgreed }) => {
                 variant="outline"
                 className="text-[10px] font-black uppercase tracking-[0.3em] text-secondary px-6 py-2 border-primary/20 bg-primary/5 rounded-full"
               >
-                Final Step
+                {t(lang, "finalStep")}
               </Badge>
-              <h3 className="text-4xl font-black text-foreground  tracking-tight">
-                Secure Reservation
+              <h3 className="text-4xl font-black text-foreground tracking-tight">
+                {t(lang, "secureReservation")}
               </h3>
-              <p className="text-[11px] text-muted-foreground font-bold  tracking-widest opacity-60">
-                Complete the transaction via our secure digital payment gateway
+              <p className="text-[11px] text-muted-foreground font-bold tracking-widest opacity-60">
+                {t(lang, "secureGateway")}
               </p>
             </div>
             <BookingForm
+              lang={lang}
               config={{
                 upiId: pkg.photographerUPI || "ShutterSync@upi",
                 payeeName: pkg.photographerName || "ShutterSync",

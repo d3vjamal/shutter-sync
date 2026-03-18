@@ -5,10 +5,11 @@ import { api } from "../../convex/_generated/api";
 import { toast } from "react-toastify";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import ClientView from "../components/ClientView";
+import { t } from "../lib/clientTranslations";
 
 // ─── Public branded shell (no sidebar / auth) ────────────────────────────────
 
-function PublicLayout({ children }) {
+function PublicLayout({ children, lang, onLangChange }) {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Minimal branded header */}
@@ -24,8 +25,28 @@ function PublicLayout({ children }) {
           ShutterSync
         </span>
         <span className="text-[10px] font-semibold text-muted-foreground ml-1 hidden sm:block">
-          — Client Portal
+          — {t(lang, "clientPortal")}
         </span>
+
+        {/* Language toggle */}
+        <div className="ml-auto flex items-center bg-muted/60 rounded-xl p-0.5 gap-0.5">
+          {[
+            { code: "en", label: "EN" },
+            { code: "bn", label: "বাং" },
+          ].map(({ code, label }) => (
+            <button
+              key={code}
+              onClick={() => onLangChange(code)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all duration-200 ${
+                lang === code
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </header>
 
       {/* Content */}
@@ -35,7 +56,11 @@ function PublicLayout({ children }) {
 
       {/* Footer */}
       <footer className="py-4 text-center text-[11px] text-muted-foreground border-t border-border">
-        Powered by <span className="font-bold text-foreground">ShutterSync</span>
+        {lang === "en" ? (
+          <>Powered by <span className="font-bold text-foreground">ShutterSync</span></>
+        ) : (
+          <><span className="font-bold text-foreground">ShutterSync</span> দ্বারা পরিচালিত</>
+        )}
       </footer>
     </div>
   );
@@ -45,42 +70,44 @@ function PublicLayout({ children }) {
 
 export default function PublicClientPage() {
   const { id } = useParams();
+  const [lang, setLang] = useState("en");
   const assignment = useQuery(api.assignments.get, id ? { id } : "skip");
   const [agreed, setAgreed] = useState(false);
 
   if (!id)
     return (
-      <PublicLayout>
+      <PublicLayout lang={lang} onLangChange={setLang}>
         <div className="max-w-lg mx-auto py-20 text-center">
-          <p className="text-muted-foreground">Invalid assignment link.</p>
+          <p className="text-muted-foreground">{t(lang, "invalidLink")}</p>
         </div>
       </PublicLayout>
     );
 
   if (assignment === undefined)
     return (
-      <PublicLayout>
+      <PublicLayout lang={lang} onLangChange={setLang}>
         <LoadingSpinner />
       </PublicLayout>
     );
 
   if (!assignment)
     return (
-      <PublicLayout>
+      <PublicLayout lang={lang} onLangChange={setLang}>
         <div className="max-w-lg mx-auto py-20 text-center">
-          <p className="text-muted-foreground">Assignment not found.</p>
+          <p className="text-muted-foreground">{t(lang, "notFound")}</p>
         </div>
       </PublicLayout>
     );
 
   const handlePaymentSuccess = () => {
-    toast.success("Payment initiated! We'll confirm details soon.");
+    toast.success(t(lang, "paymentInitiated"));
   };
 
   return (
-    <PublicLayout>
+    <PublicLayout lang={lang} onLangChange={setLang}>
       <ClientView
         pkg={assignment}
+        lang={lang}
         onInitiatePayment={handlePaymentSuccess}
         agreed={agreed}
         setAgreed={setAgreed}

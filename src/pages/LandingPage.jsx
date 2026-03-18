@@ -25,6 +25,7 @@ import {
   Twitter,
   MapPin,
   Code2,
+  Building2,
 } from "lucide-react";
 
 // ─── Navbar ──────────────────────────────────────────────────────────────────
@@ -72,6 +73,7 @@ function Navbar() {
           {[
             ["features", "Features"],
             ["how-it-works", "How It Works"],
+            ["freelance", "Freelance"],
             ["for-clients", "For Clients"],
           ].map(([id, label]) => (
             <button
@@ -115,6 +117,7 @@ function Navbar() {
           {[
             ["features", "Features"],
             ["how-it-works", "How It Works"],
+            ["freelance", "Freelance"],
             ["for-clients", "For Clients"],
           ].map(([id, label]) => (
             <button
@@ -177,9 +180,9 @@ function Hero() {
         </h1>
 
         <p className="text-lg md:text-xl text-white/55 font-medium max-w-2xl mx-auto mb-10 leading-relaxed">
-          Assignments, agreements, payments, and your public portfolio —
-          everything a photographer needs to look professional and stay
-          organised.
+          Assignments, freelance jobs, agreements, payments, and your public
+          portfolio — everything a photographer needs to look professional and
+          stay organised.
         </p>
 
         {/* CTAs */}
@@ -243,101 +246,155 @@ function Hero() {
 const FEATURES = [
   {
     icon: LayoutDashboard,
-    color: "from-blue-500 to-blue-600",
-    glow: "group-hover:shadow-blue-500/25",
+    c1: "#3b82f6", c2: "#1d4ed8",
     title: "Smart Dashboard",
-    desc: "See every active, upcoming, and past assignment at a glance. Track collected revenue, pending payments, and job count — all updated in real time.",
+    desc: "Active, upcoming, and past jobs in one view — revenue collected, pending balance, and job count, all live.",
+    badge: "Real-time sync",
+  },
+  {
+    icon: Building2,
+    c1: "#f59e0b", c2: "#ea580c",
+    title: "Freelance Jobs",
+    desc: "Log studio gigs as a freelancer. Separate photo & video payment splits, gadgets list, and agreement PDFs per job.",
+    badge: "Photo + Video splits",
   },
   {
     icon: FileText,
-    color: "from-violet-500 to-purple-600",
-    glow: "group-hover:shadow-violet-500/25",
+    c1: "#8b5cf6", c2: "#7c3aed",
     title: "Agreement PDFs",
-    desc: "Generate a professional, branded contract PDF from any assignment in one click. Includes both party details, payment summary, deliverables, and your custom terms.",
+    desc: "Branded contract PDF from any assignment in one click — party details, payment summary, and custom terms included.",
+    badge: "1-click PDF",
   },
   {
     icon: CreditCard,
-    color: "from-emerald-500 to-green-600",
-    glow: "group-hover:shadow-emerald-500/25",
+    c1: "#10b981", c2: "#059669",
     title: "Payment Tracking",
-    desc: "Record total amount, amount received, and balance due per assignment. Visual progress bars show exactly where each client stands on payment.",
-  },
-  {
-    icon: BookOpen,
-    color: "from-orange-500 to-amber-500",
-    glow: "group-hover:shadow-orange-500/25",
-    title: "Reusable Contract Terms",
-    desc: "Write your cancellation policy, advance clause, or rescheduling terms once. Mix and match them when creating any new assignment.",
+    desc: "Total, received, and balance due per job. Visual progress bars keep every client's payment status clear.",
+    badge: "Visual progress bars",
   },
   {
     icon: Globe,
-    color: "from-cyan-500 to-teal-500",
-    glow: "group-hover:shadow-cyan-500/25",
-    title: "Public Portfolio Page",
-    desc: "Every photographer gets a shareable profile at a custom link. Show your bio, gallery, social handles, and service packages to potential clients.",
+    c1: "#06b6d4", c2: "#0891b2",
+    title: "Portfolio Page",
+    desc: "A public profile at your own shareable link — bio, gallery, social handles, and packages for new clients.",
+    badge: "Custom public link",
   },
   {
-    icon: Briefcase,
-    color: "from-pink-500 to-rose-500",
-    glow: "group-hover:shadow-pink-500/25",
-    title: "Service Packages",
-    desc: "Define your offerings with pricing, descriptions, and what's included. Mark your best package as 'Most Popular' to guide client decisions.",
+    icon: BookOpen,
+    c1: "#f97316", c2: "#d97706",
+    title: "Contract Terms",
+    desc: "Write advance, cancellation, and travel policies once — then reuse them across any assignment or freelance job.",
+    badge: "Reusable templates",
   },
   {
     icon: CalendarDays,
-    color: "from-indigo-500 to-blue-500",
-    glow: "group-hover:shadow-indigo-500/25",
-    title: "Multi-Day Shoot Scheduling",
-    desc: "Add individual coverage dates for weddings and multi-day events. Event duration and start date are calculated automatically.",
+    c1: "#6366f1", c2: "#4f46e5",
+    title: "Multi-Day Scheduling",
+    desc: "Pick individual coverage dates for weddings and multi-day events. Duration is calculated automatically.",
+    badge: "Multi-date support",
   },
   {
     icon: ImageIcon,
-    color: "from-yellow-500 to-orange-500",
-    glow: "group-hover:shadow-yellow-500/25",
+    c1: "#eab308", c2: "#ca8a04",
     title: "Portfolio & Branding",
-    desc: "Upload up to 6 portfolio photos and your studio logo. Your logo appears on every agreement PDF you generate — consistent, professional branding.",
+    desc: "Upload up to 6 portfolio photos and your studio logo. Your logo appears on every PDF you generate.",
+    badge: "Logo on every PDF",
   },
   {
-    icon: Users,
-    color: "from-slate-500 to-gray-600",
-    glow: "group-hover:shadow-slate-500/25",
-    title: "Studio Admin Panel",
-    desc: "Running a studio? Onboard photographers, manage accounts, toggle active status, and monitor activity across your entire roster.",
+    icon: Briefcase,
+    c1: "#ec4899", c2: "#e11d48",
+    title: "Service Packages",
+    desc: "Define offerings with pricing and inclusions. Mark your best package as Most Popular to guide clients.",
+    badge: "Most Popular badge",
   },
 ];
 
 function Features() {
   return (
-    <section id="features" className="bg-[#070d1b] py-28">
+    <section id="features" className="bg-[#070d1b] py-20 md:py-28">
       <div className="max-w-7xl mx-auto px-5">
         {/* Heading */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-12 md:mb-16">
           <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest mb-5">
             <Star size={11} fill="currentColor" /> Everything You Need
           </div>
-          <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4">
+          <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-4">
             Built for the Way Photographers Work
           </h2>
-          <p className="text-white/50 text-lg max-w-2xl mx-auto">
+          <p className="text-white/50 text-base md:text-lg max-w-2xl mx-auto">
             Not a generic project tool — every feature is designed around the
             real workflow of a photographer.
           </p>
         </div>
 
         {/* Feature grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {FEATURES.map(({ icon: Icon, color, glow, title, desc }) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+          {FEATURES.map(({ icon: Icon, c1, c2, title, desc, badge }) => (
             <div
               key={title}
-              className={`group relative bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] hover:border-white/[0.15] rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${glow}`}
+              className="group relative rounded-2xl p-6 overflow-hidden cursor-default transition-all duration-300 hover:-translate-y-2"
+              style={{
+                background: `linear-gradient(140deg, ${c1}18 0%, rgba(7,13,27,0.6) 60%)`,
+                border: `1px solid ${c1}35`,
+                boxShadow: "0 0 0 0 transparent",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = `0 20px 60px -10px ${c1}30`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "0 0 0 0 transparent";
+              }}
             >
+              {/* Corner glow */}
               <div
-                className={`inline-flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br ${color} mb-4 shadow-lg`}
+                className="absolute -top-12 -right-12 w-40 h-40 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                style={{ background: `radial-gradient(circle, ${c1}45 0%, transparent 70%)` }}
+              />
+
+              {/* Bottom-right number watermark */}
+              <div
+                className="absolute -bottom-4 -right-2 text-[80px] font-black leading-none select-none pointer-events-none transition-all duration-500"
+                style={{ color: `${c1}10` }}
               >
-                <Icon size={20} className="text-white" />
+                {String(FEATURES.findIndex((f) => f.title === title) + 1).padStart(2, "0")}
               </div>
-              <h3 className="text-base font-black text-white mb-2">{title}</h3>
-              <p className="text-sm text-white/50 leading-relaxed">{desc}</p>
+
+              {/* Icon */}
+              <div
+                className="relative inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-5 shadow-2xl group-hover:scale-110 group-hover:-rotate-3 transition-all duration-300"
+                style={{ background: `linear-gradient(135deg, ${c1}, ${c2})` }}
+              >
+                <Icon size={26} className="text-white drop-shadow" />
+              </div>
+
+              {/* Title */}
+              <h3 className="relative font-black text-white text-[15px] leading-snug mb-2">
+                {title}
+              </h3>
+
+              {/* Description */}
+              <p
+                className="relative text-[13px] leading-relaxed mb-5 transition-colors duration-300 group-hover:text-white/70"
+                style={{ color: "rgba(255,255,255,0.45)" }}
+              >
+                {desc}
+              </p>
+
+              {/* Badge */}
+              <div
+                className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full"
+                style={{
+                  color: c1,
+                  background: `${c1}18`,
+                  border: `1px solid ${c1}35`,
+                }}
+              >
+                <span
+                  className="w-1.5 h-1.5 rounded-full shrink-0"
+                  style={{ background: c1 }}
+                />
+                {badge}
+              </div>
             </div>
           ))}
         </div>
@@ -556,6 +613,110 @@ function PDFSpotlight() {
                     {t}
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Freelance Spotlight ──────────────────────────────────────────────────────
+
+function FreelanceSpotlight() {
+  return (
+    <section id="freelance" className="bg-[#060b18] py-28">
+      <div className="max-w-7xl mx-auto px-5">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+          {/* Text */}
+          <div>
+            <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest mb-6">
+              <Building2 size={11} /> Freelance Jobs
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-tight mb-6">
+              Track Every Studio You Work With
+            </h2>
+            <p className="text-white/55 text-lg leading-relaxed mb-8">
+              Working as a freelancer under a studio? Log each job with full
+              studio details, separate photography and videography payment
+              tracking, and generate a professional agreement PDF for every
+              engagement — all in one place.
+            </p>
+            <ul className="space-y-3">
+              {[
+                "Separate photography & videography sections",
+                "Per-section: total amount, received & amount due",
+                "Footage type tags (Photos, Reels, Drone & more)",
+                "Auto-generated freelance agreement PDF",
+                "Gadgets & equipment list per job",
+                "Calendar event auto-downloaded on job create",
+              ].map((item) => (
+                <li
+                  key={item}
+                  className="flex items-center gap-3 text-white/70 text-sm font-medium"
+                >
+                  <CheckCircle size={16} className="text-amber-400 shrink-0" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Mock freelance job card */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 to-orange-500/10 rounded-3xl blur-3xl" />
+            <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden border border-white/20 p-6 text-gray-800 text-sm">
+              {/* Card header accent + title */}
+              <div className="h-1 w-full bg-amber-500 rounded-full -mt-6 mb-5 -mx-6" style={{ width: "calc(100% + 48px)" }} />
+              <div className="flex items-start justify-between gap-2 mb-3">
+                <div>
+                  <div className="text-sm font-black text-slate-800">Lens &amp; Light Studios</div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">Ankit Sinha</div>
+                </div>
+                <span className="text-[9px] font-black bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  Ongoing
+                </span>
+              </div>
+              {/* Meta chips */}
+              <div className="flex gap-1.5 flex-wrap mb-4">
+                {["18 Mar 2026", "Grand Hyatt, Mumbai", "Rahul Sharma"].map((t) => (
+                  <span key={t} className="text-[8px] font-semibold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">{t}</span>
+                ))}
+              </div>
+              {/* Photography */}
+              <div className="mb-3">
+                <div className="text-[8px] font-black uppercase tracking-widest text-slate-400 mb-2">📷 Photography</div>
+                <div className="flex gap-1.5 mb-2">
+                  {[["Total", "₹30,000", ""], ["Received", "₹15,000", "bg-blue-600 text-white"], ["Due", "₹15,000", ""]].map(([l, v, cls]) => (
+                    <div key={l} className={`flex-1 rounded-lg text-center py-1.5 px-1 ${cls || "bg-slate-50 border border-slate-200"}`}>
+                      <div className={`text-[7px] font-bold uppercase tracking-wider mb-0.5 ${cls ? "text-white/70" : "text-slate-500"}`}>{l}</div>
+                      <div className={`text-xs font-black ${cls ? "text-white" : "text-slate-800"}`}>{v}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-1">
+                  {["Photos", "Reels", "Album"].map((t) => (
+                    <span key={t} className="text-[7px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">{t}</span>
+                  ))}
+                </div>
+              </div>
+              {/* Videography */}
+              <div>
+                <div className="text-[8px] font-black uppercase tracking-widest text-slate-400 mb-2">🎥 Videography</div>
+                <div className="flex gap-1.5 mb-2">
+                  {[["Total", "₹20,000", ""], ["Received", "₹20,000", "bg-blue-600 text-white"], ["Due", "₹0", ""]].map(([l, v, cls]) => (
+                    <div key={l} className={`flex-1 rounded-lg text-center py-1.5 px-1 ${cls || "bg-slate-50 border border-slate-200"}`}>
+                      <div className={`text-[7px] font-bold uppercase tracking-wider mb-0.5 ${cls ? "text-white/70" : "text-slate-500"}`}>{l}</div>
+                      <div className={`text-xs font-black ${cls ? "text-white" : "text-slate-800"}`}>{v}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-1">
+                  {["Video", "Drone", "Short Film"].map((t) => (
+                    <span key={t} className="text-[7px] font-bold text-blue-700 bg-blue-50 border border-blue-200 rounded-full px-2 py-0.5">{t}</span>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -907,6 +1068,7 @@ export default function LandingPage() {
       <Features />
       <HowItWorks />
       <PDFSpotlight />
+      <FreelanceSpotlight />
       <ForClients />
       <PortfolioSpotlight />
       <CTA />

@@ -8,6 +8,7 @@ import {
   Phone,
   ArrowRight,
 } from "lucide-react";
+import { t } from "../lib/clientTranslations";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -104,7 +105,7 @@ function PaytmLogo({ className, width = 48, height = 48, ...rest }) {
   );
 }
 
-export default function BookingForm({ config = DEFAULT_CONFIG, onSuccess }) {
+export default function BookingForm({ config = DEFAULT_CONFIG, lang = "en", onSuccess }) {
   const [name, setName] = useState("");
   const [agree, setAgree] = useState(true);
   const [enabled, setEnabled] = useState(false);
@@ -137,7 +138,7 @@ export default function BookingForm({ config = DEFAULT_CONFIG, onSuccess }) {
     await new Promise((r) => setTimeout(r, 700));
     if (typeof window !== "undefined") window.location.href = url;
 
-    const text = `Hi, I am ${name}. I have just initiated the payment of ₹${selectedAmount} (${selectedPercentage}% of ₹${fullAmount}) for the booking. Here is the screenshot/confirmation.`;
+    const text = t(lang, "transferMsg", name, selectedAmount, selectedPercentage, fullAmount);
     setWaHref(
       `https://wa.me/${config.whatsappNumber}?text=${encodeURIComponent(text)}`,
     );
@@ -154,7 +155,7 @@ export default function BookingForm({ config = DEFAULT_CONFIG, onSuccess }) {
             htmlFor="clientName"
             className="text-[10px] font-black uppercase tracking-[0.3em] text-primary ml-1 block"
           >
-            Authorize Client Identity
+            {t(lang, "authorizeIdentity")}
           </Label>
           <div className="relative">
             <Input
@@ -162,7 +163,7 @@ export default function BookingForm({ config = DEFAULT_CONFIG, onSuccess }) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="pl-12 h-14 text-lg font-bold rounded-2xl border-border/10 bg-muted/20"
-              placeholder="Enter your full name"
+              placeholder={t(lang, "enterFullName")}
             />
             <PenTool
               size={20}
@@ -177,7 +178,7 @@ export default function BookingForm({ config = DEFAULT_CONFIG, onSuccess }) {
           <div className="flex justify-between items-center">
             <div className="space-y-1">
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60 ml-1">
-                Package Total
+                {t(lang, "packageTotal")}
               </p>
               <p className="text-3xl font-black text-foreground tracking-tighter">
                 ₹{fullAmount.toLocaleString()}
@@ -185,14 +186,14 @@ export default function BookingForm({ config = DEFAULT_CONFIG, onSuccess }) {
             </div>
             <div className="text-right space-y-1">
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary/80">
-                Current Status
+                {t(lang, "currentStatus")}
               </p>
               <Badge
                 variant="outline"
                 className="text-[10px] font-black uppercase tracking-widest text-foreground gap-2 border-secondary/20 bg-secondary/5 px-3 py-1"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
-                Awaiting Deposit
+                {t(lang, "awaitingDeposit")}
               </Badge>
             </div>
           </div>
@@ -201,7 +202,7 @@ export default function BookingForm({ config = DEFAULT_CONFIG, onSuccess }) {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60 ml-1">
-                  Select Payment Amount
+                  {t(lang, "selectAmount")}
                 </label>
                 <span className="text-sm font-black text-primary">
                   {selectedPercentage}%
@@ -225,7 +226,7 @@ export default function BookingForm({ config = DEFAULT_CONFIG, onSuccess }) {
 
             <div className="pt-2 px-4 py-3 bg-background rounded-2xl border border-secondary/20">
               <p className="text-[11px] font-bold text-muted-foreground/70 uppercase tracking-widest mb-1">
-                Amount to Pay
+                {t(lang, "amountToPay")}
               </p>
               <p className="text-4xl font-black text-secondary tracking-tighter">
                 ₹{selectedAmount.toLocaleString()}
@@ -245,7 +246,7 @@ export default function BookingForm({ config = DEFAULT_CONFIG, onSuccess }) {
           <div className="flex items-center gap-4">
             <div className="h-px flex-1 bg-border/5"></div>
             <p className="text-[10px] font-black text-primary/40 uppercase tracking-[0.4em]">
-              Choose Transfer Gateway
+              {t(lang, "chooseGateway")}
             </p>
             <div className="h-px flex-1 bg-border/5"></div>
           </div>
@@ -296,7 +297,7 @@ export default function BookingForm({ config = DEFAULT_CONFIG, onSuccess }) {
               className="text-[10px] font-black text-primary/60 hover:text-primary uppercase tracking-[0.3em] gap-2 transition-all hover:bg-primary/5 px-6 rounded-full h-10"
             >
               {showQr ? <ChevronUp size={14} /> : <QrCode size={14} />}
-              {showQr ? "Conceal QR Code" : "Scan Visual Terminal"}
+              {showQr ? t(lang, "concealQr") : t(lang, "scanQr")}
             </Button>
 
             {showQr && (
@@ -308,7 +309,7 @@ export default function BookingForm({ config = DEFAULT_CONFIG, onSuccess }) {
                 />
                 <div className="mt-4 text-center">
                   <p className="text-[9px] text-black font-black uppercase tracking-widest opacity-30">
-                    Scan with any verified UPI application
+                    {t(lang, "scanAnyUpi")}
                   </p>
                 </div>
               </div>
@@ -324,8 +325,7 @@ export default function BookingForm({ config = DEFAULT_CONFIG, onSuccess }) {
                 className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary transition-all"
                 onClick={() => {
                   navigator.clipboard.writeText(config.upiId);
-                  // Using alert for now as toast replacement is coming in next step
-                  alert("UPI Terminal Address Copied");
+                  alert(t(lang, "upiCopied"));
                 }}
               >
                 <Copy size={14} />
@@ -342,11 +342,10 @@ export default function BookingForm({ config = DEFAULT_CONFIG, onSuccess }) {
               <Check size={32} strokeWidth={3} />
             </div>
             <h3 className="text-2xl font-black text-foreground uppercase tracking-tight mb-3">
-              Submission Required
+              {t(lang, "submissionRequired")}
             </h3>
             <p className="text-sm text-muted-foreground font-medium mb-8 max-w-sm mx-auto leading-relaxed">
-              Transfer initiated. To finalize your reservation, please share a
-              digital receipt or screenshot via our secure WhatsApp channel.
+              {t(lang, "transferDesc")}
             </p>
             <Button
               asChild
@@ -354,7 +353,7 @@ export default function BookingForm({ config = DEFAULT_CONFIG, onSuccess }) {
             >
               <a href={waHref} target="_blank" rel="noreferrer">
                 <Phone size={20} fill="currentColor" />
-                Initialize WhatsApp Dispatch
+                {t(lang, "initWhatsapp")}
                 <ArrowRight size={18} />
               </a>
             </Button>
