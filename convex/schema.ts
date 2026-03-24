@@ -39,6 +39,15 @@ export default defineSchema({
         clientName: v.string(),
         clientContact: v.string(),
 
+        // New Wedding Details
+        brideName: v.optional(v.string()),
+        groomName: v.optional(v.string()),
+        isBothSides: v.optional(v.boolean()),
+        brideLocation: v.optional(v.string()),
+        brideVenue: v.optional(v.string()),
+        groomLocation: v.optional(v.string()),
+        groomVenue: v.optional(v.string()),
+
         // Logistics
         eventStartDate: v.optional(v.string()),
         eventDuration: v.optional(v.number()),
@@ -72,41 +81,45 @@ export default defineSchema({
         photographerId: v.string(),
 
         // Studio Info
-        studioName:      v.string(),
+        studioName: v.string(),
         studioOwnerName: v.string(),
-        studioMobile:    v.string(),
-        studioEmail:     v.optional(v.string()),
-        studioArea:      v.optional(v.string()),
+        studioMobile: v.string(),
+        studioEmail: v.optional(v.string()),
+        studioArea: v.optional(v.string()),
+
+        // Wedding Details
+        brideName: v.optional(v.string()),
+        groomName: v.optional(v.string()),
 
         // Work Details
-        venue:    v.string(),
+        venue: v.string(),
         location: v.optional(v.string()),
-        dates:    v.array(v.string()),
+        dates: v.array(v.string()),
 
         // Photography
-        photographerName:          v.string(),
-        photographerMobile:        v.optional(v.string()),
-        photographerEmail:         v.optional(v.string()),
-        photographyAmount:         v.optional(v.string()),
-        photographyReceived:       v.optional(v.string()),
-        photographyFootageTypes:   v.optional(v.array(v.string())),
+        photographerName: v.string(),
+        photographerMobile: v.optional(v.string()),
+        photographerEmail: v.optional(v.string()),
+        photographyAmount: v.optional(v.string()),
+        photographyReceived: v.optional(v.string()),
+        photographyFootageTypes: v.optional(v.array(v.string())),
 
         // Videography (optional section)
-        hasVideography:            v.optional(v.boolean()),
-        videographerName:          v.optional(v.string()),
-        videographerMobile:        v.optional(v.string()),
-        videographerEmail:         v.optional(v.string()),
-        videographyAmount:         v.optional(v.string()),
-        videographyReceived:       v.optional(v.string()),
-        videographyFootageTypes:   v.optional(v.array(v.string())),
+        hasVideography: v.optional(v.boolean()),
+        videographerName: v.optional(v.string()),
+        videographerMobile: v.optional(v.string()),
+        videographerEmail: v.optional(v.string()),
+        videographyAmount: v.optional(v.string()),
+        videographyReceived: v.optional(v.string()),
+        videographyFootageTypes: v.optional(v.array(v.string())),
 
         // Legacy fields — kept optional so existing documents remain valid
-        totalAmount:        v.optional(v.string()),
+        totalAmount: v.optional(v.string()),
         photographerAmount: v.optional(v.string()),
         videographerAmount: v.optional(v.string()),
-        footageTypes:       v.optional(v.array(v.string())),
-        teamMobile:         v.optional(v.string()),
-        teamEmail:          v.optional(v.string()),
+        footageTypes: v.optional(v.array(v.string())),
+        teamMobile: v.optional(v.string()),
+        teamEmail: v.optional(v.string()),
 
         // Equipment
         gadgets: v.optional(v.array(v.string())),

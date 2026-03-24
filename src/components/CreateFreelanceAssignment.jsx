@@ -197,6 +197,9 @@ const CreateFreelanceAssignment = ({
       studioMobile: "",
       studioEmail: "",
       studioArea: "",
+      // Wedding Details
+      brideName: "",
+      groomName: "",
       venue: "",
       location: "",
       dates: [],
@@ -404,6 +407,22 @@ const CreateFreelanceAssignment = ({
                   placeholder="The Grand Palace Banquet"
                   value={form.venue}
                   onChange={(e) => set("venue", e.target.value)}
+                />
+              </Field>
+              <Field label="Bride Name (Optional)" icon={User}>
+                <Input
+                  className="pl-9 h-11"
+                  placeholder="Priya"
+                  value={form.brideName}
+                  onChange={(e) => set("brideName", e.target.value)}
+                />
+              </Field>
+              <Field label="Groom Name (Optional)" icon={User}>
+                <Input
+                  className="pl-9 h-11"
+                  placeholder="Rahul"
+                  value={form.groomName}
+                  onChange={(e) => set("groomName", e.target.value)}
                 />
               </Field>
               <Field label="Add Date" icon={Calendar}>

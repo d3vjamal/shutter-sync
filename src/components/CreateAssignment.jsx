@@ -66,36 +66,43 @@ const Section = ({ icon: Icon, title, color = "text-primary", bg = "bg-primary/1
 const CreateAssignment = ({ onSave, initialAssignment = null, isEditing = false }) => {
   const [form, setForm] = useState(
     initialAssignment || {
-      title:           "",
-      description:     "",
-      services:        [],
-      amount:          "",
-      paidAmount:      "0",
-      clientName:      "",
-      clientContact:   "",
-      eventStartDate:  "",
-      eventDuration:   0,
-      location:        "",
-      venue:           "",
+      title: "",
+      description: "",
+      services: [],
+      amount: "",
+      paidAmount: "0",
+      clientName: "",
+      clientContact: "",
+      eventStartDate: "",
+      eventDuration: 0,
+      location: "",
+      venue: "",
       photographerDays: [],
-      conditions:      [],
+      conditions: [],
+      brideName: "",
+      groomName: "",
+      isBothSides: false,
+      brideLocation: "",
+      brideVenue: "",
+      groomLocation: "",
+      groomVenue: "",
     }
   );
 
-  const agreements  = useQuery(api.agreements.get) || [];
-  const [dateInput, setDateInput]       = useState("");
+  const agreements = useQuery(api.agreements.get) || [];
+  const [dateInput, setDateInput] = useState("");
   const [serviceInput, setServiceInput] = useState("");
 
   const validate = {
-    textOnly:   (v) => /^[a-zA-Z\s]*$/.test(v),
+    textOnly: (v) => /^[a-zA-Z\s]*$/.test(v),
     numberOnly: (v) => /^[0-9]*$/.test(v),
-    phone:      (v) => /^[+]?[0-9]*$/.test(v),
+    phone: (v) => /^[+]?[0-9]*$/.test(v),
   };
 
   const set = (field, value, type = null) => {
-    if (type === "textOnly"   && !validate.textOnly(value))   return;
+    if (type === "textOnly" && !validate.textOnly(value)) return;
     if (type === "numberOnly" && !validate.numberOnly(value)) return;
-    if (type === "phone"      && !validate.phone(value))      return;
+    if (type === "phone" && !validate.phone(value)) return;
     setForm((f) => ({ ...f, [field]: value }));
   };
 
@@ -114,8 +121,8 @@ const CreateAssignment = ({ onSave, initialAssignment = null, isEditing = false 
     setForm((f) => ({
       ...f,
       photographerDays: days,
-      eventDuration:    days.length,
-      eventStartDate:   days[0] || "",
+      eventDuration: days.length,
+      eventStartDate: days[0] || "",
     }));
     setDateInput("");
   };
@@ -125,8 +132,8 @@ const CreateAssignment = ({ onSave, initialAssignment = null, isEditing = false 
     setForm((f) => ({
       ...f,
       photographerDays: days,
-      eventDuration:    days.length,
-      eventStartDate:   days[0] || "",
+      eventDuration: days.length,
+      eventStartDate: days[0] || "",
     }));
   };
 
@@ -175,9 +182,16 @@ const CreateAssignment = ({ onSave, initialAssignment = null, isEditing = false 
               <Field label="Client Name" required icon={User}>
                 <Input
                   className="pl-9 h-11"
-                  placeholder="Rahul Chatterjee"
+                  placeholder="Rahul Sharma"
                   value={form.clientName}
-                  onChange={(e) => set("clientName", e.target.value, "textOnly")}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setForm(f => ({
+                      ...f,
+                      clientName: val,
+                      title: f.title.includes("Wedding") || !f.title ? `Wedding - ${val}` : f.title
+                    }));
+                  }}
                 />
               </Field>
               <Field label="Contact" required icon={Phone}>
@@ -198,7 +212,22 @@ const CreateAssignment = ({ onSave, initialAssignment = null, isEditing = false 
         <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 space-y-5">
           <Section icon={Calendar} title="Event Logistics" color="text-amber-500" bg="bg-amber-500/10">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
+              <Field label="Bride Name (Optional)" icon={User}>
+                <Input
+                  className="pl-9 h-11"
+                  placeholder="Priya"
+                  value={form.brideName}
+                  onChange={(e) => set("brideName", e.target.value)}
+                />
+              </Field>
+              <Field label="Groom Name (Optional)" icon={User}>
+                <Input
+                  className="pl-9 h-11"
+                  placeholder="Rahul"
+                  value={form.groomName}
+                  onChange={(e) => set("groomName", e.target.value)}
+                />
+              </Field>
               {/* Date picker + add */}
               <Field label="Add Event Date" icon={Calendar}>
                 <div className="flex gap-2">
@@ -227,25 +256,103 @@ const CreateAssignment = ({ onSave, initialAssignment = null, isEditing = false 
                   {form.photographerDays.length} Day{form.photographerDays.length !== 1 ? "s" : ""}
                 </div>
               </Field>
-
-              <Field label="City / Location" icon={MapPin}>
-                <Input
-                  className="pl-9 h-11"
-                  placeholder="Udaipur, Rajasthan"
-                  value={form.location}
-                  onChange={(e) => set("location", e.target.value, "textOnly")}
-                />
-              </Field>
-
-              <Field label="Venue Name" icon={Building2}>
-                <Input
-                  className="pl-9 h-11"
-                  placeholder="The Oberoi Udaivilas"
-                  value={form.venue}
-                  onChange={(e) => set("venue", e.target.value)}
-                />
-              </Field>
             </div>
+
+            {/* Both Sides Toggle */}
+            <div className="pt-2 flex items-center justify-between p-4 bg-muted/30 rounded-2xl border border-dashed border-border/50">
+              <div className="flex items-center gap-3">
+                <div className={cn("p-2 rounded-xl", form.isBothSides ? "bg-secondary/10" : "bg-muted")}>
+                  <Sparkles size={16} className={cn(form.isBothSides ? "text-secondary" : "text-muted-foreground")} />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-foreground">Both Side Coverage</h4>
+                  <p className="text-[10px] text-muted-foreground">Toggle for separate Bride & Groom venues</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setForm(f => ({ ...f, isBothSides: !f.isBothSides }))}
+                className={cn(
+                  "relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none",
+                  form.isBothSides ? "bg-secondary" : "bg-muted"
+                )}
+              >
+                <span
+                  className={cn(
+                    "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+                    form.isBothSides ? "translate-x-6" : "translate-x-1"
+                  )}
+                />
+              </button>
+            </div>
+
+            {!form.isBothSides ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Field label="City / Location" icon={MapPin}>
+                  <Input
+                    className="pl-9 h-11"
+                    placeholder="Udaipur, Rajasthan"
+                    value={form.location}
+                    onChange={(e) => setForm(f => ({ ...f, location: e.target.value, brideLocation: e.target.value, groomLocation: e.target.value }))}
+                  />
+                </Field>
+
+                <Field label="Venue Name" icon={Building2}>
+                  <Input
+                    className="pl-9 h-11"
+                    placeholder="The Oberoi Udaivilas"
+                    value={form.venue}
+                    onChange={(e) => setForm(f => ({ ...f, venue: e.target.value, brideVenue: e.target.value, groomVenue: e.target.value }))}
+                  />
+                </Field>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                  <div className="sm:col-span-2 flex items-center gap-2 mb-1">
+                    <span className="text-[10px] font-black uppercase tracking-tighter bg-primary text-primary-foreground px-2 py-0.5 rounded">Bride Side</span>
+                  </div>
+                  <Field label="Bride City / Location" icon={MapPin}>
+                    <Input
+                      className="pl-9 h-11"
+                      placeholder="Bride's Home/Venue Location"
+                      value={form.brideLocation}
+                      onChange={(e) => set("brideLocation", e.target.value)}
+                    />
+                  </Field>
+                  <Field label="Bride Venue Name" icon={Building2}>
+                    <Input
+                      className="pl-9 h-11"
+                      placeholder="Bride's Venue"
+                      value={form.brideVenue}
+                      onChange={(e) => set("brideVenue", e.target.value)}
+                    />
+                  </Field>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-secondary/5 rounded-2xl border border-secondary/10">
+                  <div className="sm:col-span-2 flex items-center gap-2 mb-1">
+                    <span className="text-[10px] font-black uppercase tracking-tighter bg-secondary text-secondary-foreground px-2 py-0.5 rounded">Groom Side</span>
+                  </div>
+                  <Field label="Groom City / Location" icon={MapPin}>
+                    <Input
+                      className="pl-9 h-11"
+                      placeholder="Groom's Home/Venue Location"
+                      value={form.groomLocation}
+                      onChange={(e) => set("groomLocation", e.target.value)}
+                    />
+                  </Field>
+                  <Field label="Groom Venue Name" icon={Building2}>
+                    <Input
+                      className="pl-9 h-11"
+                      placeholder="Groom's Venue"
+                      value={form.groomVenue}
+                      onChange={(e) => set("groomVenue", e.target.value)}
+                    />
+                  </Field>
+                </div>
+              </div>
+            )}
 
             {/* Selected dates */}
             {form.photographerDays.length > 0 && (
@@ -446,13 +553,15 @@ const CreateAssignment = ({ onSave, initialAssignment = null, isEditing = false 
           {isEditing ? "Update Assignment" : "Create Assignment"}
         </Button>
 
-        {!isValid && (
-          <p className="text-center text-xs text-muted-foreground mt-2">
-            Title, client name and amount are required
-          </p>
-        )}
-      </div>
-    </div>
+        {
+          !isValid && (
+            <p className="text-center text-xs text-muted-foreground mt-2">
+              Title, client name and amount are required
+            </p>
+          )
+        }
+      </div >
+    </div >
   );
 };
 

@@ -19,6 +19,14 @@ export const create = mutation({
         captureDate: v.optional(v.string()),
         paidAmount: v.string(),
         conditions: v.optional(v.array(v.string())),
+        // New Wedding Details
+        brideName: v.optional(v.string()),
+        groomName: v.optional(v.string()),
+        isBothSides: v.optional(v.boolean()),
+        brideLocation: v.optional(v.string()),
+        brideVenue: v.optional(v.string()),
+        groomLocation: v.optional(v.string()),
+        groomVenue: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         return await ctx.db.insert("assignments", args);
@@ -91,6 +99,14 @@ export const update = mutation({
         services: v.optional(v.array(v.string())),
         photographerDays: v.optional(v.array(v.string())),
         conditions: v.optional(v.array(v.string())),
+        // New Wedding Details
+        brideName: v.optional(v.string()),
+        groomName: v.optional(v.string()),
+        isBothSides: v.optional(v.boolean()),
+        brideLocation: v.optional(v.string()),
+        brideVenue: v.optional(v.string()),
+        groomLocation: v.optional(v.string()),
+        groomVenue: v.optional(v.string()),
         // Add other fields as necessary
     },
     handler: async (ctx, args) => {
