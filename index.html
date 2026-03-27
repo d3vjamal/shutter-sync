@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- ── Primary SEO ───────────────────────────────────────────────── -->
+    <title>ShutterSync — Smart Photography Management App</title>
+    <meta name="description"
+        content="ShutterSync helps photographers manage assignments, clients, bookings, and service agreements — all in one clean, fast app." />
+    <meta name="keywords"
+        content="photography management, photographer app, booking app, assignment tracker, client management, photography business, ShutterSync" />
+    <meta name="author" content="Jamaluddin Mondal" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <!-- ⚠️ Replace with your actual deployed URL (e.g. https://yourapp.netlify.app) -->
+    <link rel="canonical" href="https://shuttersync.app/" />
+
+    <!-- ── Favicons ──────────────────────────────────────────────────── -->
+    <link rel="icon" href="/static/icons/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/svg+xml" href="/static/icons/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/static/icons/favicon-96x96.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/icons/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/icons/apple-touch-icon.png" />
+    <link rel="manifest" href="/static/icons/site.webmanifest" />
+    <meta name="theme-color" content="#1a56db" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="ShutterSync" />
+    <meta name="application-name" content="ShutterSync" />
+
+    <!-- ── Open Graph (Facebook, WhatsApp, LinkedIn, Slack …) ───────── -->
+    <!-- ⚠️ Replace https://shuttersync.app with your actual deployed URL -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ShutterSync" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content="https://shuttersync.app/" />
+    <meta property="og:title" content="ShutterSync — Smart Photography Management App" />
+    <meta property="og:description"
+        content="Manage photographers, assignments, clients, and service agreements with ShutterSync — fast, clean, and built for photography businesses." />
+    <meta property="og:image" content="https://shuttersync.app/static/icons/web-app-manifest-512x512.png" />
+    <meta property="og:image:secure_url" content="https://shuttersync.app/static/icons/web-app-manifest-512x512.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:alt" content="ShutterSync app icon — smart photography management" />
+
+    <!-- ── Twitter / X Card ─────────────────────────────────────────── -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@shuttersync" />
+    <meta name="twitter:creator" content="@d3vjamal" />
+    <meta name="twitter:title" content="ShutterSync — Smart Photography Management App" />
+    <meta name="twitter:description"
+        content="Manage photographers, assignments, clients, and service agreements with ShutterSync." />
+    <meta name="twitter:image" content="https://shuttersync.app/static/icons/web-app-manifest-512x512.png" />
+    <meta name="twitter:image:alt" content="ShutterSync app icon" />
+
+    <!-- ── Structured Data (JSON-LD) ────────────────────────────────── -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "WebSite",
+                "@id": "https://shuttersync.app/#website",
+                "name": "ShutterSync",
+                "url": "https://shuttersync.app/",
+                "description": "Smart photography management app for photographers.",
+                "author": {
+                    "@type": "Person",
+                    "name": "Jamaluddin Mondal",
+                    "url": "https://github.com/d3vjamal"
+                }
+            },
+            {
+                "@type": "SoftwareApplication",
+                "@id": "https://shuttersync.app/#app",
+                "name": "ShutterSync",
+                "url": "https://shuttersync.app/",
+                "description": "ShutterSync helps photographers manage assignments, clients, bookings, and service agreements in one clean app.",
+                "applicationCategory": "BusinessApplication",
+                "operatingSystem": "Web",
+                "offers": {
+                    "@type": "Offer",
+                    "price": "0",
+                    "priceCurrency": "USD"
+                },
+                "image": "https://shuttersync.app/static/icons/web-app-manifest-512x512.png",
+                "author": {
+                    "@type": "Person",
+                    "name": "Jamaluddin Mondal",
+                    "url": "https://github.com/d3vjamal"
+                }
+            }
+        ]
+    }
+    </script>
+
+    <!-- ── Fonts ─────────────────────────────────────────────────────── -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!-- ── Theme: apply before React hydrates to prevent flash ─────── -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("ss-theme") || "system";
+          var cls = t === "system"
+            ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+            : t;
+          document.documentElement.classList.add(cls);
+        } catch (e) {}
+      })();
+    </script>
+  <script type="module" crossorigin src="/assets/index-CZlWKpIL.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-JKv_YZRX.css">
+</head>
+
+<body class="bg-gray-50 text-gray-800">
+    <div id="root"></div>
+</body>
+
+</html>
