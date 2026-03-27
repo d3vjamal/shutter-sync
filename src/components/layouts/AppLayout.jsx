@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   BarChart3,
   Camera,
@@ -15,7 +15,15 @@ import {
   ShieldCheck,
   Users,
   Briefcase,
+  Plus,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "../ui/dialog";
 import { cn } from "../../lib/utils";
 
 // ─── Nav items ────────────────────────────────────────────────────────────────
@@ -131,6 +139,101 @@ function Sidebar({ user, onLogout, onClose }) {
   );
 }
 
+// ─── Mobile Bottom Nav ────────────────────────────────────────────────────────
+
+function MobileBottomNav({ user }) {
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const [showCreate, React_useState] = React.useState(false);
+  const isAdmin = user?.roleCode === 0;
+
+  if (isAdmin) {
+    return (
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-card border-t border-border z-50 flex items-center justify-around px-2 pb-safe shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)]">
+        <BottomNavItem to="/admin/dashboard" icon={ShieldCheck} label="Admin" current={pathname} />
+        <BottomNavItem to="/photographers" icon={Users} label="Profiles" current={pathname} />
+      </nav>
+    );
+  }
+
+  return (
+    <>
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-[68px] bg-card border-t border-border z-50 flex items-center justify-around px-2 pb-safe shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)]">
+        <BottomNavItem to="/dashboard" icon={BarChart3} label="Dashboard" current={pathname} />
+        <BottomNavItem to="/packages" icon={Layers} label="Packages" current={pathname} />
+        
+        {/* Center Create Button */}
+        <div className="relative -top-5">
+          <button
+            onClick={() => React_useState(true)}
+            className="w-[52px] h-[52px] bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-[0_8px_16px_rgba(var(--primary),0.3)] transform active:scale-95 transition-all"
+          >
+            <Plus size={26} strokeWidth={3} />
+          </button>
+        </div>
+
+        <BottomNavItem to="/agreements" icon={FileText} label="Agreements" current={pathname} />
+        <BottomNavItem to="/profile" icon={User} label="Profile" current={pathname} />
+      </nav>
+
+      {/* Create Options Dialog */}
+      <Dialog open={showCreate} onOpenChange={React_useState}>
+        <DialogContent className="max-w-[320px] rounded-[1.5rem] mx-auto p-5">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-black">Create New</DialogTitle>
+            <DialogDescription className="text-center text-xs">
+              What would you like to create?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 pt-3 pb-1">
+            <button
+              onClick={() => { React_useState(false); navigate("/create-assignment"); }}
+              className="flex items-center gap-4 p-4 rounded-2xl bg-primary/10 hover:bg-primary/20 transition-colors border border-primary/20 text-left cursor-pointer group"
+            >
+              <div className="bg-primary text-primary-foreground p-3 rounded-[0.8rem] shadow-sm group-hover:scale-110 transition-transform">
+                <Camera size={20} strokeWidth={2.5} />
+              </div>
+              <div>
+                <h4 className="font-bold text-foreground text-sm">Assignment</h4>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Standard booking session</p>
+              </div>
+            </button>
+            <button
+              onClick={() => { React_useState(false); navigate("/create-freelance-assignment"); }}
+              className="flex items-center gap-4 p-4 rounded-2xl bg-secondary/10 hover:bg-secondary/20 transition-colors border border-secondary/20 text-left cursor-pointer group"
+            >
+              <div className="bg-secondary text-secondary-foreground p-3 rounded-[0.8rem] shadow-sm group-hover:scale-110 transition-transform">
+                <Briefcase size={20} strokeWidth={2.5} />
+              </div>
+              <div>
+                <h4 className="font-bold text-foreground text-sm">Freelance Job</h4>
+                <p className="text-[11px] text-muted-foreground mt-0.5">B2B or studio work</p>
+              </div>
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+function BottomNavItem({ to, icon: Icon, label, current }) {
+  const active = current === to;
+  return (
+    <Link
+      to={to}
+      className={cn(
+        "flex flex-col items-center justify-center w-[60px] h-full gap-1 transition-colors duration-200",
+        active ? "text-primary" : "text-muted-foreground hover:text-foreground"
+      )}
+    >
+      <Icon size={20} className={cn("transition-transform", active ? "scale-[1.12] origin-bottom" : "")} strokeWidth={active ? 2.5 : 2} />
+      <span className={cn("text-[9px] font-bold origin-top", active ? "hidden" : "block")}>{label}</span>
+      {active && <div className="w-1 h-1 rounded-full bg-primary mt-1" />}
+    </Link>
+  );
+}
+
 // ─── App Layout ───────────────────────────────────────────────────────────────
 
 export default function AppLayout({ children, user, onLogout, theme, setTheme }) {
@@ -228,11 +331,14 @@ export default function AppLayout({ children, user, onLogout, theme, setTheme })
 
         {/* Main scrollable content */}
         <main className="flex-1 min-w-0 overflow-y-auto">
-          <div className="px-4 sm:px-6 py-5 md:py-8 max-w-5xl mx-auto">
+          <div className="px-4 sm:px-6 pt-5 pb-24 md:py-8 md:pb-8 max-w-5xl mx-auto">
             {children}
           </div>
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav user={user} />
     </div>
   );
 }
