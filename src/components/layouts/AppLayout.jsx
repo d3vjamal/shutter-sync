@@ -259,14 +259,7 @@ export default function AppLayout({ children, user, onLogout, theme, setTheme })
         bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60
         border-b border-border">
 
-        {/* Hamburger — mobile only */}
-        <button
-          onClick={() => setSidebarOpen(true)}
-          aria-label="Open menu"
-          className="md:hidden p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-        >
-          <Menu size={19} />
-        </button>
+        {/* Hamburger removed as per request */}
 
         {/* Logo — mobile only (sidebar brand covers desktop) */}
         <div className="flex items-center gap-2 md:hidden">

@@ -236,9 +236,14 @@ const CreateFreelanceAssignment = ({
   };
 
   const set = (field, value, type = null) => {
-    if (type === "phone" && !validate.phone(value)) return;
-    if (type === "number" && !validate.number(value)) return;
-    setForm((f) => ({ ...f, [field]: value }));
+    let val = value;
+    if (type === "number") {
+      val = val.replace(/[^\d]/g, "");
+    }
+    if (type === "phone") {
+      val = val.replace(/[^\d+]/g, "");
+    }
+    setForm((f) => ({ ...f, [field]: val }));
   };
 
   // ── Dates ──
@@ -309,19 +314,21 @@ const CreateFreelanceAssignment = ({
   return (
     <div className="max-w-3xl mx-auto pb-10">
       {/* ── Page header ── */}
-      <div className="flex items-center gap-4 mb-8">
-        <div className="p-3 rounded-2xl bg-secondary/10">
-          <Briefcase size={26} className="text-secondary" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-black tracking-tight text-foreground">
-            {isEditing ? "Edit Freelance Job" : "New Freelance Job"}
-          </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {isEditing
-              ? "Update the job details below"
-              : "Log a job you're doing for a studio"}
-          </p>
+      <div className="flex items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-4">
+          <div className="p-3 rounded-2xl bg-secondary/10">
+            <Briefcase size={26} className="text-secondary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black tracking-tight text-foreground">
+              {isEditing ? "Edit Freelance Job" : "New Freelance Job"}
+            </h1>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {isEditing
+                ? "Update the job details below"
+                : "Log a job you're doing for a studio"}
+            </p>
+          </div>
         </div>
       </div>
 

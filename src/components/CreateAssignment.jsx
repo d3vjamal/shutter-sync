@@ -100,10 +100,16 @@ const CreateAssignment = ({ onSave, initialAssignment = null, isEditing = false 
   };
 
   const set = (field, value, type = null) => {
-    if (type === "textOnly" && !validate.textOnly(value)) return;
-    if (type === "numberOnly" && !validate.numberOnly(value)) return;
-    if (type === "phone" && !validate.phone(value)) return;
-    setForm((f) => ({ ...f, [field]: value }));
+    let val = value;
+    if (type === "numberOnly") {
+      val = val.replace(/[^\d]/g, "");
+    }
+    if (type === "phone") {
+      val = val.replace(/[^\d+]/g, "");
+    }
+    if (type === "textOnly" && !validate.textOnly(val)) return;
+    
+    setForm((f) => ({ ...f, [field]: val }));
   };
 
   const addService = () => {
@@ -159,17 +165,19 @@ const CreateAssignment = ({ onSave, initialAssignment = null, isEditing = false 
     <div className="max-w-3xl mx-auto pb-10">
 
       {/* ── Page header ── */}
-      <div className="flex items-center gap-4 mb-8">
-        <div className="p-3 rounded-2xl bg-secondary/10">
-          <Camera size={26} className="text-secondary" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-black tracking-tight text-foreground">
-            {isEditing ? "Edit Assignment" : "New Assignment"}
-          </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {isEditing ? "Update the job details below" : "Fill in the details to create a new job"}
-          </p>
+      <div className="flex items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-4">
+          <div className="p-3 rounded-2xl bg-secondary/10">
+            <Camera size={26} className="text-secondary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black tracking-tight text-foreground">
+              {isEditing ? "Edit Assignment" : "New Assignment"}
+            </h1>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {isEditing ? "Update the job details below" : "Fill in the details to create a new job"}
+            </p>
+          </div>
         </div>
       </div>
 
