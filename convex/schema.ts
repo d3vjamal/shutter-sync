@@ -132,4 +132,15 @@ export default defineSchema({
     })
         .index("by_photographer", ["photographerId"])
         .index("by_status", ["status"]),
+
+    payments: defineTable({
+        parentId: v.string(),       // assignment or freelance job _id
+        parentType: v.string(),     // "assignment" | "freelance"
+        photographerId: v.string(),
+        amount: v.string(),
+        date: v.string(),           // ISO date string e.g. "2026-04-01"
+        note: v.optional(v.string()),
+    })
+        .index("by_parent", ["parentId"])
+        .index("by_photographer", ["photographerId"]),
 });

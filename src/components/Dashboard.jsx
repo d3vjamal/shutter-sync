@@ -14,6 +14,8 @@ import {
   Wallet,
   Trash2,
   X,
+  Receipt,
+  Aperture,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { Badge } from "./ui/badge";
@@ -31,6 +33,7 @@ import { Input } from "./ui/input";
 import { cn } from "../lib/utils";
 import { isFuture, isSameMonth, format } from "date-fns";
 import AssignmentPDFDialog from "./AssignmentPDFDialog";
+import PaymentTracker from "./PaymentTracker";
 
 // ─── Assignment Card ──────────────────────────────────────────────────────────
 
@@ -51,9 +54,8 @@ const AssignmentCard = ({
 }) => {
   const navigate = useNavigate();
   const [showConfirm, setShowConfirm] = useState(false);
-  const [showPayment, setShowPayment] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [paymentInput, setPaymentInput] = useState("");
+  const [showPayments, setShowPayments] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
   const paid = Number(assignment.paidAmount || 0);
@@ -94,17 +96,6 @@ const AssignmentCard = ({
     await onUpdateStatus(assignment._id, "Completed");
   };
 
-  const handleOpenPayment = (e) => {
-    e.stopPropagation();
-    setPaymentInput(assignment.paidAmount || "0");
-    setShowPayment(true);
-  };
-
-  const handleSavePayment = async () => {
-    await onUpdateAssignment(assignment._id, { paidAmount: paymentInput });
-    setShowPayment(false);
-  };
-
   const handleConfirmDelete = async () => {
     setShowDeleteConfirm(false);
     await onDeleteAssignment(assignment._id);
@@ -130,30 +121,34 @@ const AssignmentCard = ({
           "[grid-area:1/1] [backface-visibility:hidden] bg-card rounded-2xl border border-border shadow-sm flex flex-col overflow-hidden relative",
           isExpanded ? "z-0 pointer-events-none" : "z-20 pointer-events-auto"
         )}>
-          <Camera size={85} className="absolute -bottom-4 -right-4 text-foreground/10 z-0 pointer-events-none -rotate-12" />
+          <Aperture size={85} className="absolute -bottom-4 -right-4 text-foreground/10 z-0 pointer-events-none -rotate-12" />
           <div className={cn("h-1 w-full shrink-0 z-10", accent.bar)} />
           <div className="p-2.5 sm:p-3 flex flex-col justify-center flex-1 z-10">
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-2">
-              <div className="flex-1 min-w-0 w-full sm:w-auto">
+              <div className="flex-1 min-w-0 w-full">
                 <h3 className="font-bold text-foreground text-[12px] sm:text-[13px] leading-snug truncate transition-colors duration-200">
-                  {assignment.title || assignment.packageName || "Photography Session"}
+                  {assignment.clientName || assignment.title || "Client Session"}
                 </h3>
-                <p className="text-[10px] text-muted-foreground mt-[1px] flex items-center gap-1">
-                  <Calendar size={9} className="shrink-0" />
-                  <span className="truncate">{formattedDate}</span>
-                </p>
+                <div className="flex items-center gap-3 mt-[2px]">
+                  <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                    <Calendar size={9} className="shrink-0" />
+                    <span className="truncate">{formattedDate}</span>
+                  </p>
+                  {assignment.location && (
+                    <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                      <MapPin size={9} className="shrink-0" />
+                      <span className="truncate">{assignment.location}</span>
+                    </p>
+                  )}
+                </div>
               </div>
-              <div className="shrink-0 sm:text-right mt-1 sm:mt-0">
-                {isCompleted ? (
+              {isCompleted && (
+                <div className="shrink-0 sm:text-right mt-1 sm:mt-0">
                   <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 text-[10px] font-bold tracking-wide">
                     DONE
                   </Badge>
-                ) : (
-                  <span className="text-[13px] sm:text-sm font-black text-foreground">
-                    ₹{total.toLocaleString()}
-                  </span>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -164,7 +159,7 @@ const AssignmentCard = ({
           isExpanded ? "z-20 pointer-events-auto" : "z-0 pointer-events-none"
         )}>
           <div className={cn("h-1 w-full shrink-0 opacity-40", accent.bar)} />
-          
+
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -260,14 +255,15 @@ const AssignmentCard = ({
                   className="text-secondary hover:bg-secondary/10 hover:text-secondary"
                 />
               )}
-              {!isCompleted && (
-                <ActionBtn
-                  onClick={handleOpenPayment}
-                  icon={<IndianRupee size={14} />}
-                  label="Pay"
-                  className="hover:text-primary hover:bg-primary/10"
-                />
-              )}
+              <ActionBtn
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPayments(true);
+                }}
+                icon={<IndianRupee size={14} />}
+                label="Payments"
+                className="hover:text-emerald-600 hover:bg-emerald-500/10"
+              />
               <div onClick={(e) => e.stopPropagation()}>
                 <AssignmentPDFDialog assignment={assignment} />
               </div>
@@ -313,55 +309,6 @@ const AssignmentCard = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Payment Dialog */}
-      <Dialog open={showPayment} onOpenChange={setShowPayment}>
-        <DialogContent className="max-w-xs rounded-2xl" onClick={(e) => e.stopPropagation()}>
-          <DialogHeader>
-            <DialogTitle>Update Payment</DialogTitle>
-            <DialogDescription>
-              Total:{" "}
-              <span className="font-bold text-foreground">
-                ₹{total.toLocaleString()}
-              </span>
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-1 space-y-3">
-            <div className="h-2 bg-muted rounded-full overflow-hidden">
-              <div
-                className={cn(
-                  "h-full rounded-full transition-all",
-                  accent.progress,
-                )}
-                style={{ width: `${pct}%` }}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-semibold text-foreground block mb-1.5">
-                Amount Received (₹)
-              </label>
-              <Input
-                type="number"
-                min="0"
-                value={paymentInput}
-                onChange={(e) => setPaymentInput(e.target.value)}
-                placeholder="0"
-              />
-            </div>
-          </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowPayment(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSavePayment}
-              className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
-            >
-              <IndianRupee size={13} className="mr-1" /> Save
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
       {/* Delete Confirm Dialog */}
       <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <DialogContent className="max-w-xs rounded-2xl" onClick={(e) => e.stopPropagation()}>
@@ -385,6 +332,19 @@ const AssignmentCard = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Payments Tracker Dialog */}
+      {showPayments && (
+        <PaymentTracker
+          parentId={assignment._id}
+          parentType="assignment"
+          title={assignment.title || assignment.packageName || "Photography Session"}
+          clientName={assignment.clientName}
+          totalAmount={total}
+          open={showPayments}
+          onOpenChange={setShowPayments}
+        />
+      )}
     </div>
   );
 };
@@ -505,33 +465,33 @@ const DashboardSection = ({
           {monthKeys.map((month) => {
             const items = monthGroups[month];
             const count = items.length;
-            
+
             // Dynamic grid logic based on count
             const gridClass = count === 1
               ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
               : count === 2
-              ? "grid-cols-2 lg:grid-cols-4"
-              : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5";
+                ? "grid-cols-2 lg:grid-cols-4"
+                : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5";
 
             return (
-            <div key={month} className="space-y-3">
-              {month !== "Date TBD" && (
-                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
-                  {month}
-                </h3>
-              )}
-              <div className={cn("grid gap-2 sm:gap-3", gridClass)}>
-                {items.map((a) => (
-                  <AssignmentCard
-                    key={a._id}
-                    assignment={a}
-                    isCompleted={a.status === "Completed"}
-                    accentColor={cfg.card}
-                    {...handlers}
-                  />
-                ))}
+              <div key={month} className="space-y-3">
+                {month !== "Date TBD" && (
+                  <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+                    {month}
+                  </h3>
+                )}
+                <div className={cn("grid gap-2 sm:gap-3", gridClass)}>
+                  {items.map((a) => (
+                    <AssignmentCard
+                      key={a._id}
+                      assignment={a}
+                      isCompleted={a.status === "Completed"}
+                      accentColor={cfg.card}
+                      {...handlers}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
             );
           })}
         </div>
@@ -586,7 +546,7 @@ const Dashboard = ({
     const dStr = a.eventStartDate || a.captureDate;
     const d = dStr ? new Date(dStr) : null;
     const monthKey = d ? format(d, "MMMM yyyy") : "Date TBD";
-    
+
     let sectionKey = "ongoing";
     if (a.status === "Completed") {
       sectionKey = "past";

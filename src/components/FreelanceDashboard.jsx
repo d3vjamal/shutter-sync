@@ -15,6 +15,7 @@ import {
   Clock,
   Wallet,
   X,
+  Receipt,
 } from "lucide-react";
 import { format, isSameMonth, isBefore, startOfMonth } from "date-fns";
 import { Badge } from "./ui/badge";
@@ -29,6 +30,7 @@ import {
 } from "./ui/dialog";
 import { Button } from "./ui/button";
 import FreelancePDFDialog from "./FreelancePDFDialog";
+import PaymentTracker from "./PaymentTracker";
 import { cn } from "../lib/utils";
 
 // ─── Accent colours (same keys as Dashboard) ─────────────────────────────────
@@ -68,6 +70,7 @@ const FreelanceJobCard = ({
   const navigate = useNavigate();
   const [showConfirm, setShowConfirm]           = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showPayments, setShowPayments]           = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
   const accent = ACCENT[isCompleted ? "emerald" : accentColor] || ACCENT.secondary;
@@ -109,26 +112,30 @@ const FreelanceJobCard = ({
           <div className={cn("h-1 w-full shrink-0 z-10", accent.bar)} />
           <div className="p-2.5 sm:p-3 flex flex-col justify-center flex-1 z-10">
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-2">
-              <div className="flex-1 min-w-0 w-full sm:w-auto">
+              <div className="flex-1 min-w-0 w-full">
                 <h3 className="font-bold text-foreground text-[12px] sm:text-[13px] leading-snug truncate transition-colors duration-200">
-                  {job.studioName}
+                  {job.studioOwnerName || job.studioName}
                 </h3>
-                <p className="text-[10px] text-muted-foreground mt-[1px] flex items-center gap-1">
-                  <Calendar size={9} className="shrink-0" />
-                  <span className="truncate">{formattedDate}</span>
-                </p>
+                <div className="flex items-center gap-3 mt-[2px]">
+                  <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                    <Calendar size={9} className="shrink-0" />
+                    <span className="truncate">{formattedDate}</span>
+                  </p>
+                  {job.location && (
+                    <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                      <MapPin size={9} className="shrink-0" />
+                      <span className="truncate">{job.location}</span>
+                    </p>
+                  )}
+                </div>
               </div>
-              <div className="shrink-0 sm:text-right mt-1 sm:mt-0">
-                {isCompleted ? (
+              {isCompleted && (
+                <div className="shrink-0 sm:text-right mt-1 sm:mt-0">
                   <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 text-[10px] font-bold tracking-wide">
                     DONE
                   </Badge>
-                ) : (
-                  <span className="text-[13px] sm:text-sm font-black text-foreground">
-                    ₹{total.toLocaleString()}
-                  </span>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -241,6 +248,12 @@ const FreelanceJobCard = ({
                     <FreelancePDFDialog job={job} />
                   </div>
                   <ActionBtn
+                    onClick={(e) => { e.stopPropagation(); setShowPayments(true); }}
+                    icon={<Receipt size={14} />}
+                    label="Payments"
+                    className="hover:text-emerald-600 hover:bg-emerald-500/10"
+                  />
+                  <ActionBtn
                     onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(true); }}
                     icon={<Trash2 size={14} />}
                     label="Delete"
@@ -263,6 +276,12 @@ const FreelanceJobCard = ({
                   <div onClick={(e) => e.stopPropagation()}>
                     <FreelancePDFDialog job={job} />
                   </div>
+                  <ActionBtn
+                    onClick={(e) => { e.stopPropagation(); setShowPayments(true); }}
+                    icon={<Receipt size={14} />}
+                    label="Payments"
+                    className="hover:text-emerald-600 hover:bg-emerald-500/10"
+                  />
                   <ActionBtn
                     onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(true); }}
                     icon={<Trash2 size={14} />}
@@ -317,6 +336,19 @@ const FreelanceJobCard = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Payments Tracker Dialog */}
+      {showPayments && (
+        <PaymentTracker
+          parentId={job._id}
+          parentType="freelance"
+          title={job.studioName || "Freelance Job"}
+          clientName={job.studioOwnerName || job.studioName}
+          totalAmount={total}
+          open={showPayments}
+          onOpenChange={setShowPayments}
+        />
+      )}
     </div>
   );
 };

@@ -105,7 +105,7 @@ const CreateAssignment = ({ onSave, initialAssignment = null, isEditing = false 
       val = val.replace(/[^\d]/g, "");
     }
     if (type === "phone") {
-      val = val.replace(/[^\d+]/g, "");
+      val = val.replace(/[^\d]/g, "").slice(0, 10);
     }
     if (type === "textOnly" && !validate.textOnly(val)) return;
     
