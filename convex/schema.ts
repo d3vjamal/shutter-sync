@@ -140,6 +140,7 @@ export default defineSchema({
         amount: v.string(),
         date: v.string(),           // ISO date string e.g. "2026-04-01"
         note: v.optional(v.string()),
+        category: v.optional(v.string()), // "photography" | "videography"
     })
         .index("by_parent", ["parentId"])
         .index("by_photographer", ["photographerId"]),

@@ -16,8 +16,12 @@ import {
   X,
   Receipt,
   Aperture,
+  Loader2,
 } from "lucide-react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import { toast } from "react-toastify";
+import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Skeleton } from "./ui/skeleton";
 import {
@@ -28,7 +32,6 @@ import {
   DialogDescription,
   DialogFooter,
 } from "./ui/dialog";
-import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { cn } from "../lib/utils";
 import { isFuture, isSameMonth, format } from "date-fns";
@@ -38,10 +41,10 @@ import PaymentTracker from "./PaymentTracker";
 // ─── Assignment Card ──────────────────────────────────────────────────────────
 
 const ACCENT = {
-  amber: { bar: "bg-amber-500", progress: "bg-amber-500" },
-  primary: { bar: "bg-primary", progress: "bg-primary" },
-  emerald: { bar: "bg-emerald-500", progress: "bg-emerald-500" },
-  secondary: { bar: "bg-secondary", progress: "bg-secondary" },
+  amber: { bar: "bg-amber-500", progress: "bg-amber-500", text: "text-amber-600 dark:text-amber-400" },
+  primary: { bar: "bg-primary", progress: "bg-primary", text: "text-primary" },
+  emerald: { bar: "bg-emerald-500", progress: "bg-emerald-500", text: "text-emerald-600 dark:text-emerald-400" },
+  secondary: { bar: "bg-secondary", progress: "bg-secondary", text: "text-secondary" },
 };
 
 const AssignmentCard = ({
@@ -105,7 +108,7 @@ const AssignmentCard = ({
     <div
       className={cn(
         "group relative w-full rounded-2xl cursor-pointer [perspective:1000px] transition-all duration-300",
-        isExpanded ? "h-[320px] sm:h-[290px] col-span-full md:col-span-2" : "h-full min-h-[90px] sm:min-h-[100px]"
+        isExpanded ? "h-[340px] sm:h-[300px] col-span-full md:col-span-2" : "h-[74px] sm:h-[82px]"
       )}
       onClick={() => !isExpanded && setIsExpanded(true)}
       onDoubleClick={() => isExpanded && setIsExpanded(false)}
@@ -121,22 +124,22 @@ const AssignmentCard = ({
           "[grid-area:1/1] [backface-visibility:hidden] bg-card rounded-2xl border border-border shadow-sm flex flex-col overflow-hidden relative",
           isExpanded ? "z-0 pointer-events-none" : "z-20 pointer-events-auto"
         )}>
-          <Aperture size={85} className="absolute -bottom-4 -right-4 text-foreground/10 z-0 pointer-events-none -rotate-12" />
+          <Aperture size={94} className="absolute -bottom-4 -right-4 text-foreground/10 z-0 pointer-events-none -rotate-12" />
           <div className={cn("h-1 w-full shrink-0 z-10", accent.bar)} />
-          <div className="p-2.5 sm:p-3 flex flex-col justify-center flex-1 z-10">
+          <div className="px-2.5 sm:px-3 flex flex-col justify-center flex-1 z-10">
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-2">
               <div className="flex-1 min-w-0 w-full">
-                <h3 className="font-bold text-foreground text-[12px] sm:text-[13px] leading-snug truncate transition-colors duration-200">
+                <h3 className="font-bold text-foreground text-[12px] sm:text-[13px] leading-tight truncate transition-colors duration-200">
                   {assignment.clientName || assignment.title || "Client Session"}
                 </h3>
-                <div className="flex items-center gap-3 mt-[2px]">
-                  <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                    <Calendar size={9} className="shrink-0" />
+                <div className="flex items-center gap-2.5 mt-[1px]">
+                  <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                    <Calendar size={10} className="shrink-0" />
                     <span className="truncate">{formattedDate}</span>
                   </p>
                   {assignment.location && (
-                    <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                      <MapPin size={9} className="shrink-0" />
+                    <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                      <MapPin size={10} className="shrink-0" />
                       <span className="truncate">{assignment.location}</span>
                     </p>
                   )}
@@ -160,127 +163,124 @@ const AssignmentCard = ({
         )}>
           <div className={cn("h-1 w-full shrink-0 opacity-40", accent.bar)} />
 
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsExpanded(false);
-            }}
-            className="absolute top-2.5 right-2.5 p-1.5 rounded-full bg-muted text-muted-foreground hover:bg-foreground hover:text-background transition-colors z-10"
-          >
-            <X size={14} strokeWidth={3} />
-          </button>
+          <div className="px-3 pt-3 flex items-center justify-between border-b border-border/50 pb-2 bg-muted/30">
+            <div className="flex items-center gap-2">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1.5 py-0.5 bg-background rounded-sm border border-border/50">
+                Details
+              </h4>
+              <div className="flex items-center">
+                <AssignmentPDFDialog assignment={assignment} />
+              </div>
+            </div>
+            <div className="flex items-center gap-0.5">
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowPayments(true); }}
+                className="p-1.5 rounded-lg hover:bg-primary/10 text-primary transition-colors"
+                title="Payments"
+              >
+                <Receipt size={14} />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowEdit(true); }}
+                className="p-1.5 rounded-lg hover:bg-amber-500/10 text-amber-600 transition-colors"
+                title="Edit"
+              >
+                <Edit2 size={14} />
+              </button>
+              {!isCompleted && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowConfirm(true); }}
+                  className="p-1.5 rounded-lg hover:bg-emerald-500/10 text-emerald-600 transition-colors"
+                  title="Mark Complete"
+                >
+                  <CheckCircle size={14} />
+                </button>
+              )}
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(true); }}
+                className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition-colors"
+                title="Delete"
+              >
+                <Trash2 size={14} />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setIsExpanded(false); }}
+                className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground transition-colors ml-1"
+              >
+                <X size={14} strokeWidth={3} />
+              </button>
+            </div>
+          </div>
 
-          <div className="p-3 flex flex-col flex-1 gap-2.5">
-            <div className="pr-6">
-              <h3 className="font-bold text-foreground text-[12px] leading-snug truncate">
-                {assignment.title || assignment.packageName || "Photography Session"}
+          <div className="p-3.5 flex flex-col flex-1 gap-3.5 overflow-y-auto">
+            {/* Header info */}
+            <div>
+              <h3 className="font-extrabold text-foreground text-[18px] leading-tight mb-0.5">
+                {assignment.clientName || "Unnamed Client"}
               </h3>
+              <p className={cn("text-[11px] font-bold uppercase tracking-[0.2em] opacity-90", accent.text)}>
+                {assignment.title || assignment.packageName || "Photography Session"}
+              </p>
             </div>
 
-            <p className="text-[11px] text-foreground font-medium border-l-2 pl-2 border-primary/40">
-              Client: {assignment.clientName || "—"}
-            </p>
-
-            {/* Meta chips */}
-            <div className="flex flex-wrap gap-1.5">
-              {assignment.venue && (
-                <span className="inline-flex items-center gap-1 bg-muted text-muted-foreground text-[10px] font-medium px-2 py-0.5 rounded-full max-w-[130px]">
-                  <Building2 size={9} className="shrink-0" />
-                  <span className="truncate">{assignment.venue}</span>
-                </span>
-              )}
-              {assignment.location && (
-                <span className="inline-flex items-center gap-1 bg-muted text-muted-foreground text-[10px] font-medium px-2 py-0.5 rounded-full max-w-[130px]">
-                  <MapPin size={9} className="shrink-0" />
-                  <span className="truncate">{assignment.location}</span>
-                </span>
-              )}
-            </div>
-
-            {/* Payment progress */}
-            <div className="space-y-1 mt-auto">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
-                  Payment
-                </span>
-                <span className="text-[10px] font-bold text-foreground">
-                  ₹{paid.toLocaleString()}
-                  <span className="font-normal text-muted-foreground">
-                    {" "}
-                    / ₹{total.toLocaleString()}
-                  </span>
-                </span>
+            {/* Info Grid */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-muted/30 dark:bg-muted/10 p-2.5 rounded-xl border border-border/20">
+                <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1.5 flex items-center gap-1.5 opacity-80">
+                  <Calendar size={10} className="text-primary/60" /> Date
+                </p>
+                <p className="text-[12px] font-bold text-foreground">{formattedDate}</p>
+                {assignment.captureTime && (
+                  <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">{assignment.captureTime}</p>
+                )}
               </div>
-              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                <div
-                  className={cn(
-                    "h-full rounded-full transition-all duration-700",
-                    accent.progress,
-                  )}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] text-muted-foreground">
-                  {pct}% paid
-                </span>
-                {remaining > 0 && (
-                  <span className="text-[10px] text-muted-foreground">
-                    ₹{remaining.toLocaleString()} due
-                  </span>
+              <div className="bg-muted/30 dark:bg-muted/10 p-2.5 rounded-xl border border-border/20">
+                <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1.5 flex items-center gap-1.5 opacity-80">
+                  <MapPin size={10} className="text-primary/60" /> Location
+                </p>
+                <p className="text-[12px] font-bold text-foreground truncate">{assignment.location || "—"}</p>
+                {assignment.venue && (
+                  <p className="text-[10px] text-muted-foreground mt-0.5 font-medium truncate">{assignment.venue}</p>
                 )}
               </div>
             </div>
 
-            {/* Action buttons */}
-            <div
-              className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 pt-3 border-t border-border/50 -mx-1"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {!isCompleted && (
-                <ActionBtn
-                  onClick={handleEdit}
-                  icon={<Edit2 size={14} />}
-                  label="Edit"
-                />
+            {/* Additional Details row */}
+            <div className="space-y-3">
+              {assignment.contactNumber && (
+                <div className="flex items-center justify-between p-2.5 bg-background rounded-xl border border-border/20 shadow-sm">
+                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Contact</span>
+                  <span className="text-[12px] font-mono font-bold text-primary">{assignment.contactNumber}</span>
+                </div>
               )}
-              {!isCompleted && (
-                <ActionBtn
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowConfirm(true);
-                  }}
-                  icon={<CheckCircle size={14} />}
-                  label="Done"
-                  className="text-secondary hover:bg-secondary/10 hover:text-secondary"
-                />
-              )}
-              <ActionBtn
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowPayments(true);
-                }}
-                icon={<IndianRupee size={14} />}
-                label="Payments"
-                className="hover:text-emerald-600 hover:bg-emerald-500/10"
-              />
-              <div onClick={(e) => e.stopPropagation()}>
-                <AssignmentPDFDialog assignment={assignment} />
+            </div>
+
+            {/* Payment Section */}
+            <div className="space-y-2.5 pt-1 border-t border-border/10">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-[11px] font-black uppercase tracking-[0.15em] text-muted-foreground">Payments</span>
+                <span className="text-[14px] font-black text-foreground">
+                  ₹{paid.toLocaleString()} <span className="text-[11px] font-bold text-muted-foreground">/ ₹{total.toLocaleString()}</span>
+                </span>
               </div>
-              <ActionBtn
-                onClick={handleShare}
-                icon={<ExternalLink size={14} />}
-                label="Share"
-              />
-              <ActionBtn
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowDeleteConfirm(true);
-                }}
-                icon={<Trash2 size={14} />}
-                label="Delete"
-                className="hover:text-destructive hover:bg-destructive/10"
-              />
+              <div className="space-y-1.5">
+                <div className="h-2 bg-muted rounded-full overflow-hidden shadow-inner flex items-center p-[2px]">
+                  <div
+                    className={cn("h-full rounded-full transition-all duration-1000 ease-out", accent.progress, "shadow-[0_0_8px_rgba(0,0,0,0.1)]")}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+                <div className="flex justify-between items-center px-1">
+                  <span className={cn("text-[10px] font-black px-2 py-0.5 rounded-full", pct === 100 ? "bg-emerald-500/10 text-emerald-600" : "bg-muted text-muted-foreground")}>
+                    {pct === 100 ? "FULLY SETTLED" : `${pct}% COLLECTED`}
+                  </span>
+                  {remaining > 0 && (
+                    <span className="text-[10px] font-bold text-amber-600 bg-amber-500/5 px-2 py-0.5 rounded-full">
+                      ₹{remaining.toLocaleString()} DUE
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -349,46 +349,19 @@ const AssignmentCard = ({
   );
 };
 
-// Small icon-button used in card actions
-const ActionBtn = ({ onClick, icon, label, className }) => (
-  <button
-    onClick={onClick}
-    className={cn(
-      "flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl",
-      "text-muted-foreground hover:bg-muted transition-colors duration-150",
-      className,
-    )}
-  >
-    {icon}
-    <span className="text-[10px] font-semibold">{label}</span>
-  </button>
-);
 
 // ─── Skeleton card (shown while loading) ─────────────────────────────────────
 
 const SkeletonCard = () => (
-  <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm flex flex-col">
+  <div className="h-[74px] sm:h-[82px] bg-card rounded-2xl border border-border overflow-hidden shadow-sm flex flex-col">
     <Skeleton className="h-1 w-full rounded-none" />
-    <div className="p-4 flex flex-col gap-3">
+    <div className="px-3 flex flex-col justify-center flex-1 gap-1.5">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 space-y-1.5">
           <Skeleton className="h-3.5 w-3/4" />
           <Skeleton className="h-2.5 w-1/2" />
         </div>
-        <Skeleton className="h-5 w-14 shrink-0" />
-      </div>
-      <div className="flex gap-1.5">
-        <Skeleton className="h-4 w-20 rounded-full" />
-        <Skeleton className="h-4 w-24 rounded-full" />
-      </div>
-      <div className="space-y-1.5">
-        <Skeleton className="h-2.5 w-full" />
-        <Skeleton className="h-1.5 w-full rounded-full" />
-      </div>
-      <div className="flex justify-around pt-3 border-t border-border/50">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <Skeleton key={i} className="h-8 w-10 rounded-xl" />
-        ))}
+        <Skeleton className="h-6 w-14 shrink-0 rounded-lg" />
       </div>
     </div>
   </div>
@@ -399,17 +372,17 @@ const SkeletonCard = () => (
 const StatCard = ({ label, value, icon: Icon, from, iconColor }) => (
   <div
     className={cn(
-      "relative rounded-2xl p-4 overflow-hidden border border-border/40 shadow-sm",
+      "relative rounded-2xl p-5 overflow-hidden border border-border/40 shadow-sm",
       "bg-gradient-to-br",
       from,
     )}
   >
-    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+    <p className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">
       {label}
     </p>
-    <p className="text-xl font-black text-foreground leading-tight">{value}</p>
+    <p className="text-2xl font-black text-foreground leading-tight">{value}</p>
     <div className={cn("absolute right-3 bottom-2 opacity-10", iconColor)}>
-      <Icon size={38} />
+      <Icon size={42} />
     </div>
   </div>
 );
@@ -439,6 +412,8 @@ const DashboardSection = ({
   monthGroups,
   icon: Icon,
   sectionKey,
+  onSync,
+  isSyncing,
   ...handlers
 }) => {
   const cfg = SECTION_CFG[sectionKey] || SECTION_CFG.ongoing;
@@ -448,14 +423,26 @@ const DashboardSection = ({
   return (
     <section>
       {/* Section header */}
-      <div className="flex items-center gap-2.5 mb-4">
+      <div className="flex items-center gap-2.5 mb-4 group/section">
         <div className={cn("p-1.5 rounded-xl", cfg.iconBg)}>
           <Icon size={15} className={cfg.iconColor} />
         </div>
         <h2 className="text-sm font-bold text-foreground tracking-tight">
           {title}
         </h2>
-        <span className="ml-auto text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+        {(sectionKey === "ongoing" || sectionKey === "upcoming") && onSync && (
+          <Button 
+            onClick={(e) => { e.stopPropagation(); onSync(); }} 
+            disabled={isSyncing}
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 ml-1 flex items-center gap-1.5 rounded-lg border border-dashed border-primary/20 hover:border-primary hover:bg-primary/5 transition-all text-primary group"
+          >
+            <Loader2 className={cn("text-primary", isSyncing ? "animate-spin" : "group-hover:rotate-180 transition-transform duration-500")} size={12} />
+            <span className="text-[10px] font-black uppercase tracking-[0.1em]">Sync</span>
+          </Button>
+        )}
+        <span className="ml-auto text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground mr-1">
           {totalCount}
         </span>
       </div>
@@ -518,6 +505,22 @@ const Dashboard = ({
   onUpdateAssignment,
   onDeleteAssignment,
 }) => {
+  const migratePayments = useMutation(api.payments.migrateLegacyPayments);
+  const [isMigrating, setIsMigrating] = useState(false);
+
+  const handleRepair = async () => {
+    setIsMigrating(true);
+    try {
+      const res = await migratePayments();
+      toast.success(`Success! Reconciled ${res.assignments} assignments and ${res.jobs} jobs.`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Migration failed");
+    } finally {
+      setIsMigrating(false);
+    }
+  };
+
   /* ── Stats ── */
   const totalCollected = assignments.reduce(
     (s, a) => s + Number(a.paidAmount || 0),
@@ -553,8 +556,8 @@ const Dashboard = ({
     } else if (d) {
       if (isFuture(d) && !isSameMonth(d, new Date())) {
         sectionKey = "upcoming";
-      } else if (d < new Date() && !isSameMonth(d, new Date())) {
-        sectionKey = "past";
+      } else {
+        sectionKey = "ongoing";
       }
     }
 
@@ -580,7 +583,7 @@ const Dashboard = ({
         {/* Stat strip skeletons */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-20 rounded-2xl" />
+            <Skeleton key={i} className="h-22 rounded-2xl" />
           ))}
         </div>
         {/* Section skeleton */}
@@ -644,6 +647,8 @@ const Dashboard = ({
         sectionKey="ongoing"
         monthGroups={categorized.ongoing}
         icon={PlayCircle}
+        onSync={handleRepair}
+        isSyncing={isMigrating}
         {...handlers}
       />
       <DashboardSection
@@ -651,6 +656,8 @@ const Dashboard = ({
         sectionKey="upcoming"
         monthGroups={categorized.upcoming}
         icon={Calendar}
+        onSync={handleRepair}
+        isSyncing={isMigrating}
         {...handlers}
       />
       <DashboardSection

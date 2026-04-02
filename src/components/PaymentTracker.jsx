@@ -40,6 +40,7 @@ export default function PaymentTracker({
   const { payments, isLoading, addPayment, removePayment } = usePayments(parentId);
 
   const [amount, setAmount] = useState("");
+  const [category, setCategory] = useState("photography");
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
@@ -59,6 +60,7 @@ export default function PaymentTracker({
       amount,
       date,
       note: note.trim() || undefined,
+      category: parentType === "freelance" ? category : undefined,
     });
     setAmount("");
     setNote("");
@@ -138,6 +140,32 @@ export default function PaymentTracker({
             <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-3">
               Add Payment
             </p>
+            {parentType === "freelance" && (
+              <div className="flex p-1 bg-muted rounded-xl border border-border/50 mb-3">
+                <button
+                  onClick={() => setCategory("photography")}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[10px] font-bold transition-all",
+                    category === "photography"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  Photography
+                </button>
+                <button
+                  onClick={() => setCategory("videography")}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[10px] font-bold transition-all",
+                    category === "videography"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  Videography
+                </button>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-2.5 mb-2.5">
               <div>
                 <label className="text-[10px] font-semibold text-muted-foreground mb-1 block">
@@ -235,10 +263,17 @@ export default function PaymentTracker({
                         <span className="text-sm font-bold text-foreground">
                           ₹{Number(p.amount).toLocaleString()}
                         </span>
-                        <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                          <Calendar size={9} />
-                          {format(new Date(p.date), "dd MMM yyyy")}
-                        </span>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <Calendar size={9} />
+                            {format(new Date(p.date), "dd MMM yyyy")}
+                          </span>
+                          {p.category && (
+                            <span className="text-[8px] font-bold uppercase tracking-tighter bg-primary/10 text-primary px-1.5 rounded-sm">
+                              {p.category}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       {p.note && (
                         <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">

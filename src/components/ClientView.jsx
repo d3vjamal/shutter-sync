@@ -229,7 +229,7 @@ const ClientView = ({ pkg, lang = "en", onBack, onInitiatePayment, agreed, setAg
                 amount: pkg.amount,
                 whatsappNumber: "8370993562",
               }}
-              onSuccess={() => onInitiatePayment(pkg)}
+              onSuccess={(amount) => onInitiatePayment(pkg, amount)}
             />
           </div>
         )}

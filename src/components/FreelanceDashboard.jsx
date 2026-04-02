@@ -16,7 +16,11 @@ import {
   Wallet,
   X,
   Receipt,
+  Loader2,
 } from "lucide-react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import { toast } from "react-toastify";
 import { format, isSameMonth, isBefore, startOfMonth } from "date-fns";
 import { Badge } from "./ui/badge";
 import { Skeleton } from "./ui/skeleton";
@@ -36,27 +40,12 @@ import { cn } from "../lib/utils";
 // ─── Accent colours (same keys as Dashboard) ─────────────────────────────────
 
 const ACCENT = {
-  amber:    { bar: "bg-amber-500",   progress: "bg-amber-500"   },
-  primary:  { bar: "bg-primary",     progress: "bg-primary"     },
-  emerald:  { bar: "bg-emerald-500", progress: "bg-emerald-500" },
-  secondary:{ bar: "bg-secondary",   progress: "bg-secondary"   },
+  amber:    { bar: "bg-amber-500",   progress: "bg-amber-500",   text: "text-amber-600 dark:text-amber-400" },
+  primary:  { bar: "bg-primary",     progress: "bg-primary",     text: "text-primary" },
+  emerald:  { bar: "bg-emerald-500", progress: "bg-emerald-500", text: "text-emerald-600 dark:text-emerald-400" },
+  secondary:{ bar: "bg-secondary",   progress: "bg-secondary",   text: "text-secondary" },
 };
 
-// ─── Small icon-button (shared with Dashboard) ────────────────────────────────
-
-const ActionBtn = ({ onClick, icon, label, className }) => (
-  <button
-    onClick={onClick}
-    className={cn(
-      "flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl",
-      "text-muted-foreground hover:bg-muted transition-colors duration-150",
-      className
-    )}
-  >
-    {icon}
-    <span className="text-[10px] font-semibold">{label}</span>
-  </button>
-);
 
 // ─── Freelance Job Card ───────────────────────────────────────────────────────
 
@@ -92,7 +81,7 @@ const FreelanceJobCard = ({
     <div
       className={cn(
         "group relative w-full rounded-2xl cursor-pointer [perspective:1000px] transition-all duration-300",
-        isExpanded ? "h-[320px] sm:h-[290px] col-span-full md:col-span-2" : "h-full min-h-[90px] sm:min-h-[100px]"
+        isExpanded ? "h-[360px] sm:h-[320px] col-span-full md:col-span-2" : "h-[74px] sm:h-[82px]"
       )}
       onClick={() => !isExpanded && setIsExpanded(true)}
       onDoubleClick={() => isExpanded && setIsExpanded(false)}
@@ -108,22 +97,27 @@ const FreelanceJobCard = ({
           "[grid-area:1/1] [backface-visibility:hidden] bg-card rounded-2xl border border-border shadow-sm flex flex-col overflow-hidden relative",
           isExpanded ? "z-0 pointer-events-none" : "z-20 pointer-events-auto"
         )}>
-          <Briefcase size={85} className="absolute -bottom-4 -right-4 text-foreground/10 z-0 pointer-events-none -rotate-12" />
+          <Briefcase size={94} className="absolute -bottom-4 -right-4 text-foreground/10 z-0 pointer-events-none -rotate-12" />
           <div className={cn("h-1 w-full shrink-0 z-10", accent.bar)} />
-          <div className="p-2.5 sm:p-3 flex flex-col justify-center flex-1 z-10">
+          <div className="absolute top-3.5 right-3.5 z-30">
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-highlight text-primary-foreground rounded-full text-[12px] font-black tracking-tight shadow-lg shadow-highlight/20 border border-primary/20">
+              ₹{jobReceived(job).toLocaleString()}
+            </div>
+          </div>
+          <div className="px-2.5 sm:px-3 flex flex-col justify-center flex-1 z-10">
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-2">
               <div className="flex-1 min-w-0 w-full">
-                <h3 className="font-bold text-foreground text-[12px] sm:text-[13px] leading-snug truncate transition-colors duration-200">
-                  {job.studioOwnerName || job.studioName}
+                <h3 className="font-bold text-foreground text-[12px] sm:text-[13px] leading-tight truncate transition-colors duration-200">
+                  {job.studioName || "Unnamed Studio"}
                 </h3>
-                <div className="flex items-center gap-3 mt-[2px]">
-                  <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                    <Calendar size={9} className="shrink-0" />
+                <div className="flex items-center gap-2.5 mt-[1px]">
+                  <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                    <Calendar size={10} className="shrink-0" />
                     <span className="truncate">{formattedDate}</span>
                   </p>
                   {job.location && (
-                    <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                      <MapPin size={9} className="shrink-0" />
+                    <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                      <MapPin size={10} className="shrink-0" />
                       <span className="truncate">{job.location}</span>
                     </p>
                   )}
@@ -147,149 +141,144 @@ const FreelanceJobCard = ({
         )}>
           <div className={cn("h-1 w-full shrink-0 opacity-40", accent.bar)} />
           
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsExpanded(false);
-            }}
-            className="absolute top-2.5 right-2.5 p-1.5 rounded-full bg-muted text-muted-foreground hover:bg-foreground hover:text-background transition-colors z-10"
-          >
-            <X size={14} strokeWidth={3} />
-          </button>
-
-          <div className="p-3 flex flex-col flex-1 gap-2.5">
-            <div className="pr-6">
-              <h3 className="font-bold text-foreground text-[12px] leading-snug truncate">
-                {job.studioName}
-              </h3>
-            </div>
-
-            <p className="text-[11px] text-foreground font-medium border-l-2 pl-2 border-primary/40">
-              Owner: {job.studioOwnerName || "—"}
-            </p>
-
-            {/* Meta chips */}
-            <div className="flex flex-wrap gap-1.5">
-              {job.venue && (
-                <span className="inline-flex items-center gap-1 bg-muted text-muted-foreground text-[10px] font-medium px-2 py-0.5 rounded-full max-w-[130px]">
-                  <Building2 size={9} className="shrink-0" />
-                  <span className="truncate">{job.venue}</span>
-                </span>
-              )}
-              {job.location && (
-                <span className="inline-flex items-center gap-1 bg-muted text-muted-foreground text-[10px] font-medium px-2 py-0.5 rounded-full max-w-[130px]">
-                  <MapPin size={9} className="shrink-0" />
-                  <span className="truncate">{job.location}</span>
-                </span>
-              )}
-              {job.photographerName && (
-                <span className="inline-flex items-center gap-1 bg-muted text-muted-foreground text-[10px] font-medium px-2 py-0.5 rounded-full max-w-[130px]">
-                  <Camera size={9} className="shrink-0" />
-                  <span className="truncate">{job.photographerName}</span>
-                </span>
-              )}
-            </div>
-
-            {/* Photography payment row */}
-            {photoTotal > 0 && (
-              <div className="space-y-1 mt-auto">
-                <div className="flex items-center justify-between">
-                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
-                    <Camera size={9} /> Photo
-                  </span>
-                  <span className="text-[10px] font-bold text-foreground">
-                    ₹{photoReceived.toLocaleString()}
-                    <span className="font-normal text-muted-foreground"> / ₹{photoTotal.toLocaleString()}</span>
-                    {photoDue > 0 && <span className="text-amber-500 ml-1">· ₹{photoDue.toLocaleString()} due</span>}
-                  </span>
-                </div>
-                {(job.photographyFootageTypes || []).length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {job.photographyFootageTypes.map((t) => (
-                      <span key={t} className="bg-muted text-muted-foreground text-[10px] font-medium px-2 py-0.5 rounded-full">{t}</span>
-                    ))}
-                  </div>
-                )}
+          <div className="px-3 pt-3 flex items-center justify-between border-b border-border/50 pb-2 bg-muted/30">
+            <div className="flex items-center gap-2">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1.5 py-0.5 bg-background rounded-sm border border-border/50">
+                Details
+              </h4>
+              <div className="flex items-center">
+                <FreelancePDFDialog job={job} />
               </div>
-            )}
-
-            {/* Videography payment row */}
-            {job.hasVideography && videoTotal > 0 && (
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
-                    <Video size={9} /> Video
-                  </span>
-                  <span className="text-[10px] font-bold text-foreground">
-                    ₹{videoReceived.toLocaleString()}
-                    <span className="font-normal text-muted-foreground"> / ₹{videoTotal.toLocaleString()}</span>
-                    {videoDue > 0 && <span className="text-amber-500 ml-1">· ₹{videoDue.toLocaleString()} due</span>}
-                  </span>
-                </div>
-                {(job.videographyFootageTypes || []).length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {job.videographyFootageTypes.map((t) => (
-                      <span key={t} className="bg-muted text-muted-foreground text-[10px] font-medium px-2 py-0.5 rounded-full">{t}</span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Action buttons */}
-            <div
-              className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 pt-3 border-t border-border/50 -mx-1 align-bottom"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {isCompleted ? (
-                /* Completed: PDF export and Delete */
-                <>
-                  <div onClick={(e) => e.stopPropagation()}>
-                    <FreelancePDFDialog job={job} />
-                  </div>
-                  <ActionBtn
-                    onClick={(e) => { e.stopPropagation(); setShowPayments(true); }}
-                    icon={<Receipt size={14} />}
-                    label="Payments"
-                    className="hover:text-emerald-600 hover:bg-emerald-500/10"
-                  />
-                  <ActionBtn
-                    onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(true); }}
-                    icon={<Trash2 size={14} />}
-                    label="Delete"
-                    className="hover:text-destructive hover:bg-destructive/10"
-                  />
-                </>
-              ) : (
-                <>
-                  <ActionBtn
+            </div>
+              <div className="flex items-center gap-0.5">
+                {!isCompleted && (
+                  <button
                     onClick={(e) => { e.stopPropagation(); navigate("/create-freelance-assignment", { state: { job } }); }}
-                    icon={<Edit2 size={14} />}
-                    label="Edit"
-                  />
-                  <ActionBtn
+                    className="p-1.5 rounded-lg hover:bg-amber-500/10 text-amber-600 transition-colors"
+                    title="Edit"
+                  >
+                    <Edit2 size={14} />
+                  </button>
+                )}
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowPayments(true); }}
+                  className="p-1.5 rounded-lg hover:bg-emerald-500/10 text-emerald-600 transition-colors"
+                  title="Payments"
+                >
+                  <Receipt size={14} />
+                </button>
+                {!isCompleted && (
+                  <button
                     onClick={(e) => { e.stopPropagation(); setShowConfirm(true); }}
-                    icon={<CheckCircle size={14} />}
-                    label="Done"
-                    className="text-secondary hover:bg-secondary/10 hover:text-secondary"
-                  />
-                  <div onClick={(e) => e.stopPropagation()}>
-                    <FreelancePDFDialog job={job} />
+                    className="p-1.5 rounded-lg hover:bg-emerald-500/10 text-emerald-600 transition-colors"
+                    title="Mark Complete"
+                  >
+                    <CheckCircle size={14} />
+                  </button>
+                )}
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(true); }}
+                  className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition-colors"
+                  title="Delete"
+                >
+                  <Trash2 size={14} />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setIsExpanded(false); }}
+                  className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground transition-colors ml-1"
+                >
+                  <X size={14} strokeWidth={3} />
+                </button>
+              </div>
+            </div>
+            <div className="p-3.5 flex flex-col flex-1 gap-3.5 overflow-y-auto">
+            {/* Header info */}
+            <div>
+              <h3 className="font-extrabold text-foreground text-[18px] leading-tight mb-0.5">
+                {job.studioName || "Unnamed Studio"}
+              </h3>
+              <p className={cn("text-[11px] font-bold uppercase tracking-[0.2em] opacity-90", accent.text)}>
+                {job.studioOwnerName ? `Owner: ${job.studioOwnerName}` : "Freelance Assignment"}
+              </p>
+            </div>
+
+            {/* Info Grid */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-muted/30 dark:bg-muted/10 p-2.5 rounded-xl border border-border/20">
+                <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1.5 flex items-center gap-1.5 opacity-80">
+                  <Calendar size={10} className="text-primary/60" /> Schedule
+                </p>
+                <p className="text-[12px] font-bold text-foreground">{formattedDate}</p>
+                {job.dates?.length > 1 && (
+                  <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">{job.dates.length} Days booked</p>
+                )}
+              </div>
+              <div className="bg-muted/30 dark:bg-muted/10 p-2.5 rounded-xl border border-border/20">
+                <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1.5 flex items-center gap-1.5 opacity-80">
+                  <MapPin size={10} className="text-primary/60" /> Venue
+                </p>
+                <p className="text-[12px] font-bold text-foreground truncate">{job.location || "—"}</p>
+                {job.venue && (
+                  <p className="text-[10px] text-muted-foreground mt-0.5 font-medium truncate">{job.venue}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Service Specifics */}
+            <div className="space-y-2.5">
+              {photoTotal > 0 && (
+                <div className="p-3 bg-background rounded-xl border border-border/20 shadow-sm space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 text-[10px] font-black text-muted-foreground uppercase tracking-wider">
+                      <Camera size={12} className="text-amber-500" /> Photography
+                    </span>
+                    <span className="text-[12px] font-bold text-foreground">₹{photoReceived.toLocaleString()} <span className="text-[10px] font-medium text-muted-foreground">/ ₹{photoTotal.toLocaleString()}</span></span>
                   </div>
-                  <ActionBtn
-                    onClick={(e) => { e.stopPropagation(); setShowPayments(true); }}
-                    icon={<Receipt size={14} />}
-                    label="Payments"
-                    className="hover:text-emerald-600 hover:bg-emerald-500/10"
-                  />
-                  <ActionBtn
-                    onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(true); }}
-                    icon={<Trash2 size={14} />}
-                    label="Delete"
-                    className="hover:text-destructive hover:bg-destructive/10"
-                  />
-                </>
+                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div 
+                      className={cn("h-full transition-all duration-700", accent.progress)} 
+                      style={{ width: `${photoTotal > 0 ? Math.min(100, Math.round((photoReceived / photoTotal) * 100)) : 0}%` }} 
+                    />
+                  </div>
+                  {(job.photographyFootageTypes || []).length > 0 && (
+                    <div className="flex flex-wrap gap-1 pt-1">
+                      {job.photographyFootageTypes.map(t => (
+                        <span key={t} className="text-[9px] font-bold px-1.5 py-0.5 bg-muted text-muted-foreground rounded uppercase tracking-tighter">{t}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
+
+              {job.hasVideography && videoTotal > 0 && (
+                <div className="p-3 bg-background rounded-xl border border-border/20 shadow-sm space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 text-[10px] font-black text-muted-foreground uppercase tracking-wider">
+                      <Video size={12} className="text-primary" /> Videography
+                    </span>
+                    <span className="text-[12px] font-bold text-foreground">₹{videoReceived.toLocaleString()} <span className="text-[10px] font-medium text-muted-foreground">/ ₹{videoTotal.toLocaleString()}</span></span>
+                  </div>
+                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-primary transition-all duration-700" 
+                      style={{ width: `${videoTotal > 0 ? Math.min(100, Math.round((videoReceived / videoTotal) * 100)) : 0}%` }} 
+                    />
+                  </div>
+                  {(job.videographyFootageTypes || []).length > 0 && (
+                    <div className="flex flex-wrap gap-1 pt-1">
+                      {job.videographyFootageTypes.map(t => (
+                        <span key={t} className="text-[9px] font-bold px-1.5 py-0.5 bg-muted text-muted-foreground rounded uppercase tracking-tighter">{t}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Summary Footer */}
+            <div className="mt-auto pt-2 flex items-center justify-between border-t border-border/30 px-1">
+              <span className="text-[10px] font-black text-muted-foreground uppercase">Total Collected</span>
+              <span className="text-[14px] font-black text-foreground">₹{(photoReceived + videoReceived).toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -356,25 +345,15 @@ const FreelanceJobCard = ({
 // ─── Skeleton card ────────────────────────────────────────────────────────────
 
 const SkeletonCard = () => (
-  <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm flex flex-col">
+  <div className="h-[74px] sm:h-[82px] bg-card rounded-2xl border border-border overflow-hidden shadow-sm flex flex-col">
     <Skeleton className="h-1 w-full rounded-none" />
-    <div className="p-4 flex flex-col gap-3">
+    <div className="px-3 flex flex-col justify-center flex-1 gap-1.5">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 space-y-1.5">
           <Skeleton className="h-3.5 w-3/4" />
           <Skeleton className="h-2.5 w-1/2" />
         </div>
-        <Skeleton className="h-5 w-14 shrink-0" />
-      </div>
-      <div className="flex gap-1.5">
-        <Skeleton className="h-4 w-20 rounded-full" />
-        <Skeleton className="h-4 w-24 rounded-full" />
-      </div>
-      <div className="space-y-1.5">
-        <Skeleton className="h-2.5 w-full" />
-      </div>
-      <div className="flex justify-around pt-3 border-t border-border/50">
-        {[1,2,3,4].map(i => <Skeleton key={i} className="h-8 w-10 rounded-xl" />)}
+        <Skeleton className="h-6 w-14 shrink-0 rounded-lg" />
       </div>
     </div>
   </div>
@@ -385,16 +364,16 @@ const SkeletonCard = () => (
 const StatCard = ({ label, value, icon: Icon, from, iconColor }) => (
   <div
     className={cn(
-      "relative rounded-2xl p-4 overflow-hidden border border-border/40 shadow-sm",
+      "relative rounded-2xl p-5 overflow-hidden border border-border/40 shadow-sm",
       "bg-gradient-to-br", from
     )}
   >
-    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">
+    <p className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">
       {label}
     </p>
-    <p className="text-xl font-black text-foreground leading-tight">{value}</p>
+    <p className="text-2xl font-black text-foreground leading-tight">{value}</p>
     <div className={cn("absolute right-3 bottom-2 opacity-10", iconColor)}>
-      <Icon size={38} />
+      <Icon size={42} />
     </div>
   </div>
 );
@@ -409,19 +388,40 @@ const SECTION_CFG = {
 
 // ─── Section component ────────────────────────────────────────────────────────
 
-const FreelanceSection = ({ title, monthGroups, icon: Icon, sectionKey, onUpdateStatus, onDeleteJob }) => {
+const FreelanceSection = ({ 
+  title, 
+  monthGroups, 
+  icon: Icon, 
+  sectionKey, 
+  onUpdateStatus, 
+  onDeleteJob,
+  onSync,
+  isSyncing
+}) => {
   const cfg = SECTION_CFG[sectionKey] || SECTION_CFG.ongoing;
   const monthKeys = Object.keys(monthGroups);
   const totalCount = monthKeys.reduce((acc, k) => acc + monthGroups[k].length, 0);
 
   return (
     <section>
-      <div className="flex items-center gap-2.5 mb-4">
+      <div className="flex items-center gap-2.5 mb-4 group/section">
         <div className={cn("p-1.5 rounded-xl", cfg.iconBg)}>
           <Icon size={15} className={cfg.iconColor} />
         </div>
         <h2 className="text-sm font-bold text-foreground tracking-tight">{title}</h2>
-        <span className="ml-auto text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+        {(sectionKey === "ongoing" || sectionKey === "upcoming") && onSync && (
+          <Button 
+            onClick={(e) => { e.stopPropagation(); onSync(); }} 
+            disabled={isSyncing}
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 ml-1 flex items-center gap-1.5 rounded-lg border border-dashed border-primary/20 hover:border-primary hover:bg-primary/5 transition-all text-primary group"
+          >
+            <Loader2 className={cn("text-primary", isSyncing ? "animate-spin" : "group-hover:rotate-180 transition-transform duration-500")} size={12} />
+            <span className="text-[10px] font-black uppercase tracking-[0.1em]">Sync</span>
+          </Button>
+        )}
+        <span className="ml-auto text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground mr-1">
           {totalCount}
         </span>
       </div>
@@ -474,6 +474,22 @@ const FreelanceSection = ({ title, monthGroups, icon: Icon, sectionKey, onUpdate
 // ─── Dashboard Component ─────────────────────────────────────────────────────
 
 const FreelanceDashboard = ({ freelanceJobs = [], loading = false, onUpdateStatus, onDeleteJob }) => {
+  const migratePayments = useMutation(api.payments.migrateLegacyPayments);
+  const [isMigrating, setIsMigrating] = useState(false);
+
+  const handleRepair = async () => {
+    setIsMigrating(true);
+    try {
+      const res = await migratePayments();
+      toast.success(`Success! Sync complete.`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Sync failed");
+    } finally {
+      setIsMigrating(false);
+    }
+  };
+
   // ── Group by Status & Month ──────────────────────────────────────────────────
   const categorized = { ongoing: {}, upcoming: {}, past: {} };
   const now = new Date();
@@ -496,9 +512,9 @@ const FreelanceDashboard = ({ freelanceJobs = [], loading = false, onUpdateStatu
     if (job.status === "Completed") {
       sectionKey = "past";
     } else if (monthDate) {
-      if (isBefore(monthDate, currentMonthStart) && !isSameMonth(monthDate, now)) {
-        sectionKey = "past";
-      } else if (isSameMonth(monthDate, now)) {
+      if (isSameMonth(monthDate, now)) {
+        sectionKey = "ongoing";
+      } else if (isBefore(monthDate, currentMonthStart)) {
         sectionKey = "ongoing";
       } else {
         sectionKey = "upcoming";
@@ -515,9 +531,12 @@ const FreelanceDashboard = ({ freelanceJobs = [], loading = false, onUpdateStatu
 
   // ── Stats ───────────────────────────────────────────────────────────────────
   const jobTotal = (j) =>
-    Number(j.photographyAmount || 0) + Number(j.videographyAmount || 0);
+    Number(j.photographyAmount || j.photographerAmount || 0) + 
+    Number(j.videographyAmount || j.videographerAmount || 0);
+    
   const jobReceived = (j) =>
-    Number(j.photographyReceived || 0) + Number(j.videographyReceived || 0);
+    Number(j.photographyReceived || 0) + 
+    Number(j.videographyReceived || 0);
 
   const totalEarnings   = freelanceJobs.reduce((s, j) => s + jobTotal(j), 0);
   const pendingEarnings = freelanceJobs
@@ -528,7 +547,7 @@ const FreelanceDashboard = ({ freelanceJobs = [], loading = false, onUpdateStatu
     return (
       <div className="max-w-5xl mx-auto pb-24 space-y-8 animate-load">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {[1,2,3,4].map(i => <Skeleton key={i} className="h-20 rounded-2xl" />)}
+          {[1,2,3,4].map(i => <Skeleton key={i} className="h-22 rounded-2xl" />)}
         </div>
         <div className="space-y-3">
           <Skeleton className="h-5 w-36 rounded-xl" />
@@ -582,6 +601,8 @@ const FreelanceDashboard = ({ freelanceJobs = [], loading = false, onUpdateStatu
         icon={PlayCircle}
         onUpdateStatus={onUpdateStatus}
         onDeleteJob={onDeleteJob}
+        onSync={handleRepair}
+        isSyncing={isMigrating}
       />
       <FreelanceSection
         title="Upcoming"
@@ -590,6 +611,8 @@ const FreelanceDashboard = ({ freelanceJobs = [], loading = false, onUpdateStatu
         icon={Clock}
         onUpdateStatus={onUpdateStatus}
         onDeleteJob={onDeleteJob}
+        onSync={handleRepair}
+        isSyncing={isMigrating}
       />
       <FreelanceSection
         title="Past & Completed"

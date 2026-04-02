@@ -29,7 +29,22 @@ export const create = mutation({
         groomVenue: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        return await ctx.db.insert("assignments", args);
+        const id = await ctx.db.insert("assignments", args);
+        
+        // If there's an initial payment, record it in the payments table too
+        if (args.paidAmount && parseFloat(args.paidAmount) > 0) {
+            await ctx.db.insert("payments", {
+                parentId: id,
+                parentType: "assignment",
+                photographerId: args.photographerId,
+                amount: args.paidAmount,
+                date: new Date().toISOString(),
+                note: "Initial payment during creation",
+                category: "photography",
+            });
+        }
+        
+        return id;
     },
 });
 

@@ -36,7 +36,35 @@ export const create = mutation({
         status: v.string(),
     },
     handler: async (ctx, args) => {
-        return await ctx.db.insert("freelanceAssignments", args);
+        const id = await ctx.db.insert("freelanceAssignments", args);
+
+        // Record photography payment if received
+        if (args.photographyReceived && parseFloat(args.photographyReceived) > 0) {
+            await ctx.db.insert("payments", {
+                parentId: id,
+                parentType: "freelance",
+                photographerId: args.photographerId,
+                amount: args.photographyReceived,
+                date: new Date().toISOString(),
+                note: "Initial photography payment",
+                category: "photography",
+            });
+        }
+
+        // Record videography payment if received
+        if (args.hasVideography && args.videographyReceived && parseFloat(args.videographyReceived) > 0) {
+            await ctx.db.insert("payments", {
+                parentId: id,
+                parentType: "freelance",
+                photographerId: args.photographerId,
+                amount: args.videographyReceived,
+                date: new Date().toISOString(),
+                note: "Initial videography payment",
+                category: "videography",
+            });
+        }
+
+        return id;
     },
 });
 

@@ -144,7 +144,7 @@ export default function BookingForm({ config = DEFAULT_CONFIG, lang = "en", onSu
     );
     setShowWa(true);
     setLoading(false);
-    if (onSuccess) onSuccess();
+    if (onSuccess) onSuccess(selectedAmount);
   }
 
   return (

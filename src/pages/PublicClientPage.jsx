@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { toast } from "react-toastify";
 import LoadingSpinner from "../components/common/LoadingSpinner";
@@ -73,6 +73,7 @@ export default function PublicClientPage() {
   const [lang, setLang] = useState("en");
   const assignment = useQuery(api.assignments.get, id ? { id } : "skip");
   const [agreed, setAgreed] = useState(false);
+  const recordPayment = useMutation(api.payments.recordPublicPayment);
 
   if (!id)
     return (
@@ -99,8 +100,19 @@ export default function PublicClientPage() {
       </PublicLayout>
     );
 
-  const handlePaymentSuccess = () => {
-    toast.success(t(lang, "paymentInitiated"));
+  const handlePaymentSuccess = async (pkg, amount) => {
+    try {
+      await recordPayment({
+        parentId: pkg._id,
+        parentType: "assignment",
+        amount: amount.toString(),
+        note: `Online payment via client portal (${amount} INR)`,
+      });
+      toast.success(t(lang, "paymentInitiated"));
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to record payment");
+    }
   };
 
   return (
