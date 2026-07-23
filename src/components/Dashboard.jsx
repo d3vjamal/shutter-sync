@@ -494,6 +494,48 @@ const DashboardSection = ({
   );
 };
 
+// ─── Section Filter Tab Bar ───────────────────────────────────────────────────
+
+const TABS = [
+  { key: "ongoing",  label: "Ongoing",   icon: PlayCircle,  activeClass: "bg-amber-500 text-white",    countClass: "bg-amber-400/30 text-white" },
+  { key: "upcoming", label: "Upcoming",  icon: Calendar,    activeClass: "bg-primary text-primary-foreground",   countClass: "bg-primary-foreground/20 text-primary-foreground" },
+  { key: "past",     label: "Completed", icon: CheckCircle, activeClass: "bg-emerald-500 text-white",  countClass: "bg-emerald-400/30 text-white" },
+];
+
+const SectionTabBar = ({ activeTab, counts, onChange }) => (
+  <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl pt-1 pb-2 -mx-4 px-4">
+    <div className="flex gap-2">
+      {TABS.map(({ key, label, icon: Icon, activeClass, countClass }) => {
+        const isActive = activeTab === key;
+        const count = counts[key] ?? 0;
+        return (
+          <button
+            key={key}
+            onClick={() => onChange(key)}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all duration-200",
+              isActive
+                ? activeClass + " shadow-md"
+                : "bg-muted/60 text-muted-foreground hover:bg-muted"
+            )}
+          >
+            <Icon size={12} />
+            <span className="hidden xs:inline">{label}</span>
+            <span
+              className={cn(
+                "text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center",
+                isActive ? countClass : "bg-background/50 text-muted-foreground"
+              )}
+            >
+              {count}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  </div>
+);
+
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
 const Dashboard = ({
@@ -507,6 +549,7 @@ const Dashboard = ({
 }) => {
   const migratePayments = useMutation(api.payments.migrateLegacyPayments);
   const [isMigrating, setIsMigrating] = useState(false);
+  const [activeSection, setActiveSection] = useState("ongoing");
 
   const handleRepair = async () => {
     setIsMigrating(true);
@@ -535,8 +578,7 @@ const Dashboard = ({
     );
   const totalCount = assignments.length;
 
-  /* ── Group ── */
-  /* ── Group by Status -> Month ── */
+  /* ── Group by Status -> Month (order & logic unchanged) ── */
   const categorized = { ongoing: {}, upcoming: {}, past: {} };
 
   const sortedAssignments = [...assignments].sort((a, b) => {
@@ -567,7 +609,13 @@ const Dashboard = ({
     categorized[sectionKey][monthKey].push(a);
   });
 
-  const pastCount = assignments.filter((a) => a.status === "Completed").length;
+  const sectionCounts = {
+    ongoing:  Object.values(categorized.ongoing).flat().length,
+    upcoming: Object.values(categorized.upcoming).flat().length,
+    past:     Object.values(categorized.past).flat().length,
+  };
+
+  const pastCount = sectionCounts.past;
 
   const handlers = {
     onUpdateStatus,
@@ -580,35 +628,29 @@ const Dashboard = ({
   if (loading) {
     return (
       <div className="max-w-5xl mx-auto pb-24 space-y-8 animate-load">
-        {/* Stat strip skeletons */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[1, 2, 3, 4].map((i) => (
             <Skeleton key={i} className="h-22 rounded-2xl" />
           ))}
         </div>
-        {/* Section skeleton */}
-        <div className="space-y-3">
-          <Skeleton className="h-5 w-36 rounded-xl" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {[1, 2, 3].map((i) => (
-              <SkeletonCard key={i} />
-            ))}
-          </div>
+        <div className="flex gap-2">
+          {[1, 2, 3].map((i) => <Skeleton key={i} className="flex-1 h-10 rounded-xl" />)}
         </div>
         <div className="space-y-3">
-          <Skeleton className="h-5 w-28 rounded-xl" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {[1, 2].map((i) => (
-              <SkeletonCard key={i} />
-            ))}
+          <Skeleton className="h-5 w-36 rounded-xl" />
+          <div className="grid grid-cols-2 gap-2">
+            {[1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)}
           </div>
         </div>
       </div>
     );
   }
 
+  const SECTION_ICON = { ongoing: PlayCircle, upcoming: Calendar, past: CheckCircle };
+  const SECTION_TITLE = { ongoing: "Ongoing", upcoming: "Upcoming", past: "Past & Completed" };
+
   return (
-    <div className="max-w-5xl mx-auto pb-24 space-y-8 animate-load">
+    <div className="max-w-5xl mx-auto pb-24 space-y-4 animate-load">
       {/* ── Stat strip ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 stagger-children">
         <StatCard
@@ -641,30 +683,22 @@ const Dashboard = ({
         />
       </div>
 
-      {/* ── Sections Grouped by Status & Month ── */}
-      <DashboardSection
-        title="Ongoing"
-        sectionKey="ongoing"
-        monthGroups={categorized.ongoing}
-        icon={PlayCircle}
-        onSync={handleRepair}
-        isSyncing={isMigrating}
-        {...handlers}
+      {/* ── Sticky Filter Tab Bar ── */}
+      <SectionTabBar
+        activeTab={activeSection}
+        counts={sectionCounts}
+        onChange={setActiveSection}
       />
+
+      {/* ── Active Section Content ── */}
       <DashboardSection
-        title="Upcoming"
-        sectionKey="upcoming"
-        monthGroups={categorized.upcoming}
-        icon={Calendar}
-        onSync={handleRepair}
+        key={activeSection}
+        title={SECTION_TITLE[activeSection]}
+        sectionKey={activeSection}
+        monthGroups={categorized[activeSection]}
+        icon={SECTION_ICON[activeSection]}
+        onSync={activeSection !== "past" ? handleRepair : undefined}
         isSyncing={isMigrating}
-        {...handlers}
-      />
-      <DashboardSection
-        title="Past & Completed"
-        sectionKey="past"
-        monthGroups={categorized.past}
-        icon={CheckCircle}
         {...handlers}
       />
     </div>
