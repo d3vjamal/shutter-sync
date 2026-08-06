@@ -50,6 +50,9 @@ export const get = query({
             avatarUrl: (photographer.avatarUrl && !photographer.avatarUrl.startsWith("http"))
                 ? (await ctx.storage.getUrl(photographer.avatarUrl)) ?? photographer.avatarUrl
                 : photographer.avatarUrl,
+            coverImageUrl: (photographer.coverImageUrl && !photographer.coverImageUrl.startsWith("http"))
+                ? (await ctx.storage.getUrl(photographer.coverImageUrl)) ?? photographer.coverImageUrl
+                : photographer.coverImageUrl,
             photos: photographer.photos
                 ? await Promise.all(photographer.photos.map(async (id) =>
                     (id && !id.startsWith("http")) ? (await ctx.storage.getUrl(id)) ?? id : id
@@ -87,6 +90,9 @@ export const getBySlug = query({
             brandLogoUrl: (photographer.brandLogoUrl && !photographer.brandLogoUrl.startsWith("http"))
                 ? (await ctx.storage.getUrl(photographer.brandLogoUrl)) ?? photographer.brandLogoUrl
                 : photographer.brandLogoUrl,
+            coverImageUrl: (photographer.coverImageUrl && !photographer.coverImageUrl.startsWith("http"))
+                ? (await ctx.storage.getUrl(photographer.coverImageUrl)) ?? photographer.coverImageUrl
+                : photographer.coverImageUrl,
             photos: photographer.photos
                 ? await Promise.all(photographer.photos.map(async (photoId) =>
                     (photoId && !photoId.startsWith("http")) ? (await ctx.storage.getUrl(photoId)) ?? photoId : photoId

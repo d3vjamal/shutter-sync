@@ -24,6 +24,9 @@ export const viewer = query({
             brandLogoUrl: (user.brandLogoUrl && !user.brandLogoUrl.startsWith("http"))
                 ? (await ctx.storage.getUrl(user.brandLogoUrl)) ?? user.brandLogoUrl
                 : user.brandLogoUrl,
+            coverImageUrl: (user.coverImageUrl && !user.coverImageUrl.startsWith("http"))
+                ? (await ctx.storage.getUrl(user.coverImageUrl)) ?? user.coverImageUrl
+                : user.coverImageUrl,
             photos: user.photos
                 ? await Promise.all(user.photos.map(async (id) =>
                     (id && !id.startsWith("http")) ? (await ctx.storage.getUrl(id)) ?? id : id
@@ -45,6 +48,7 @@ export const updateUserProfile = mutation({
         photos: v.optional(v.array(v.string())),
         avatarUrl: v.optional(v.string()),
         brandLogoUrl: v.optional(v.string()),
+        coverImageUrl: v.optional(v.string()),
         username: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
@@ -70,6 +74,7 @@ export const updateUserProfile = mutation({
         if (args.photos !== undefined) updates.photos = args.photos;
         if (args.avatarUrl !== undefined) updates.avatarUrl = args.avatarUrl;
         if (args.brandLogoUrl !== undefined) updates.brandLogoUrl = args.brandLogoUrl;
+        if (args.coverImageUrl !== undefined) updates.coverImageUrl = args.coverImageUrl;
         if (args.username !== undefined) updates.username = args.username || undefined;
 
         if (Object.keys(updates).length > 0) {

@@ -2,6 +2,16 @@
   command = "npm run build"
   publish = "dist"
 
+[functions]
+  node_bundler = "esbuild"
+
+# Serve photographer-specific Open Graph metadata to social crawlers.
+[[redirects]]
+  from = "/photographer/:slug"
+  to = "/.netlify/functions/profile-meta?slug=:slug"
+  status = 200
+  force = true
+
 # SPA redirect rule for client-side routing
 [[redirects]]
   from = "/*"

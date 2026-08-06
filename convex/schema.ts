@@ -20,6 +20,7 @@ export default defineSchema({
         photos: v.optional(v.array(v.string())),
         avatarUrl: v.optional(v.string()),
         brandLogoUrl: v.optional(v.string()),
+        coverImageUrl: v.optional(v.string()),
         username: v.optional(v.string()),
     })
         .index("email", ["email"])
@@ -75,6 +76,7 @@ export default defineSchema({
         services: v.array(v.string()),
         price: v.optional(v.string()),
         popular: v.optional(v.boolean()),
+        visible: v.optional(v.boolean()),
     }).index("by_photographer", ["photographerId"]),
 
     freelanceAssignments: defineTable({

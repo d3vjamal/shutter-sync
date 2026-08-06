@@ -37,6 +37,9 @@ import {
   EyeOff,
 } from "lucide-react";
 
+const DEFAULT_COVER_URL =
+  "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&q=80&w=2070";
+
 export default function ProfilePage() {
   const { user, handleLogout } = useAuth();
   const updateUserProfile = useMutation(api.users.updateUserProfile);
@@ -58,6 +61,7 @@ export default function ProfilePage() {
 
   const [avatarUrl, setAvatarUrl] = useState("");
   const [brandLogoUrl, setBrandLogoUrl] = useState("");
+  const [coverImageUrl, setCoverImageUrl] = useState("");
   const [photos, setPhotos] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [activeTab, setActiveTab] = useState("identity");
@@ -90,6 +94,7 @@ export default function ProfilePage() {
   const avatarInputRef = useRef(null);
   const galleryInputRef = useRef(null);
   const brandLogoInputRef = useRef(null);
+  const coverImageInputRef = useRef(null);
 
   useEffect(() => {
     if (user) {
@@ -106,6 +111,7 @@ export default function ProfilePage() {
       setUsernameInput(user.username || "");
       setAvatarUrl(user.avatarUrl || "");
       setBrandLogoUrl(user.brandLogoUrl || "");
+      setCoverImageUrl(user.coverImageUrl || "");
       setPhotos(user.photos || []);
     }
   }, [user]);
@@ -142,6 +148,17 @@ export default function ProfilePage() {
     const file = event.target.files[0];
     if (!file) return;
 
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file");
+      event.target.value = "";
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("Image must be smaller than 8 MB");
+      event.target.value = "";
+      return;
+    }
+
     setIsUploading(true);
     try {
       const postUrl = await generateUploadUrl();
@@ -158,6 +175,9 @@ export default function ProfilePage() {
       } else if (type === "brandLogo") {
         await updateUserProfile({ brandLogoUrl: storageId });
         toast.success("Brand logo updated");
+      } else if (type === "coverImage") {
+        await updateUserProfile({ coverImageUrl: storageId });
+        toast.success("Public profile background updated");
       } else {
         const currentPhotos = user.photos || [];
         const updatedPhotos = [...currentPhotos, storageId].slice(0, 6);
@@ -169,6 +189,7 @@ export default function ProfilePage() {
       toast.error("Upload failed");
     } finally {
       setIsUploading(false);
+      event.target.value = "";
     }
   };
 
@@ -247,7 +268,7 @@ export default function ProfilePage() {
         theme={theme}
         setTheme={setTheme}
       />
-      <div className="max-w-4xl mx-auto py-8 px-4 animate-in fade-in duration-700">
+      <div className="max-w-4xl mx-auto py-8 px-4 animate-in fade-in duration-300 motion-reduce:animate-none">
         <div className="flex flex-col md:flex-row gap-8">
           {/* Navigation Sidebar */}
           <div className="w-full md:w-1/4 space-y-2">
@@ -261,9 +282,9 @@ export default function ProfilePage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-black uppercase tracking-widest transition-all ${
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-black uppercase tracking-widest transition-[color,background-color,box-shadow,transform] duration-200 motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
                   activeTab === tab.id
-                    ? "bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]"
+                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/15 scale-[1.01]"
                     : "text-muted-foreground hover:bg-accent/10"
                 }`}
               >
@@ -300,8 +321,8 @@ export default function ProfilePage() {
             <Card className="glass-card border-none shadow-2xl rounded-3xl overflow-hidden">
               <CardContent className="p-8">
                 {activeTab === "identity" && (
-                  <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
-                    <div className="flex flex-col items-center gap-6 pb-8 border-b border-white/10">
+                  <div className="space-y-8 animate-in slide-in-from-right-2 duration-200 motion-reduce:animate-none">
+                    <div className="flex flex-col items-center gap-6 pb-8 border-b border-border">
                       <div
                         className="relative group cursor-pointer"
                         onClick={() => avatarInputRef.current.click()}
@@ -460,15 +481,82 @@ export default function ProfilePage() {
                 )}
 
                 {activeTab === "brand" && (
-                  <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
+                  <div className="space-y-8 animate-in slide-in-from-right-2 duration-200 motion-reduce:animate-none">
                     <div>
                       <h3 className="text-lg font-black uppercase tracking-tight mb-1">
                         Brand Identity
                       </h3>
                       <p className="text-xs text-muted-foreground font-medium">
-                        Your brand logo appears on the top-left of every Service
-                        Agreement PDF.
+                        Personalize your public profile and agreement documents.
                       </p>
+                    </div>
+
+                    {/* Public profile cover */}
+                    <div className="space-y-4 pb-8 border-b border-border">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <h4 className="text-sm font-black uppercase tracking-wider">
+                            Profile Background
+                          </h4>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            A wide landscape photo works best. Maximum size 8 MB.
+                          </p>
+                        </div>
+                        {coverImageUrl && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                await updateUserProfile({ coverImageUrl: "" });
+                                setCoverImageUrl("");
+                                toast.info("Default background restored");
+                              } catch {
+                                toast.error("Failed to remove background");
+                              }
+                            }}
+                            className="shrink-0 text-[10px] font-bold text-red-400 hover:text-red-500 uppercase tracking-widest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
+                          >
+                            Use default
+                          </button>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => coverImageInputRef.current?.click()}
+                        className="relative group block w-full aspect-[16/6] overflow-hidden rounded-2xl border border-border bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        aria-label={coverImageUrl ? "Change public profile background" : "Upload public profile background"}
+                      >
+                        <img
+                          src={coverImageUrl || DEFAULT_COVER_URL}
+                          alt="Public profile background preview"
+                          className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:transform-none"
+                        />
+                        <span className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none">
+                          <span className="inline-flex items-center gap-2 rounded-xl bg-background/90 px-4 py-2 text-xs font-black uppercase tracking-wider text-foreground shadow-lg">
+                            {isUploading ? (
+                              <Loader2 size={16} className="animate-spin" />
+                            ) : coverImageUrl ? (
+                              <Upload size={16} />
+                            ) : (
+                              <ImageIcon size={16} />
+                            )}
+                            {isUploading ? "Uploading" : coverImageUrl ? "Change image" : "Upload image"}
+                          </span>
+                        </span>
+                      </button>
+                      <input
+                        type="file"
+                        ref={coverImageInputRef}
+                        className="hidden"
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e, "coverImage")}
+                      />
+                      {!coverImageUrl && (
+                        <p className="text-[10px] text-muted-foreground">
+                          The default photography background is currently shown on your public page.
+                        </p>
+                      )}
                     </div>
 
                     {/* Brand Logo Upload */}
@@ -532,7 +620,7 @@ export default function ProfilePage() {
                     </div>
 
                     {/* Preview card */}
-                    <div className="rounded-2xl border border-white/10 bg-background/40 p-5">
+                    <div className="rounded-2xl border border-border bg-muted/20 p-5">
                       <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">
                         Agreement Header Preview
                       </p>
@@ -581,7 +669,7 @@ export default function ProfilePage() {
                 )}
 
                 {activeTab === "socials" && (
-                  <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
+                  <div className="space-y-8 animate-in slide-in-from-right-2 duration-200 motion-reduce:animate-none">
                     <div className="pb-4">
                       <h3 className="text-lg font-black uppercase tracking-tight mb-1">
                         Social Ecosystem
@@ -660,7 +748,7 @@ export default function ProfilePage() {
                 )}
 
                 {activeTab === "portfolio" && (
-                  <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
+                  <div className="space-y-8 animate-in slide-in-from-right-2 duration-200 motion-reduce:animate-none">
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="text-lg font-black uppercase tracking-tight mb-1">
@@ -722,7 +810,7 @@ export default function ProfilePage() {
                 )}
 
                 {activeTab === "security" && (
-                  <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
+                  <div className="space-y-8 animate-in slide-in-from-right-2 duration-200 motion-reduce:animate-none">
                     <div>
                       <h3 className="text-lg font-black uppercase tracking-tight mb-1">Change Password</h3>
                       <p className="text-xs text-muted-foreground font-medium">
@@ -784,7 +872,7 @@ export default function ProfilePage() {
                 )}
 
                 {activeTab !== "security" && (
-                  <div className="mt-12 pt-8 border-t border-white/10 flex justify-between items-center">
+                  <div className="mt-12 pt-8 border-t border-border flex justify-between items-center">
                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                       Last Sync: Today,{" "}
                       {new Date().toLocaleTimeString([], {

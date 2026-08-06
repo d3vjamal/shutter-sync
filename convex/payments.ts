@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query, MutationCtx } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
+import { auth } from "./auth";
 
 // ─── Helper to sync parent paid amount ──────────────────────────────────────
 
@@ -74,6 +75,23 @@ export const listByParent = query({
     },
 });
 
+// ─── Authenticated: earnings history for the dashboard ─────────────────────
+
+export const listMine = query({
+    args: {},
+    handler: async (ctx) => {
+        const userId = await auth.getUserId(ctx);
+        if (!userId) return [];
+
+        return await ctx.db
+            .query("payments")
+            .withIndex("by_photographer", (q) =>
+                q.eq("photographerId", userId.toString())
+            )
+            .collect();
+    },
+});
+
 // ─── Delete a single payment entry ───────────────────────────────────────────
 
 export const remove = mutation({
@@ -128,8 +146,22 @@ export const recordPublicPayment = mutation({
 export const migrateLegacyPayments = mutation({
     args: {},
     handler: async (ctx) => {
-        const assignments = await ctx.db.query("assignments").collect();
-        const freelanceJobs = await ctx.db.query("freelanceAssignments").collect();
+        const userId = await auth.getUserId(ctx);
+        if (!userId) throw new Error("Not authenticated");
+        const photographerId = userId.toString();
+
+        const assignments = await ctx.db
+            .query("assignments")
+            .withIndex("by_photographer", (q) =>
+                q.eq("photographerId", photographerId)
+            )
+            .collect();
+        const freelanceJobs = await ctx.db
+            .query("freelanceAssignments")
+            .withIndex("by_photographer", (q) =>
+                q.eq("photographerId", photographerId)
+            )
+            .collect();
 
         // 1. Assignments migration
         for (const a of assignments) {

@@ -1,17 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Camera,
   PlayCircle,
   CheckCircle,
   Calendar,
   Edit2,
   ExternalLink,
-  IndianRupee,
   MapPin,
-  Building2,
-  Briefcase,
-  Wallet,
   Trash2,
   X,
   Receipt,
@@ -41,10 +36,30 @@ import PaymentTracker from "./PaymentTracker";
 // ─── Assignment Card ──────────────────────────────────────────────────────────
 
 const ACCENT = {
-  amber: { bar: "bg-amber-500", progress: "bg-amber-500", text: "text-amber-600 dark:text-amber-400" },
-  primary: { bar: "bg-primary", progress: "bg-primary", text: "text-primary" },
-  emerald: { bar: "bg-emerald-500", progress: "bg-emerald-500", text: "text-emerald-600 dark:text-emerald-400" },
-  secondary: { bar: "bg-secondary", progress: "bg-secondary", text: "text-secondary" },
+  amber: {
+    bar: "bg-amber-500",
+    progress: "bg-amber-500",
+    text: "text-amber-600 dark:text-amber-400",
+    badge: "bg-amber-400 text-amber-950 border-amber-300 shadow-amber-500/20",
+  },
+  primary: {
+    bar: "bg-primary",
+    progress: "bg-primary",
+    text: "text-primary",
+    badge: "bg-violet-600 text-violet-50 border-violet-500 shadow-violet-600/25",
+  },
+  emerald: {
+    bar: "bg-emerald-500",
+    progress: "bg-emerald-500",
+    text: "text-emerald-600 dark:text-emerald-400",
+    badge: "bg-emerald-600 text-emerald-50 border-emerald-500 shadow-emerald-600/20",
+  },
+  secondary: {
+    bar: "bg-secondary",
+    progress: "bg-secondary",
+    text: "text-secondary",
+    badge: "bg-secondary text-secondary-foreground border-secondary/80 shadow-secondary/20",
+  },
 };
 
 const AssignmentCard = ({
@@ -107,15 +122,26 @@ const AssignmentCard = ({
   return (
     <div
       className={cn(
-        "group relative w-full rounded-2xl cursor-pointer [perspective:1000px] transition-all duration-300",
-        isExpanded ? "h-[340px] sm:h-[300px] col-span-full md:col-span-2" : "h-[74px] sm:h-[82px]"
+        "group relative w-full rounded-2xl cursor-pointer [perspective:1000px] transition-[transform,box-shadow] duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 motion-reduce:transform-none",
+        !isExpanded && "hover:-translate-y-0.5 hover:shadow-md",
+        isExpanded ? "h-[340px] sm:h-[300px] col-span-full md:col-span-2" : "h-[92px] sm:h-[96px]"
       )}
       onClick={() => !isExpanded && setIsExpanded(true)}
       onDoubleClick={() => isExpanded && setIsExpanded(false)}
+      onKeyDown={(event) => {
+        if (!isExpanded && (event.key === "Enter" || event.key === " ")) {
+          event.preventDefault();
+          setIsExpanded(true);
+        }
+      }}
+      role={!isExpanded ? "button" : undefined}
+      tabIndex={!isExpanded ? 0 : -1}
+      aria-expanded={isExpanded}
+      aria-label={!isExpanded ? `View ${assignment.clientName || assignment.title || "assignment"} details` : undefined}
     >
       <div
         className={cn(
-          "w-full h-full grid transition-transform duration-500 [transform-style:preserve-3d]",
+          "w-full h-full grid transition-transform duration-300 ease-out [transform-style:preserve-3d] motion-reduce:transition-none",
           isExpanded ? "[transform:rotateY(180deg)]" : ""
         )}
       >
@@ -124,15 +150,34 @@ const AssignmentCard = ({
           "[grid-area:1/1] [backface-visibility:hidden] bg-card rounded-2xl border border-border shadow-sm flex flex-col overflow-hidden relative",
           isExpanded ? "z-0 pointer-events-none" : "z-20 pointer-events-auto"
         )}>
-          <Aperture size={94} className="absolute -bottom-4 -right-4 text-foreground/10 z-0 pointer-events-none -rotate-12" />
           <div className={cn("h-1 w-full shrink-0 z-10", accent.bar)} />
-          <div className="px-2.5 sm:px-3 flex flex-col justify-center flex-1 z-10">
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-2">
-              <div className="flex-1 min-w-0 w-full">
-                <h3 className="font-bold text-foreground text-[12px] sm:text-[13px] leading-tight truncate transition-colors duration-200">
+          <div className="px-3 flex items-center gap-2.5 flex-1 z-10 min-w-0">
+            <div className={cn(
+              "relative h-10 w-10 rounded-xl shrink-0 grid place-items-center border",
+              "shadow-md transition-transform duration-200 group-hover:rotate-3 group-hover:scale-105 motion-reduce:transform-none",
+              accent.badge,
+            )}>
+              <Aperture size={19} strokeWidth={2.2} className="relative" />
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="font-extrabold text-foreground text-[12px] sm:text-[13px] leading-tight truncate">
                   {assignment.clientName || assignment.title || "Client Session"}
                 </h3>
-                <div className="flex items-center gap-2.5 mt-[1px]">
+                <span className={cn(
+                  "shrink-0 rounded-full px-2 py-0.5 text-[9px] font-black tracking-wide",
+                  pct === 100
+                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                    : "bg-muted text-muted-foreground",
+                )}>
+                  {pct === 100 ? "PAID" : `${pct}%`}
+                </span>
+              </div>
+              <p className={cn("mt-0.5 text-[9px] font-black uppercase tracking-[0.14em] truncate", accent.text)}>
+                {assignment.title || assignment.packageName || "Photography Session"}
+              </p>
+              <div className="flex items-center gap-2.5 mt-1">
                   <p className="text-[11px] text-muted-foreground flex items-center gap-1">
                     <Calendar size={10} className="shrink-0" />
                     <span className="truncate">{formattedDate}</span>
@@ -143,15 +188,7 @@ const AssignmentCard = ({
                       <span className="truncate">{assignment.location}</span>
                     </p>
                   )}
-                </div>
               </div>
-              {isCompleted && (
-                <div className="shrink-0 sm:text-right mt-1 sm:mt-0">
-                  <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 text-[10px] font-bold tracking-wide">
-                    DONE
-                  </Badge>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -181,7 +218,7 @@ const AssignmentCard = ({
                 <Receipt size={14} />
               </button>
               <button
-                onClick={(e) => { e.stopPropagation(); setShowEdit(true); }}
+                onClick={handleEdit}
                 className="p-1.5 rounded-lg hover:bg-amber-500/10 text-amber-600 transition-colors"
                 title="Edit"
               >
@@ -353,7 +390,7 @@ const AssignmentCard = ({
 // ─── Skeleton card (shown while loading) ─────────────────────────────────────
 
 const SkeletonCard = () => (
-  <div className="h-[74px] sm:h-[82px] bg-card rounded-2xl border border-border overflow-hidden shadow-sm flex flex-col">
+  <div className="h-[92px] sm:h-[96px] bg-card rounded-2xl border border-border overflow-hidden shadow-sm flex flex-col">
     <Skeleton className="h-1 w-full rounded-none" />
     <div className="px-3 flex flex-col justify-center flex-1 gap-1.5">
       <div className="flex items-start justify-between gap-2">
@@ -363,26 +400,6 @@ const SkeletonCard = () => (
         </div>
         <Skeleton className="h-6 w-14 shrink-0 rounded-lg" />
       </div>
-    </div>
-  </div>
-);
-
-// ─── Stat Card ────────────────────────────────────────────────────────────────
-
-const StatCard = ({ label, value, icon: Icon, from, iconColor }) => (
-  <div
-    className={cn(
-      "relative rounded-2xl p-5 overflow-hidden border border-border/40 shadow-sm",
-      "bg-gradient-to-br",
-      from,
-    )}
-  >
-    <p className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">
-      {label}
-    </p>
-    <p className="text-2xl font-black text-foreground leading-tight">{value}</p>
-    <div className={cn("absolute right-3 bottom-2 opacity-10", iconColor)}>
-      <Icon size={42} />
     </div>
   </div>
 );
@@ -555,7 +572,9 @@ const Dashboard = ({
     setIsMigrating(true);
     try {
       const res = await migratePayments();
-      toast.success(`Success! Reconciled ${res.assignments} assignments and ${res.jobs} jobs.`);
+      const assignmentLabel = res.assignments === 1 ? "assignment" : "assignments";
+      const jobLabel = res.jobs === 1 ? "job" : "jobs";
+      toast.success(`Reconciled ${res.assignments} ${assignmentLabel} and ${res.jobs} ${jobLabel}.`);
     } catch (err) {
       console.error(err);
       toast.error("Migration failed");
@@ -563,20 +582,6 @@ const Dashboard = ({
       setIsMigrating(false);
     }
   };
-
-  /* ── Stats ── */
-  const totalCollected = assignments.reduce(
-    (s, a) => s + Number(a.paidAmount || 0),
-    0,
-  );
-  const totalPending = assignments
-    .filter((a) => a.status !== "Completed")
-    .reduce(
-      (s, a) =>
-        s + Math.max(0, Number(a.amount || 0) - Number(a.paidAmount || 0)),
-      0,
-    );
-  const totalCount = assignments.length;
 
   /* ── Group by Status -> Month (order & logic unchanged) ── */
   const categorized = { ongoing: {}, upcoming: {}, past: {} };
@@ -615,8 +620,6 @@ const Dashboard = ({
     past:     Object.values(categorized.past).flat().length,
   };
 
-  const pastCount = sectionCounts.past;
-
   const handlers = {
     onUpdateStatus,
     onUpdateCaptureDate,
@@ -628,11 +631,6 @@ const Dashboard = ({
   if (loading) {
     return (
       <div className="max-w-5xl mx-auto pb-24 space-y-8 animate-load">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-22 rounded-2xl" />
-          ))}
-        </div>
         <div className="flex gap-2">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="flex-1 h-10 rounded-xl" />)}
         </div>
@@ -651,38 +649,6 @@ const Dashboard = ({
 
   return (
     <div className="max-w-5xl mx-auto pb-24 space-y-4 animate-load">
-      {/* ── Stat strip ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 stagger-children">
-        <StatCard
-          label="Collected"
-          value={`₹${totalCollected.toLocaleString()}`}
-          icon={IndianRupee}
-          from="from-secondary/20 to-secondary/5"
-          iconColor="text-secondary"
-        />
-        <StatCard
-          label="Pending"
-          value={`₹${totalPending.toLocaleString()}`}
-          icon={Wallet}
-          from="from-primary/10 to-primary/5"
-          iconColor="text-primary"
-        />
-        <StatCard
-          label="Assignments"
-          value={totalCount}
-          icon={Briefcase}
-          from="from-primary/15 to-primary/5"
-          iconColor="text-primary"
-        />
-        <StatCard
-          label="Completed"
-          value={pastCount}
-          icon={CheckCircle}
-          from="from-emerald-500/15 to-emerald-500/5"
-          iconColor="text-emerald-500"
-        />
-      </div>
-
       {/* ── Sticky Filter Tab Bar ── */}
       <SectionTabBar
         activeTab={activeSection}

@@ -8,6 +8,8 @@ import {
   X,
   Loader2,
   CheckCircle2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -26,6 +28,7 @@ import { Label } from "./ui/label";
 import { cn } from "../lib/utils";
 import { Skeleton } from "./ui/skeleton";
 import { usePackages } from "../hooks/usePackages";
+import { toast } from "react-toastify";
 
 // ─── Empty form state ─────────────────────────────────────────────────────────
 
@@ -39,12 +42,15 @@ const EMPTY = {
 
 // ─── Package Card ─────────────────────────────────────────────────────────────
 
-function PackageCard({ pkg, onEdit, onDelete }) {
+function PackageCard({ pkg, onEdit, onDelete, onToggleVisibility, visibilitySaving }) {
+  const isVisible = pkg.visible !== false;
+
   return (
     <div
       className={cn(
         "relative group bg-card rounded-2xl border overflow-hidden shadow-sm",
-        "hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col",
+        "hover:shadow-md hover:-translate-y-0.5 transition-[transform,box-shadow,opacity] duration-200 ease-out motion-reduce:transform-none flex flex-col",
+        !isVisible && "opacity-70",
         pkg.popular
           ? "border-primary/40 ring-1 ring-primary/15"
           : "border-border"
@@ -54,11 +60,22 @@ function PackageCard({ pkg, onEdit, onDelete }) {
       <div className={cn("h-1 w-full shrink-0", pkg.popular ? "bg-primary" : "bg-muted")} />
 
       <div className="p-4 flex flex-col flex-1 gap-2">
-        {pkg.popular && (
-          <Badge className="self-start bg-primary/10 text-primary border-primary/20 text-[10px] font-bold px-2 py-0.5 gap-1">
-            <Star size={9} /> Most Popular
-          </Badge>
-        )}
+        <div className="flex items-center justify-between gap-2">
+          {pkg.popular ? (
+            <Badge className="self-start bg-primary/10 text-primary border-primary/20 text-[10px] font-bold px-2 py-0.5 gap-1">
+              <Star size={9} /> Most Popular
+            </Badge>
+          ) : <span />}
+          <span className={cn(
+            "inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full",
+            isVisible
+              ? "bg-green-500/10 text-green-600 dark:text-green-400"
+              : "bg-muted text-muted-foreground",
+          )}>
+            {isVisible ? <Eye size={10} /> : <EyeOff size={10} />}
+            {isVisible ? "Shown" : "Hidden"}
+          </span>
+        </div>
 
         {/* Name + price */}
         <div className="flex items-start justify-between gap-2">
@@ -101,6 +118,24 @@ function PackageCard({ pkg, onEdit, onDelete }) {
         {/* Actions */}
         <div className="flex gap-2 mt-2 pt-2 border-t border-border/50">
           <Button
+            onClick={onToggleVisibility}
+            disabled={visibilitySaving}
+            size="sm"
+            variant="outline"
+            className="h-7 rounded-lg text-[11px] font-semibold px-2.5"
+            aria-pressed={isVisible}
+            title={isVisible ? "Hide from public profile" : "Show on public profile"}
+          >
+            {visibilitySaving ? (
+              <Loader2 size={11} className="animate-spin" />
+            ) : isVisible ? (
+              <EyeOff size={11} />
+            ) : (
+              <Eye size={11} />
+            )}
+            {isVisible ? "Hide" : "Show"}
+          </Button>
+          <Button
             onClick={onEdit}
             size="sm"
             variant="outline"
@@ -134,6 +169,7 @@ export default function PackagesManager() {
   const [serviceInput, setServiceInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+  const [visibilitySavingId, setVisibilitySavingId] = useState(null);
 
   // ── Open add/edit ──
   const openAdd = () => {
@@ -195,6 +231,19 @@ export default function PackagesManager() {
   const handleDelete = async (id) => {
     await removePackage({ id });
     setDeleteId(null);
+  };
+
+  const handleToggleVisibility = async (pkg) => {
+    setVisibilitySavingId(pkg._id);
+    const nextVisible = pkg.visible === false;
+    try {
+      await updatePackage({ id: pkg._id, visible: nextVisible });
+      toast.success(nextVisible ? "Package shown on public profile" : "Package hidden from public profile");
+    } catch {
+      toast.error("Could not update package visibility");
+    } finally {
+      setVisibilitySavingId(null);
+    }
   };
 
   return (
@@ -268,6 +317,8 @@ export default function PackagesManager() {
               pkg={pkg}
               onEdit={() => openEdit(pkg)}
               onDelete={() => setDeleteId(pkg._id)}
+              onToggleVisibility={() => handleToggleVisibility(pkg)}
+              visibilitySaving={visibilitySavingId === pkg._id}
             />
           ))}
         </div>

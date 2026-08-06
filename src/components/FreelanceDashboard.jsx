@@ -2,9 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Briefcase,
-  Building2,
   Calendar,
-  IndianRupee,
   MapPin,
   PlayCircle,
   CheckCircle,
@@ -13,7 +11,6 @@ import {
   Camera,
   Video,
   Clock,
-  Wallet,
   X,
   Receipt,
   Loader2,
@@ -359,25 +356,6 @@ const SkeletonCard = () => (
   </div>
 );
 
-// ─── Stat card (matches Dashboard.jsx) ───────────────────────────────────────
-
-const StatCard = ({ label, value, icon: Icon, from, iconColor }) => (
-  <div
-    className={cn(
-      "relative rounded-2xl p-5 overflow-hidden border border-border/40 shadow-sm",
-      "bg-gradient-to-br", from
-    )}
-  >
-    <p className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">
-      {label}
-    </p>
-    <p className="text-2xl font-black text-foreground leading-tight">{value}</p>
-    <div className={cn("absolute right-3 bottom-2 opacity-10", iconColor)}>
-      <Icon size={42} />
-    </div>
-  </div>
-);
-
 // ─── Section config (same keys as Dashboard) ─────────────────────────────────
 
 const SECTION_CFG = {
@@ -576,28 +554,9 @@ const FreelanceDashboard = ({ freelanceJobs = [], loading = false, onUpdateStatu
     past:     Object.values(categorized.past).flat().length,
   };
 
-  const pastCount = sectionCounts.past;
-
-  // ── Stats ───────────────────────────────────────────────────────────────────
-  const jobTotal = (j) =>
-    Number(j.photographyAmount || j.photographerAmount || 0) + 
-    Number(j.videographyAmount || j.videographerAmount || 0);
-    
-  const jobReceived = (j) =>
-    Number(j.photographyReceived || 0) + 
-    Number(j.videographyReceived || 0);
-
-  const totalEarnings   = freelanceJobs.reduce((s, j) => s + jobTotal(j), 0);
-  const pendingEarnings = freelanceJobs
-    .filter((j) => j.status !== "Completed")
-    .reduce((s, j) => s + Math.max(0, jobTotal(j) - jobReceived(j)), 0);
-
   if (loading) {
     return (
       <div className="max-w-5xl mx-auto pb-24 space-y-8 animate-load">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {[1,2,3,4].map(i => <Skeleton key={i} className="h-22 rounded-2xl" />)}
-        </div>
         <div className="flex gap-2">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="flex-1 h-10 rounded-xl" />)}
         </div>
@@ -616,38 +575,6 @@ const FreelanceDashboard = ({ freelanceJobs = [], loading = false, onUpdateStatu
 
   return (
     <div className="max-w-5xl mx-auto pb-24 space-y-4 animate-load">
-      {/* ── Stat strip ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 stagger-children">
-        <StatCard
-          label="Total Earnings"
-          value={`₹${totalEarnings.toLocaleString()}`}
-          icon={IndianRupee}
-          from="from-secondary/20 to-secondary/5"
-          iconColor="text-secondary"
-        />
-        <StatCard
-          label="Pending"
-          value={`₹${pendingEarnings.toLocaleString()}`}
-          icon={Wallet}
-          from="from-primary/10 to-primary/5"
-          iconColor="text-primary"
-        />
-        <StatCard
-          label="Total Jobs"
-          value={freelanceJobs.length}
-          icon={Briefcase}
-          from="from-primary/15 to-primary/5"
-          iconColor="text-primary"
-        />
-        <StatCard
-          label="Completed"
-          value={pastCount}
-          icon={CheckCircle}
-          from="from-emerald-500/15 to-emerald-500/5"
-          iconColor="text-emerald-500"
-        />
-      </div>
-
       {/* ── Sticky Filter Tab Bar ── */}
       <SectionTabBar
         activeTab={activeSection}
