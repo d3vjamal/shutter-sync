@@ -91,10 +91,35 @@ html { scroll-behavior: smooth; }
   scrollbar-width: none;
   -ms-overflow-style: none;
   overscroll-behavior-inline: contain;
+  scroll-padding-inline: 1rem;
+  touch-action: pan-x pinch-zoom;
 }
 
 .portfolio-scroll::-webkit-scrollbar {
   display: none;
+}
+
+/* Animate package disclosure without measuring content height. */
+.package-details-grid {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease-out;
+}
+
+.package-details-grid > div {
+  overflow: hidden;
+}
+
+.package-details-grid.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .package-details-grid {
+    transition: none;
+  }
 }
 
 /* ── Theme transition ───────────────────────────────────────────────────────── */

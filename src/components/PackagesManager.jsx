@@ -215,7 +215,7 @@ export default function PackagesManager() {
         description: form.description.trim() || undefined,
         price: form.price.trim() || undefined,
         services: form.services,
-        popular: form.popular || undefined,
+        popular: form.popular,
       };
       if (editing) {
         await updatePackage({ id: editing._id, ...payload });
