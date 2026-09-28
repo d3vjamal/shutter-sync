@@ -1,26 +1,73 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * Color tokens mirror the web app's design system (../src/styles.css), converted
+ * from HSL to hex, so the mobile UI matches the web look where it makes sense.
  */
-
-import '@/global.css';
 
 import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    text: '#141925',
+    background: '#F9FAFB',
+    backgroundElement: '#ECEFF4',
+    backgroundSelected: '#DCE2EA',
+    textSecondary: '#60728A',
+    primary: '#1E4976',
+    accent: '#C97D1E',
+    card: '#FFFFFF',
+    border: '#E1E7EF',
+    destructive: '#EF4444',
+    success: '#16A34A',
+    onPrimary: '#FFFFFF',
   },
   dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    text: '#EEF2F7',
+    background: '#05080F',
+    backgroundElement: '#161D2D',
+    backgroundSelected: '#1B2232',
+    textSecondary: '#8796AB',
+    primary: '#5C9BD8',
+    accent: '#F0B84C',
+    card: '#10162A',
+    border: '#232C40',
+    destructive: '#F87171',
+    success: '#4ADE80',
+    onPrimary: '#FFFFFF',
+  },
+} as const;
+
+/** Brand gradients: the ShutterSync mark's own navy and gold blade tones. */
+export const Gradients = {
+  light: {
+    primary: ['#173257', '#3E74AC'],
+    accent: ['#C97D1E', '#F0B84C'],
+    success: ['#16A34A', '#0EA5A4'],
+    hero: ['#EAF0F8', '#FDF3E4', '#FFF7EC'],
+  },
+  dark: {
+    primary: ['#3E74AC', '#7EB2E0'],
+    accent: ['#E8A23A', '#F7D488'],
+    success: ['#22C55E', '#14B8A6'],
+    hero: ['#0B1220', '#1A140A', '#05080F'],
+  },
+} as const;
+
+export type GradientName = keyof typeof Gradients.light;
+
+export const Shadow = {
+  soft: {
+    shadowColor: '#0B1B4D',
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
+  },
+  glow: {
+    shadowColor: '#1E4976',
+    shadowOpacity: 0.35,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 8,
   },
 } as const;
 
@@ -43,12 +90,6 @@ export const Fonts = Platform.select({
     rounded: 'normal',
     mono: 'monospace',
   },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
 });
 
 export const Spacing = {
@@ -61,5 +102,6 @@ export const Spacing = {
   six: 64,
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
+export const Radius = 14;
+
 export const MaxContentWidth = 800;

@@ -1,6 +1,8 @@
-# Welcome to your Expo app 👋
+# ShutterSync Mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Bare React Native (CLI) app for photographers — a mobile port of the core workflows from the web
+app (`../src`), backed by the same Convex deployment (`../convex`). Currently Android-only (no
+`ios/` project has been scaffolded yet).
 
 ## Get started
 
@@ -10,47 +12,42 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npm install
    ```
 
-2. Start the app
+2. Configure your Convex deployment URL
 
    ```bash
-   npx expo start
+   cp .env.example .env
+   # then edit .env and set CONVEX_URL to the same deployment
+   # ../.env.local's VITE_CONVEX_URL points at
    ```
 
-In the output, you'll find options to open the app in a
+3. Run on Android (emulator or connected device)
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+   ```bash
+   npm run android
+   ```
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+   This starts the Metro bundler and builds/installs the debug APK. On subsequent runs, `npm start`
+   alone is enough if the app is already installed.
 
-## Get a fresh project
+## What's here
 
-When you're ready, run:
+- `src/App.tsx` — app shell: `ConvexAuthProvider` (token storage via `react-native-keychain`) +
+  React Navigation root.
+- `src/navigation/` — root auth-gated navigator, bottom tabs, and the modal stack for
+  create/edit screens.
+- `src/screens/` — Dashboard, Packages, Agreements, Profile, and the Create Assignment /
+  Create Freelance Job forms.
+- `src/hooks/` — one-to-one ports of the web app's Convex hooks (`../src/hooks/*.js`).
+- `src/components/ui/` — small RN primitives (Button, Card, Input, etc.) styled from
+  `src/constants/theme.ts`, mirroring the web's design tokens.
 
-```bash
-npm run reset-project
-```
+## Scope
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+This app covers the core photographer workflows only — sign in/up, assignments, freelance jobs,
+packages, agreements, payments, and profile. The admin dashboard and the public
+marketing/photographer-profile pages are web-only and out of scope here.
 
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Google sign-in is wired up (custom URL scheme `shuttersync://auth-callback`, registered in
+`android/app/src/main/AndroidManifest.xml`) but requires your Convex deployment's Google OAuth
+credentials to allow that redirect URI — see `../convex/auth.ts` and the
+[Convex Auth OAuth docs](https://labs.convex.dev/auth/config/oauth/google).

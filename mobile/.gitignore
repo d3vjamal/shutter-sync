@@ -3,16 +3,24 @@
 # dependencies
 node_modules/
 
-# Expo
-.expo/
-dist/
-web-build/
-expo-env.d.ts
+# Android build outputs
+android/build/
+android/app/build/
+android/.gradle/
+android/local.properties
+.cxx/
+.kotlin/
+*.jks
+*.keystore
+!debug.keystore
+keystore.properties
+*.hprof
+*.iml
+*.apk
+*.aab
 
 # Native
-.kotlin/
 *.orig.*
-*.jks
 *.p8
 *.p12
 *.key
@@ -20,6 +28,9 @@ expo-env.d.ts
 
 # Metro
 .metro-health-check*
+
+# Expo (legacy tooling caches; app itself is bare RN)
+.expo/
 
 # debug
 npm-debug.*
@@ -31,13 +42,11 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
 
 # typescript
 *.tsbuildinfo
 
-example
-
-# generated native folders
+# not using iOS
 /ios
-/android
