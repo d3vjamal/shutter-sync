@@ -169,7 +169,12 @@ export function DashboardScreen() {
           paddingTop={insets.top + Spacing.two}
         />
 
-        <BannerCarousel style={styles.banner} />
+        <SectionList
+          sections={isLoading ? [] : sections}
+          stickySectionHeadersEnabled={false}
+          ListHeaderComponent={
+            <>
+        <BannerCarousel />
 
         <View style={styles.controls}>
           <Segmented
@@ -207,16 +212,8 @@ export function DashboardScreen() {
             })}
           </View>
         </View>
-
-        {isLoading ? (
-          <View style={styles.list}>
-            {[0, 1, 2, 3].map((i) => (
-              <SkeletonCard key={i} />
-            ))}
-          </View>
-        ) : (
-        <SectionList
-          sections={sections}
+            </>
+          }
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           refreshControl={
@@ -274,6 +271,13 @@ export function DashboardScreen() {
                           </ThemedText>
                         </View>
                       )}
+                      {!paidUp && item.total > 0 && (
+                        <View style={styles.metaItem}>
+                          <ThemedText type="smallBold" style={[styles.metaText, { color: theme.accent }]}>
+                            ₹{(item.total - item.paid).toLocaleString('en-IN')} due
+                          </ThemedText>
+                        </View>
+                      )}
                       {!!item.location && (
                         <View style={[styles.metaItem, { flex: 1 }]}>
                           <MapPin size={11} color={theme.textSecondary} />
@@ -294,18 +298,25 @@ export function DashboardScreen() {
             );
           }}
           ListEmptyComponent={
+            isLoading ? (
+              <View>
+                {[0, 1, 2, 3].map((i) => (
+                  <SkeletonCard key={i} />
+                ))}
+              </View>
+            ) : (
             <FadeIn style={styles.empty}>
               <View style={[styles.emptyIcon, { backgroundColor: modeTint + '1A' }]}>
                 <Aperture size={30} color={modeTint} />
               </View>
               <ThemedText type="smallBold">Nothing here yet</ThemedText>
               <ThemedText type="small" themeColor="textSecondary">
-                No {SECTION_LABEL[activeSection].toLowerCase()} shoots
+                No {SECTION_LABEL[activeSection].toLowerCase()} {viewMode === 'assignments' ? 'shoots' : 'jobs'}
               </ThemedText>
             </FadeIn>
+            )
           }
         />
-        )}
       </SafeAreaView>
 
       {/* Detail modal */}
@@ -440,8 +451,7 @@ export function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  banner: { marginTop: -Spacing.three },
-  controls: { padding: Spacing.three, gap: Spacing.two },
+  controls: { paddingVertical: Spacing.three, gap: Spacing.two },
   tabBar: { flexDirection: 'row', gap: Spacing.two },
   tab: {
     flex: 1,
