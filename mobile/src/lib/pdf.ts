@@ -50,3 +50,29 @@ export function escapeHtml(value: unknown): string {
     c === '&' ? '&amp;' : c === '<' ? '&lt;' : c === '>' ? '&gt;' : c === '"' ? '&quot;' : '&#39;',
   );
 }
+
+/**
+ * Fetches a remote image and returns it as a base64 data URI. The PDF renderer prints before remote
+ * <img> sources finish loading, so logos must be embedded. Returns null on any failure.
+ */
+export async function imageToDataUri(url?: string | null): Promise<string | null> {
+  if (!url) return null;
+  if (url.startsWith('data:')) return url;
+  try {
+    const blob = await (await fetch(url)).blob();
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+/** Copy of the user with `brandLogoUrl` replaced by an embedded data URI (dropped if it can't be fetched). */
+export async function withInlinedLogo<T extends { brandLogoUrl?: string | null }>(user: T): Promise<T> {
+  const logo = await imageToDataUri(user?.brandLogoUrl);
+  return { ...user, brandLogoUrl: logo ?? undefined };
+}

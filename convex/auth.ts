@@ -37,7 +37,29 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     );
 }
 
+// The mobile app finishes OAuth via this deep link; without allowing it here
+// Convex Auth only accepts SITE_URL-relative redirects and sends users to the web app.
+const MOBILE_REDIRECT_PREFIX = "shuttersync://auth-callback";
+
 export const { auth, signIn, signOut, store } = convexAuth({
     providers,
+    callbacks: {
+        async redirect({ redirectTo }) {
+            if (redirectTo.startsWith(MOBILE_REDIRECT_PREFIX)) {
+                return redirectTo;
+            }
+            const baseUrl = (process.env.SITE_URL ?? "").replace(/\/$/, "");
+            if (redirectTo.startsWith("?") || redirectTo.startsWith("/")) {
+                return `${baseUrl}${redirectTo}`;
+            }
+            if (redirectTo.startsWith(baseUrl)) {
+                const after = redirectTo[baseUrl.length];
+                if (after === undefined || after === "?" || after === "/") {
+                    return redirectTo;
+                }
+            }
+            throw new Error(`Invalid \`redirectTo\` ${redirectTo} for configured SITE_URL: ${baseUrl}`);
+        },
+    },
 });
 

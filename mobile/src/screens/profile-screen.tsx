@@ -1,209 +1,81 @@
-import { useAction, useMutation, useQuery } from 'convex/react';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   AtSign,
   Camera,
-  CheckCircle2,
   ChevronRight,
+  ExternalLink,
+  Globe,
   ImageIcon,
+  Layers2,
+  Link2,
   LogOut,
   Lock,
-  Monitor,
-  Moon,
   Palette,
-  Sun,
+  Share2,
   User as UserIcon,
-  XCircle,
 } from 'lucide-react-native';
-import { useEffect, useMemo, useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { launchImageLibrary } from 'react-native-image-picker';
+import type { ComponentType } from 'react';
+import { Image, Linking, Platform, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { FadeIn } from '@/components/ui/fade-in';
 import { Gradient } from '@/components/ui/gradient';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { Radius, Shadow, Spacing } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
-import { useGradients, useTheme, useThemePreference } from '@/hooks/use-theme';
-import { uploadImageToConvex } from '@/lib/upload-image';
-import { isNonEmpty, isValidPhone, isValidUpiId } from '@/lib/validation';
-import { api } from '@convex/_generated/api';
+import { useProfileImageUpload } from '@/hooks/use-profile-image-upload';
+import { useGradients, useTheme } from '@/hooks/use-theme';
+import { publicPackagesUrl, publicProfileUrl } from '@/lib/public-links';
+import type { AppStackParamList } from '@/navigation/types';
 
-const EMPTY_FORM = {
-  name: '',
-  contact: '',
-  upiId: '',
-  bio: '',
-  instagram: '',
-  facebook: '',
-  twitter: '',
-  username: '',
-};
+type IconType = ComponentType<{ size?: number; color?: string }>;
+type SettingsRoute = 'PersonalInfo' | 'SocialHandles' | 'Brand' | 'Appearance' | 'Security';
 
+/** Profile hub: identity header, shareable public links, and a menu into one screen per settings area. */
 export function ProfileScreen() {
   const theme = useTheme();
   const gradients = useGradients();
-  const { preference, setPreference } = useThemePreference();
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const { user, signOut } = useAuth();
-  const updateUserProfile = useMutation(api.users.updateUserProfile);
-  const generateUploadUrl = useMutation(api.users.generateUploadUrl);
-  const updatePassword = useAction(api.users.updatePassword);
-
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [uploading, setUploading] = useState<'avatar' | 'brandLogo' | 'coverImage' | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [submitAttempted, setSubmitAttempted] = useState(false);
-
-  const [pwCurrent, setPwCurrent] = useState('');
-  const [pwNext, setPwNext] = useState('');
-  const [pwConfirm, setPwConfirm] = useState('');
-  const [pwSaving, setPwSaving] = useState(false);
-
-  const usernameValid = /^[a-z0-9_]{3,20}$/.test(form.username);
-  const usernameCheck = useQuery(
-    api.users.checkUsername,
-    usernameValid ? { username: form.username } : 'skip',
-  );
-  const usernameStatus = !form.username
-    ? 'empty'
-    : !usernameValid
-      ? 'invalid'
-      : usernameCheck === undefined
-        ? 'checking'
-        : usernameCheck.available
-          ? 'available'
-          : 'taken';
-
-  useEffect(() => {
-    if (user) {
-      setForm({
-        name: user.name || '',
-        contact: user.contact || '',
-        upiId: user.upiId || '',
-        bio: user.bio || '',
-        instagram: user.instagram || '',
-        facebook: user.facebook || '',
-        twitter: user.twitter || '',
-        username: user.username || '',
-      });
-    }
-  }, [user]);
-
-  const setField = (field: keyof typeof EMPTY_FORM, value: string) =>
-    setForm((f) => ({ ...f, [field]: value }));
-
-  const pickAndUpload = async (type: 'avatar' | 'brandLogo' | 'coverImage') => {
-    const result = await launchImageLibrary({ mediaType: 'photo', quality: 0.8 });
-    const asset = result.assets?.[0];
-    if (!asset?.uri) return;
-
-    setUploading(type);
-    try {
-      const uploadUrl = await generateUploadUrl();
-      const storageId = await uploadImageToConvex(uploadUrl, {
-        uri: asset.uri,
-        type: asset.type,
-      });
-      const field =
-        type === 'avatar' ? 'avatarUrl' : type === 'brandLogo' ? 'brandLogoUrl' : 'coverImageUrl';
-      await updateUserProfile({ [field]: storageId } as any);
-      Toast.show({ type: 'success', text1: 'Photo updated' });
-    } catch {
-      Toast.show({ type: 'error', text1: 'Upload failed' });
-    } finally {
-      setUploading(null);
-    }
-  };
-
-  const fieldErrors = useMemo(() => {
-    const e: Partial<Record<'name' | 'contact' | 'upiId', string>> = {};
-    if (!isNonEmpty(form.name)) e.name = 'Full name is required';
-    if (isNonEmpty(form.contact) && !isValidPhone(form.contact)) e.contact = 'Enter a valid phone number (10-13 digits)';
-    if (isNonEmpty(form.upiId) && !isValidUpiId(form.upiId)) e.upiId = 'Enter a valid UPI ID (e.g. name@bank)';
-    return e;
-  }, [form.name, form.contact, form.upiId]);
-
-  const handleSave = async () => {
-    if (Object.keys(fieldErrors).length > 0) {
-      setSubmitAttempted(true);
-      Toast.show({ type: 'error', text1: Object.values(fieldErrors)[0]! });
-      return;
-    }
-    if (form.username) {
-      if (!usernameValid) {
-        Toast.show({
-          type: 'error',
-          text1: 'Username must be 3–20 characters: letters, numbers, underscores only.',
-        });
-        return;
-      }
-      if (usernameStatus === 'taken') {
-        Toast.show({ type: 'error', text1: 'That username is already taken.' });
-        return;
-      }
-    }
-    setSaving(true);
-    try {
-      await updateUserProfile(form);
-      Toast.show({ type: 'success', text1: 'Profile updated' });
-    } catch {
-      Toast.show({ type: 'error', text1: 'Update failed' });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handlePasswordChange = async () => {
-    if (!pwCurrent) {
-      Toast.show({ type: 'error', text1: 'Enter your current password' });
-      return;
-    }
-    if (pwNext.length < 8) {
-      Toast.show({ type: 'error', text1: 'New password must be at least 8 characters' });
-      return;
-    }
-    if (pwNext !== pwConfirm) {
-      Toast.show({ type: 'error', text1: 'New passwords do not match' });
-      return;
-    }
-    setPwSaving(true);
-    try {
-      await updatePassword({ currentPassword: pwCurrent, newPassword: pwNext });
-      Toast.show({ type: 'success', text1: 'Password updated successfully' });
-      setPwCurrent('');
-      setPwNext('');
-      setPwConfirm('');
-    } catch (err) {
-      const message = err instanceof Error ? err.message : '';
-      Toast.show({
-        type: 'error',
-        text1: message.toLowerCase().includes('invalid')
-          ? 'Current password is incorrect'
-          : message || 'Failed to update password',
-      });
-    } finally {
-      setPwSaving(false);
-    }
-  };
+  const { uploading, pickAndUpload } = useProfileImageUpload();
 
   if (!user) return null;
 
   const initial = (user.name || user.email || 'U')[0].toUpperCase();
+  const profileUrl = publicProfileUrl(user);
+  const packagesUrl = publicPackagesUrl(user);
+  const socialCount = [user.instagram, user.facebook, user.twitter, user.youtube, user.linkedin, user.website].filter(
+    Boolean,
+  ).length;
+
+  const menu: { route: SettingsRoute; icon: IconType; title: string; subtitle: string; tint: string }[] = [
+    {
+      route: 'PersonalInfo',
+      icon: UserIcon,
+      title: 'Personal info',
+      subtitle: 'Name, bio, contact, UPI, username',
+      tint: theme.primary,
+    },
+    {
+      route: 'SocialHandles',
+      icon: AtSign,
+      title: 'Social handles',
+      subtitle: socialCount ? `${socialCount} linked` : 'Instagram, YouTube, website & more',
+      tint: theme.primary,
+    },
+    { route: 'Brand', icon: ImageIcon, title: 'Brand & images', subtitle: 'Logo and profile cover', tint: theme.accent },
+    { route: 'Appearance', icon: Palette, title: 'Appearance', subtitle: 'Light / dark mode, colours', tint: theme.accent },
+    { route: 'Security', icon: Lock, title: 'Security', subtitle: 'Change password', tint: theme.destructive },
+  ];
 
   return (
     <ThemedView style={{ flex: 1 }}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Gradient colors={gradients.primary} style={[styles.hero, { paddingTop: insets.top + Spacing.four }]}>
           <View style={styles.blobA} />
           <View style={styles.blobB} />
@@ -237,147 +109,66 @@ export function ProfileScreen() {
 
         <View style={styles.body}>
           <FadeIn index={0}>
-            <Section icon={UserIcon} title="Identity" tint={theme.primary}>
-              <Field
-                label="Full Name"
-                value={form.name}
-                onChangeText={(v) => setField('name', v)}
-                error={submitAttempted ? fieldErrors.name : undefined}
-              />
-              <Field
-                label="Contact"
-                value={form.contact}
-                onChangeText={(v) => setField('contact', v.replace(/[^\d+]/g, '').slice(0, 13))}
-                keyboardType="phone-pad"
-                error={submitAttempted ? fieldErrors.contact : undefined}
-              />
-              <Field
-                label="UPI ID"
-                value={form.upiId}
-                onChangeText={(v) => setField('upiId', v)}
-                autoCapitalize="none"
-                error={submitAttempted ? fieldErrors.upiId : undefined}
-              />
-              <View style={styles.field}>
-                <Label>Username</Label>
-                <Input
-                  value={form.username}
-                  autoCapitalize="none"
-                  onChangeText={(v) => setField('username', v.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20))}
-                  placeholder="e.g. jane_photography"
-                />
-                {!!form.username && (
-                  <View style={styles.usernameStatusRow}>
-                    {usernameStatus === 'available' && <CheckCircle2 size={12} color={theme.success} />}
-                    {usernameStatus === 'taken' && <XCircle size={12} color={theme.destructive} />}
-                    <ThemedText
-                      type="small"
-                      style={{
-                        color:
-                          usernameStatus === 'available'
-                            ? theme.success
-                            : usernameStatus === 'taken'
-                              ? theme.destructive
-                              : theme.textSecondary,
-                      }}>
-                      {usernameStatus === 'available'
-                        ? 'Available'
-                        : usernameStatus === 'taken'
-                          ? 'Already taken'
-                          : usernameStatus === 'invalid'
-                            ? 'Letters, numbers, underscores only'
-                            : 'Checking…'}
-                    </ThemedText>
-                  </View>
-                )}
+            <View style={[styles.card, Shadow.soft, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <View style={styles.cardHead}>
+                <Globe size={16} color={theme.primary} />
+                <ThemedText type="smallBold" style={{ fontSize: 16 }}>
+                  Your public links
+                </ThemedText>
               </View>
-            </Section>
+              {profileUrl && packagesUrl ? (
+                <>
+                  <LinkRow
+                    icon={Link2}
+                    label="Profile link"
+                    url={profileUrl}
+                    message={`View ${user.name || 'my'} photography portfolio and services.`}
+                  />
+                  <LinkRow
+                    icon={Layers2}
+                    label="Packages link"
+                    url={packagesUrl}
+                    message={`Explore ${user.name ? user.name + "'s" : 'my'} service packages.`}
+                  />
+                  {!user.username && (
+                    <ThemedText type="small" themeColor="textSecondary" style={{ fontSize: 12 }}>
+                      Tip: set a username in Personal info for a shorter, friendlier link.
+                    </ThemedText>
+                  )}
+                </>
+              ) : (
+                <ThemedText type="small" themeColor="textSecondary">
+                  Set WEB_URL in mobile/.env to your web app's address to get shareable profile and packages links.
+                </ThemedText>
+              )}
+            </View>
           </FadeIn>
 
           <FadeIn index={1}>
-            <Section icon={Palette} title="Brand" tint={theme.accent}>
-              {(
-                [
-                  ['brandLogo', user.brandLogoUrl, 'Brand logo', 'Shown on agreements & receipts'],
-                  ['coverImage', user.coverImageUrl, 'Public profile cover', 'Banner on your portfolio page'],
-                ] as const
-              ).map(([type, url, title, hint]) => (
-                <PressableScale
-                  key={type}
-                  onPress={() => pickAndUpload(type)}
-                  scaleTo={0.98}
-                  style={[styles.imageUploadRow, { borderColor: theme.border, backgroundColor: theme.backgroundElement }]}
-                  contentStyle={styles.imageUploadInner}>
-                  {url ? (
-                    <Image source={{ uri: url }} style={styles.brandLogoPreview} />
-                  ) : (
-                    <View style={[styles.brandLogoPreview, styles.previewEmpty, { backgroundColor: theme.accent + '1F' }]}>
-                      <ImageIcon size={20} color={theme.accent} />
-                    </View>
-                  )}
+            <View style={[styles.card, Shadow.soft, styles.menu, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              {menu.map((item, i) => (
+                <Pressable
+                  key={item.route}
+                  onPress={() => navigation.navigate(item.route)}
+                  accessibilityRole="button"
+                  style={({ pressed }) => [
+                    styles.menuRow,
+                    i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border },
+                    pressed && { backgroundColor: theme.backgroundElement },
+                  ]}>
+                  <View style={[styles.menuIcon, { backgroundColor: item.tint + '1F' }]}>
+                    <item.icon size={18} color={item.tint} />
+                  </View>
                   <View style={{ flex: 1 }}>
-                    <ThemedText type="smallBold">{title}</ThemedText>
-                    <ThemedText type="small" themeColor="textSecondary" style={{ fontSize: 12 }}>
-                      {uploading === type ? 'Uploading…' : url ? 'Tap to change' : hint}
+                    <ThemedText type="smallBold">{item.title}</ThemedText>
+                    <ThemedText type="small" themeColor="textSecondary" style={{ fontSize: 12 }} numberOfLines={1}>
+                      {item.subtitle}
                     </ThemedText>
                   </View>
-                  <Camera size={16} color={theme.textSecondary} />
-                </PressableScale>
+                  <ChevronRight size={16} color={theme.textSecondary} />
+                </Pressable>
               ))}
-            </Section>
-          </FadeIn>
-
-          <FadeIn index={2}>
-            <Section icon={Moon} title="Appearance" tint={theme.text}>
-              <View style={styles.modeRow}>
-                {(
-                  [
-                    ['light', Sun, 'Light'],
-                    ['dark', Moon, 'Dark'],
-                    ['system', Monitor, 'System'],
-                  ] as const
-                ).map(([key, Icon, label]) => {
-                  const active = preference === key;
-                  return (
-                    <Pressable
-                      key={key}
-                      onPress={() => setPreference(key)}
-                      style={[
-                        styles.modeCard,
-                        {
-                          borderColor: active ? theme.primary : theme.border,
-                          backgroundColor: active ? theme.primary + '14' : theme.backgroundElement,
-                        },
-                      ]}>
-                      <Icon size={18} color={active ? theme.primary : theme.textSecondary} />
-                      <ThemedText
-                        type="small"
-                        style={{ color: active ? theme.primary : theme.textSecondary, fontWeight: active ? '700' : '400' }}>
-                        {label}
-                      </ThemedText>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </Section>
-          </FadeIn>
-
-          <FadeIn index={3}>
-            <Section icon={AtSign} title="Social Presence" tint={theme.primary}>
-              <Field label="Bio" value={form.bio} onChangeText={(v) => setField('bio', v)} multiline />
-              <Field label="Instagram" value={form.instagram} onChangeText={(v) => setField('instagram', v)} autoCapitalize="none" />
-              <Field label="Facebook" value={form.facebook} onChangeText={(v) => setField('facebook', v)} autoCapitalize="none" />
-              <Field label="Twitter / X" value={form.twitter} onChangeText={(v) => setField('twitter', v)} autoCapitalize="none" />
-            </Section>
-          </FadeIn>
-
-          <FadeIn index={4}>
-            <Section icon={Lock} title="Security" tint={theme.destructive}>
-              <Field label="Current Password" value={pwCurrent} onChangeText={setPwCurrent} secureTextEntry />
-              <Field label="New Password" value={pwNext} onChangeText={setPwNext} secureTextEntry />
-              <Field label="Confirm New Password" value={pwConfirm} onChangeText={setPwConfirm} secureTextEntry />
-              <Button title="Update Password" variant="outline" onPress={handlePasswordChange} loading={pwSaving} />
-            </Section>
+            </View>
           </FadeIn>
 
           <Pressable
@@ -393,61 +184,48 @@ export function ProfileScreen() {
           </Pressable>
         </View>
       </ScrollView>
-
-      <View
-        style={[
-          styles.footer,
-          { backgroundColor: theme.card, borderTopColor: theme.border, paddingBottom: Math.max(insets.bottom, 12) },
-        ]}>
-        <Button title="Save Profile" onPress={handleSave} loading={saving} />
-      </View>
-      </KeyboardAvoidingView>
     </ThemedView>
   );
 }
 
-function Section({
-  icon: Icon,
-  title,
-  tint,
-  children,
-}: {
-  icon: React.ComponentType<{ size?: number; color?: string }>;
-  title: string;
-  tint: string;
-  children: React.ReactNode;
-}) {
+function LinkRow({ icon: Icon, label, url, message }: { icon: IconType; label: string; url: string; message: string }) {
   const theme = useTheme();
+
+  // The system share sheet doubles as "copy link" on both platforms, so no clipboard native module is needed.
+  const display = url.replace(/^https?:\/\//, '');
+  const share = () => Share.share({ message: `${message}\n${url}`, url, title: label }).catch(() => {});
+  const open = () => Linking.openURL(url).catch(() => Toast.show({ type: 'error', text1: "Couldn't open link" }));
+
   return (
-    <View style={[styles.card, Shadow.soft, { backgroundColor: theme.card, borderColor: theme.border }]}>
-      <View style={styles.sectionHead}>
-        <View style={[styles.sectionIcon, { backgroundColor: tint + '1F' }]}>
-          <Icon size={16} color={tint} />
-        </View>
-        <ThemedText type="smallBold" style={{ fontSize: 16 }}>
-          {title}
+    <View style={[styles.linkRow, { borderColor: theme.border, backgroundColor: theme.backgroundElement }]}>
+      <View style={[styles.menuIcon, { backgroundColor: theme.primary + '1F' }]}>
+        <Icon size={16} color={theme.primary} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <ThemedText type="smallBold" style={{ fontSize: 13 }}>
+          {label}
+        </ThemedText>
+        <ThemedText type="small" themeColor="textSecondary" style={styles.mono} numberOfLines={1}>
+          {display.slice(0, display.indexOf('/photographer/') + 14)}
+          <ThemedText type="small" style={[styles.mono, { color: theme.primary, fontWeight: '700' }]}>
+            {display.slice(display.indexOf('/photographer/') + 14)}
+          </ThemedText>
         </ThemedText>
       </View>
-      {children}
-    </View>
-  );
-}
-
-function Field({
-  label,
-  error,
-  ...rest
-}: { label: string; error?: string } & Omit<React.ComponentProps<typeof Input>, 'error'>) {
-  const theme = useTheme();
-  return (
-    <View style={styles.field}>
-      <Label>{label}</Label>
-      <Input {...rest} error={!!error} />
-      {!!error && (
-        <ThemedText type="small" style={{ color: theme.destructive }}>
-          {error}
-        </ThemedText>
-      )}
+      <PressableScale
+        onPress={share}
+        accessibilityLabel={`Share ${label}`}
+        style={[styles.iconBtn, { backgroundColor: theme.primary }]}
+        contentStyle={styles.iconBtnInner}>
+        <Share2 size={15} color={theme.onPrimary} />
+      </PressableScale>
+      <PressableScale
+        onPress={open}
+        accessibilityLabel={`Open ${label}`}
+        style={[styles.iconBtn, { borderColor: theme.border, borderWidth: 1, backgroundColor: theme.card }]}
+        contentStyle={styles.iconBtnInner}>
+        <ExternalLink size={15} color={theme.text} />
+      </PressableScale>
     </View>
   );
 }
@@ -491,15 +269,22 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
   },
   body: { padding: Spacing.three, gap: Spacing.three },
-  card: { borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, padding: Spacing.three, gap: Spacing.three },
-  sectionHead: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-  sectionIcon: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  field: { gap: Spacing.one },
-  usernameStatusRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  imageUploadRow: { borderWidth: 1, borderRadius: Radius },
-  imageUploadInner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, padding: Spacing.two },
-  brandLogoPreview: { width: 44, height: 44, borderRadius: 12 },
-  previewEmpty: { alignItems: 'center', justifyContent: 'center' },
+  card: { borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, padding: Spacing.three, gap: Spacing.two + 2 },
+  cardHead: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
+  linkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    padding: Spacing.two,
+    borderRadius: Radius,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  mono: { fontSize: 11, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' },
+  iconBtn: { width: 36, height: 36, borderRadius: 12 },
+  iconBtnInner: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  menu: { padding: 0, gap: 0, overflow: 'hidden' },
+  menuRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, paddingHorizontal: Spacing.three, paddingVertical: 14 },
+  menuIcon: { width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   logout: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -510,18 +295,4 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   logoutLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-  modeRow: { flexDirection: 'row', gap: Spacing.two },
-  modeCard: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: Spacing.three,
-    borderRadius: Radius,
-    borderWidth: 1.5,
-  },
-  footer: {
-    paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.two,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
 });

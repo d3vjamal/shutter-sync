@@ -35,7 +35,7 @@ import { useFreelanceAssignments } from '@/hooks/use-freelance-assignments';
 import { useGradients, useTheme } from '@/hooks/use-theme';
 import { usePullRefresh } from '@/hooks/use-pull-refresh';
 import { groupByStatusAndMonth, type SectionKey } from '@/lib/dashboard-grouping';
-import { generateAndSharePdf } from '@/lib/pdf';
+import { generateAndSharePdf, withInlinedLogo } from '@/lib/pdf';
 import { buildAgreementHtml, buildFreelanceAgreementHtml } from '@/lib/pdf-templates';
 import { toAssignmentCard, toFreelanceCard, type RevenueItem } from '@/lib/revenue';
 import type { AppStackParamList } from '@/navigation/types';
@@ -132,10 +132,11 @@ export function DashboardScreen() {
     if (pdfLoading) return;
     setPdfLoading(true);
     try {
+      const pdfUser = user ? await withInlinedLogo(user) : user;
       const html =
         item.source === 'assignment'
-          ? buildAgreementHtml(item.raw as Doc<'assignments'>, user)
-          : buildFreelanceAgreementHtml(item.raw as Doc<'freelanceAssignments'>, user);
+          ? buildAgreementHtml(item.raw as Doc<'assignments'>, pdfUser)
+          : buildFreelanceAgreementHtml(item.raw as Doc<'freelanceAssignments'>, pdfUser);
       await generateAndSharePdf(html, `${item.source === 'assignment' ? 'Agreement' : 'Freelance-Agreement'}-${item.title}`);
     } catch (err) {
       Alert.alert('PDF failed', err instanceof Error ? err.message : 'Could not generate the agreement PDF.');

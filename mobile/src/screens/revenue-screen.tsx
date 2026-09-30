@@ -12,7 +12,7 @@ import { useAssignments } from '@/hooks/use-assignments';
 import { useAuth } from '@/hooks/use-auth';
 import { useFreelanceAssignments } from '@/hooks/use-freelance-assignments';
 import { useGradients, useTheme } from '@/hooks/use-theme';
-import { generateAndSharePdf } from '@/lib/pdf';
+import { generateAndSharePdf, withInlinedLogo } from '@/lib/pdf';
 import { buildRevenueReportHtml } from '@/lib/pdf-templates';
 import { monthlyCollected, toAssignmentCard, toFreelanceCard, toRevenueCsv, type RevenueItem } from '@/lib/revenue';
 
@@ -70,7 +70,7 @@ export function RevenueBody({
     if (exporting) return;
     setExporting(true);
     try {
-      const html = buildRevenueReportHtml(items, user);
+      const html = buildRevenueReportHtml(items, user ? await withInlinedLogo(user) : user);
       await generateAndSharePdf(html, 'Revenue-Report');
     } catch (err) {
       Alert.alert('PDF failed', err instanceof Error ? err.message : 'Could not generate the revenue report.');

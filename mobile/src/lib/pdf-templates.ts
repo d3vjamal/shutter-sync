@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 
+import { BRAND_MARK_DATA_URI } from '@/lib/brand-mark-base64';
 import { escapeHtml } from '@/lib/pdf';
 import type { RevenueItem } from '@/lib/revenue';
 import type { Doc } from '@convex/_generated/dataModel';
@@ -32,7 +33,19 @@ function shell(title: string, body: string) {
     font-size: 10px;
     line-height: 1.5;
   }
-  .page { max-width: 720px; margin: 0 auto; padding: 16px 20px; }
+  .page { position: relative; max-width: 720px; margin: 0 auto; padding: 16px 20px; overflow: hidden; }
+  .content { position: relative; z-index: 1; }
+  .watermark {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none; overflow: hidden; z-index: 0;
+  }
+  .watermark .grid {
+    display: grid; grid-template-columns: repeat(3, 80px); gap: 60px 80px;
+    transform: rotate(-35deg); opacity: 0.08;
+  }
+  .watermark .grid img { width: 72px; height: 72px; object-fit: contain; }
+  .header-logo { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
   .header {
     display: flex; align-items: center; justify-content: space-between;
     padding-bottom: 14px; margin-bottom: 18px; border-bottom: 2px solid #1a56db;
@@ -114,14 +127,23 @@ function shell(title: string, body: string) {
 </html>`;
 }
 
-function pdfHeader(mainTitle: string, refId: string, today: string) {
+/** Tiled, low-opacity ShutterSync mark behind the page content — matches the web PDFs' watermark. */
+function watermarkHtml() {
+  const tile = `<img src="${BRAND_MARK_DATA_URI}" />`;
+  return `<div class="watermark"><div class="grid">${tile.repeat(9)}</div></div>`;
+}
+
+function pdfHeader(mainTitle: string, refId: string, today: string, photographer?: Photographer) {
+  const brandLogo = photographer?.brandLogoUrl
+    ? `<img src="${photographer.brandLogoUrl}" class="header-logo" style="border-radius:6px;border:1px solid #e2e8f0;background:#f8fafc;padding:4px" />`
+    : `<div style="width:44px"></div>`;
   return `<div class="header">
-  <div style="width:48px"></div>
+  ${brandLogo}
   <div class="title">
     <div class="main">${escapeHtml(mainTitle)}</div>
     <div class="meta">${escapeHtml(refId)} &middot; ${escapeHtml(today)}</div>
   </div>
-  <div style="width:48px"></div>
+  <img src="${BRAND_MARK_DATA_URI}" class="header-logo" />
 </div>`;
 }
 
@@ -177,7 +199,9 @@ export function buildAgreementHtml(assignment: Doc<'assignments'>, photographer:
   const conditions = assignment.conditions || [];
 
   const body = `<div class="page">
-  ${pdfHeader('Service Agreement', refId, today)}
+  ${watermarkHtml()}
+  <div class="content">
+  ${pdfHeader('Service Agreement', refId, today, photographer)}
 
   <div class="section">
     <div class="doc-title">${escapeHtml(assignment.title || 'Photography Services')}</div>
@@ -255,6 +279,7 @@ export function buildAgreementHtml(assignment: Doc<'assignments'>, photographer:
   </div>
 
   ${pdfFooter(photographer, refId)}
+  </div>
 </div>`;
 
   return shell('Service Agreement', body);
@@ -305,7 +330,9 @@ export function buildFreelanceAgreementHtml(job: Doc<'freelanceAssignments'>, ph
     </div>`;
 
   const body = `<div class="page">
-  ${pdfHeader('Freelance Agreement', refId, today)}
+  ${watermarkHtml()}
+  <div class="content">
+  ${pdfHeader('Freelance Agreement', refId, today, photographer)}
 
   <div class="section">
     <div class="doc-title">${escapeHtml(job.studioName)}</div>
@@ -407,6 +434,7 @@ export function buildFreelanceAgreementHtml(job: Doc<'freelanceAssignments'>, ph
   </div>
 
   ${pdfFooter(photographer, refId)}
+  </div>
 </div>`;
 
   return shell('Freelance Agreement', body);
@@ -428,9 +456,12 @@ export function buildReceiptHtml(opts: {
   const receiptId = `REC-${Math.floor(Math.random() * 90000) + 10000}`;
   const sorted = [...payments].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
+  const logoSrc = photographer?.brandLogoUrl || BRAND_MARK_DATA_URI;
+
   const body = `<div class="page" style="max-width:650px;padding:32px 40px">
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid #e2e8f0">
     <div>
+      <img src="${logoSrc}" style="height:48px;object-fit:contain;margin-bottom:10px;display:block" />
       <div style="font-size:22px;font-weight:800;color:#0f172a;margin-bottom:6px">${escapeHtml(photographer?.name || 'Photographer')}</div>
       <div style="font-size:11px;color:#475569;line-height:1.6">
         ${photographer?.contact ? `${escapeHtml(photographer.contact)}<br/>` : ''}
@@ -498,7 +529,9 @@ export function buildRevenueReportHtml(items: RevenueItem[], photographer: Photo
   const pending = items.reduce((sum, i) => sum + Math.max(0, i.total - i.paid), 0);
 
   const body = `<div class="page">
-  ${pdfHeader('Revenue Report', photographer?.name || 'ShutterSync', today)}
+  ${watermarkHtml()}
+  <div class="content">
+  ${pdfHeader('Revenue Report', photographer?.name || 'ShutterSync', today, photographer)}
 
   <div class="section">
     <div class="amounts">
@@ -529,6 +562,7 @@ export function buildRevenueReportHtml(items: RevenueItem[], photographer: Photo
   </div>
 
   ${pdfFooter(photographer, 'REVENUE')}
+  </div>
 </div>`;
 
   return shell('Revenue Report', body);

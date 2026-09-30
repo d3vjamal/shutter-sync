@@ -14,7 +14,7 @@ import { Radius, Spacing } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { usePayments } from '@/hooks/use-payments';
 import { useTheme } from '@/hooks/use-theme';
-import { generateAndSharePdf } from '@/lib/pdf';
+import { generateAndSharePdf, withInlinedLogo } from '@/lib/pdf';
 import { buildReceiptHtml } from '@/lib/pdf-templates';
 import type { Doc } from '@convex/_generated/dataModel';
 
@@ -54,6 +54,7 @@ export function PaymentsModal({
     if (pdfLoading) return;
     setPdfLoading(true);
     try {
+      const pdfUser = user ? await withInlinedLogo(user) : user;
       const html = buildReceiptHtml({
         payments,
         title,
@@ -61,7 +62,7 @@ export function PaymentsModal({
         totalAmount: total,
         totalPaid,
         balance,
-        photographer: user,
+        photographer: pdfUser,
       });
       await generateAndSharePdf(html, `Receipt-${title}`);
     } catch (err) {

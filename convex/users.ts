@@ -45,6 +45,9 @@ export const updateUserProfile = mutation({
         instagram: v.optional(v.string()),
         facebook: v.optional(v.string()),
         twitter: v.optional(v.string()),
+        youtube: v.optional(v.string()),
+        linkedin: v.optional(v.string()),
+        website: v.optional(v.string()),
         photos: v.optional(v.array(v.string())),
         avatarUrl: v.optional(v.string()),
         brandLogoUrl: v.optional(v.string()),
@@ -71,6 +74,9 @@ export const updateUserProfile = mutation({
         if (args.instagram !== undefined) updates.instagram = args.instagram;
         if (args.facebook !== undefined) updates.facebook = args.facebook;
         if (args.twitter !== undefined) updates.twitter = args.twitter;
+        if (args.youtube !== undefined) updates.youtube = args.youtube;
+        if (args.linkedin !== undefined) updates.linkedin = args.linkedin;
+        if (args.website !== undefined) updates.website = args.website;
         if (args.photos !== undefined) updates.photos = args.photos;
         if (args.avatarUrl !== undefined) updates.avatarUrl = args.avatarUrl;
         if (args.brandLogoUrl !== undefined) updates.brandLogoUrl = args.brandLogoUrl;

@@ -4,6 +4,11 @@ export type AppStackParamList = {
   Tabs: undefined;
   CreateAssignment: { assignment?: Doc<'assignments'> } | undefined;
   CreateFreelance: { job?: Doc<'freelanceAssignments'> } | undefined;
+  PersonalInfo: undefined;
+  SocialHandles: undefined;
+  Brand: undefined;
+  Appearance: undefined;
+  Security: undefined;
 };
 
 export type RootStackParamList = {

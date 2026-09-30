@@ -25,8 +25,9 @@ export function FormScreen({
   eyebrow: string;
   title: string;
   onClose: () => void;
-  submitTitle: string;
-  onSubmit: () => void;
+  /** Omit both for settings that apply instantly (no sticky save bar). */
+  submitTitle?: string;
+  onSubmit?: () => void;
   loading?: boolean;
   disabled?: boolean;
   hint?: string;
@@ -56,18 +57,20 @@ export function FormScreen({
           showsVerticalScrollIndicator={false}>
           {children}
         </ScrollView>
-        <View
-          style={[
-            styles.footer,
-            { backgroundColor: theme.card, borderTopColor: theme.border, paddingBottom: Math.max(insets.bottom, 12) },
-          ]}>
-          {!!hint && (
-            <ThemedText type="small" themeColor="textSecondary" style={styles.hint}>
-              {hint}
-            </ThemedText>
-          )}
-          <Button title={submitTitle} onPress={onSubmit} loading={loading} disabled={disabled} />
-        </View>
+        {!!onSubmit && (
+          <View
+            style={[
+              styles.footer,
+              { backgroundColor: theme.card, borderTopColor: theme.border, paddingBottom: Math.max(insets.bottom, 12) },
+            ]}>
+            {!!hint && (
+              <ThemedText type="small" themeColor="textSecondary" style={styles.hint}>
+                {hint}
+              </ThemedText>
+            )}
+            <Button title={submitTitle ?? 'Save'} onPress={onSubmit} loading={loading} disabled={disabled} />
+          </View>
+        )}
       </KeyboardAvoidingView>
     </ThemedView>
   );

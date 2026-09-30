@@ -73,6 +73,20 @@ export const Shadow = {
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
+/** Resolved palette: `Colors` widened so primary/accent can be user-customised. */
+export type Palette = { [K in ThemeColor]: string };
+export type GradientSet = { [K in GradientName]: readonly string[] };
+
+/** Curated primary + secondary pairs offered in Appearance; `null` colours mean the built-in brand. */
+export const ThemePresets = [
+  { key: 'brand', name: 'ShutterSync', primary: null, secondary: null },
+  { key: 'emerald', name: 'Emerald', primary: '#0F766E', secondary: '#D97706' },
+  { key: 'rose', name: 'Rose', primary: '#BE185D', secondary: '#0E7490' },
+  { key: 'violet', name: 'Violet', primary: '#6D28D9', secondary: '#EA580C' },
+  { key: 'crimson', name: 'Crimson', primary: '#B91C1C', secondary: '#0369A1' },
+  { key: 'graphite', name: 'Graphite', primary: '#334155', secondary: '#CA8A04' },
+] as const;
+
 export const Fonts = Platform.select({
   ios: {
     /** iOS `UIFontDescriptorSystemDesignDefault` */

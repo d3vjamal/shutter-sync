@@ -19,6 +19,9 @@ import {
   ChevronRight,
   ChevronDown,
   Sparkles,
+  Youtube,
+  Linkedin,
+  Globe,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { Button } from "../components/ui/button";
@@ -295,6 +298,29 @@ export default function PublicPhotographerPage() {
       icon: Twitter,
       url: photographer?.twitter
         ? `https://twitter.com/${photographer.twitter.replace("@", "")}`
+        : null,
+    },
+    {
+      platform: "YouTube",
+      icon: Youtube,
+      url: photographer?.youtube
+        ? `https://youtube.com/@${photographer.youtube.replace("@", "")}`
+        : null,
+    },
+    {
+      platform: "LinkedIn",
+      icon: Linkedin,
+      url: photographer?.linkedin
+        ? `https://linkedin.com/in/${photographer.linkedin}`
+        : null,
+    },
+    {
+      platform: "Website",
+      icon: Globe,
+      url: photographer?.website
+        ? /^https?:\/\//.test(photographer.website)
+          ? photographer.website
+          : `https://${photographer.website}`
         : null,
     },
   ].filter((s) => s.url);
@@ -677,7 +703,7 @@ export default function PublicPhotographerPage() {
 
         {/* Photographer Service Packages */}
         {packages.length > 0 && (
-          <section className="mt-20">
+          <section id="packages" className="mt-20 scroll-mt-6">
             <div className="mb-6 flex items-end justify-between gap-4">
               <div className="flex items-center gap-2.5 ml-1">
                 <Layers size={14} className="text-primary" />
