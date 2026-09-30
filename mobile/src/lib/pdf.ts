@@ -1,3 +1,4 @@
+import { Alert } from 'react-native';
 import { generatePDF } from 'react-native-html-to-pdf';
 import Share from 'react-native-share';
 
@@ -75,4 +76,9 @@ export async function imageToDataUri(url?: string | null): Promise<string | null
 export async function withInlinedLogo<T extends { brandLogoUrl?: string | null }>(user: T): Promise<T> {
   const logo = await imageToDataUri(user?.brandLogoUrl);
   return { ...user, brandLogoUrl: logo ?? undefined };
+}
+
+/** Shown when a user taps a PDF button the admin has disabled for them. Native alert so it appears above modals. */
+export function notifyPdfDisabled(): void {
+  Alert.alert('PDF export is turned off', 'Contact your admin to enable it for your account.');
 }

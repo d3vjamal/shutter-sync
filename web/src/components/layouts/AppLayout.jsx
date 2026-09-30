@@ -16,6 +16,7 @@ import {
   Users,
   Briefcase,
   Plus,
+  Image,
 } from "lucide-react";
 import {
   Dialog,
@@ -40,6 +41,7 @@ const NAV_ITEMS = [
 const ADMIN_NAV_ITEMS = [
   { to: "/admin/dashboard", icon: ShieldCheck, label: "Admin Dashboard" },
   { to: "/photographers",   icon: Users,       label: "Photographers"   },
+  { to: "/admin/banners",   icon: Image,       label: "Banners"         },
 ];
 
 // ─── Sidebar ─────────────────────────────────────────────────────────────────
@@ -152,6 +154,7 @@ function MobileBottomNav({ user }) {
       <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-card border-t border-border z-50 flex items-center justify-around px-2 pb-safe shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)]">
         <BottomNavItem to="/admin/dashboard" icon={ShieldCheck} label="Admin" current={pathname} />
         <BottomNavItem to="/photographers" icon={Users} label="Profiles" current={pathname} />
+        <BottomNavItem to="/admin/banners" icon={Image} label="Banners" current={pathname} />
       </nav>
     );
   }

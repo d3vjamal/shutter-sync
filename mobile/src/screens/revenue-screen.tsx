@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { Download, IndianRupee, TrendingUp } from 'lucide-react-native';
+import { Download, Lock, IndianRupee, TrendingUp } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { Alert, FlatList, Pressable, RefreshControl, Share, StyleSheet, View } from 'react-native';
 
@@ -12,7 +12,7 @@ import { useAssignments } from '@/hooks/use-assignments';
 import { useAuth } from '@/hooks/use-auth';
 import { useFreelanceAssignments } from '@/hooks/use-freelance-assignments';
 import { useGradients, useTheme } from '@/hooks/use-theme';
-import { generateAndSharePdf, withInlinedLogo } from '@/lib/pdf';
+import { generateAndSharePdf, notifyPdfDisabled, withInlinedLogo } from '@/lib/pdf';
 import { buildRevenueReportHtml } from '@/lib/pdf-templates';
 import { monthlyCollected, toAssignmentCard, toFreelanceCard, toRevenueCsv, type RevenueItem } from '@/lib/revenue';
 
@@ -49,13 +49,8 @@ export function RevenueBody({
   const chartData = useMemo(() => monthlyCollected(items), [items]);
   const [exporting, setExporting] = useState(false);
 
-  const handleExport = () => {
-    Alert.alert('Export Revenue', 'Choose a format', [
-      { text: 'Export CSV', onPress: exportCsv },
-      { text: 'Export PDF', onPress: exportPdf },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
-  };
+  // Admin can revoke PDF export per user (canExportPdf === false)
+  const canExportPdf = user?.canExportPdf !== false;
 
   const exportCsv = async () => {
     const csv = toRevenueCsv(items);
@@ -133,15 +128,26 @@ export function RevenueBody({
           <View style={[styles.chartCard, Shadow.soft, { backgroundColor: theme.card, borderColor: theme.border }]}>
             <View style={styles.chartHeader}>
               <ThemedText type="smallBold">Last 6 Months</ThemedText>
-              <Pressable
-                onPress={handleExport}
-                style={[styles.exportButton, { borderColor: theme.border }]}
-                hitSlop={8}>
-                <Download size={14} color={theme.primary} />
-                <ThemedText type="small" style={{ color: theme.primary }}>
-                  Export
-                </ThemedText>
-              </Pressable>
+              <View style={styles.exportRow}>
+                <Pressable onPress={exportCsv} style={[styles.exportButton, { borderColor: theme.border }]} hitSlop={8}>
+                  <Download size={14} color={theme.primary} />
+                  <ThemedText type="small" style={{ color: theme.primary }}>
+                    CSV
+                  </ThemedText>
+                </Pressable>
+                <Pressable
+                  onPress={canExportPdf ? exportPdf : notifyPdfDisabled}
+                  disabled={exporting}
+                  accessibilityState={{ disabled: !canExportPdf }}
+                  accessibilityHint={canExportPdf ? undefined : 'PDF export is turned off by your admin'}
+                  style={[styles.exportButton, { borderColor: theme.border }, !canExportPdf && styles.dimmed]}
+                  hitSlop={8}>
+                  {canExportPdf ? <Download size={14} color={theme.primary} /> : <Lock size={14} color={theme.primary} />}
+                  <ThemedText type="small" style={{ color: theme.primary }}>
+                    PDF
+                  </ThemedText>
+                </Pressable>
+              </View>
             </View>
             <BarChart data={chartData} colors={gradients.primary} />
           </View>
@@ -195,6 +201,8 @@ const styles = StyleSheet.create({
   statIcon: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   chartCard: { borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: Spacing.three },
   chartHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.two },
+  dimmed: { opacity: 0.45 },
+  exportRow: { flexDirection: 'row', gap: Spacing.two },
   exportButton: {
     flexDirection: 'row',
     alignItems: 'center',

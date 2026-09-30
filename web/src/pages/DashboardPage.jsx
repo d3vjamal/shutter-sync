@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import AppLayout from "../components/layouts/AppLayout";
 import Header from "../components/Header";
+import SilentErrorBoundary from "../components/common/SilentErrorBoundary";
+import BannerCarousel from "../components/BannerCarousel";
 import Dashboard from "../components/Dashboard";
 import FreelanceDashboard from "../components/FreelanceDashboard";
 import { useAuth } from "../hooks/useAuth";
@@ -195,6 +197,10 @@ export default function DashboardPage() {
         theme={theme}
         setTheme={setTheme}
       />
+
+      <SilentErrorBoundary>
+        <BannerCarousel />
+      </SilentErrorBoundary>
 
       <BusinessOverview
         assignments={assignments}

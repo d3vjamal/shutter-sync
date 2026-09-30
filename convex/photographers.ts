@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
+import { requireAdmin } from "./admin";
 
 export const create = mutation({
     args: {
@@ -121,6 +122,7 @@ export const update = mutation({
         active: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const { id, ...fields } = args;
         await ctx.db.patch(id, fields);
     },
@@ -129,6 +131,7 @@ export const update = mutation({
 export const remove = mutation({
     args: { id: v.id("users") },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         await ctx.db.delete(args.id);
     },
 });
@@ -136,6 +139,15 @@ export const remove = mutation({
 export const toggleActive = mutation({
     args: { id: v.id("users"), active: v.boolean() },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         await ctx.db.patch(args.id, { active: args.active });
+    },
+});
+
+export const setPdfAccess = mutation({
+    args: { id: v.id("users"), canExportPdf: v.boolean() },
+    handler: async (ctx, args) => {
+        await requireAdmin(ctx);
+        await ctx.db.patch(args.id, { canExportPdf: args.canExportPdf });
     },
 });

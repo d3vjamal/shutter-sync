@@ -13,6 +13,8 @@ export default defineSchema({
         roleName: v.optional(v.string()), // human-friendly name, e.g. "Photographer"
         roleCode: v.optional(v.union(v.number(), v.string())), // 0=admin, 1=photographer, 2=users
         active: v.optional(v.boolean()),
+        // Admin-controlled: when false, the user cannot export PDFs (agreements, receipts, reports). Undefined = allowed.
+        canExportPdf: v.optional(v.boolean()),
         bio: v.optional(v.string()),
         instagram: v.optional(v.string()),
         facebook: v.optional(v.string()),
@@ -149,4 +151,14 @@ export default defineSchema({
     })
         .index("by_parent", ["parentId"])
         .index("by_photographer", ["photographerId"]),
+
+    banners: defineTable({
+        title: v.string(),
+        subtitle: v.optional(v.string()),
+        imageId: v.string(), // Convex storage id
+        linkUrl: v.optional(v.string()),
+        platform: v.string(), // "all" | "web" | "mobile"
+        order: v.number(),
+        visible: v.boolean(),
+    }).index("by_order", ["order"]),
 });

@@ -10,6 +10,7 @@ import DashboardPage from "./pages/DashboardPage";
 import CreateAssignmentPage from "./pages/CreateAssignmentPage";
 import PhotographersPage from "./pages/PhotographersPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
+import AdminBannersPage from "./pages/AdminBannersPage";
 import LoginPage from "./pages/LoginPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import PublicClientPage from "./pages/PublicClientPage";
@@ -144,6 +145,15 @@ const AppContent = () => {
           element={
             <ProtectedRoute user={user} requiredRole="admin">
               <PhotographersPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/banners"
+          element={
+            <ProtectedRoute user={user} requiredRole="admin">
+              <AdminBannersPage />
             </ProtectedRoute>
           }
         />

@@ -7,6 +7,7 @@ import {
   CheckCircle,
   Edit2,
   FileText,
+  Lock,
   MapPin,
   PlayCircle,
   Receipt,
@@ -20,6 +21,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { PaymentsModal } from '@/components/payments-modal';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { BannerCarousel } from '@/components/ui/banner-carousel';
 import { FadeIn } from '@/components/ui/fade-in';
 import { Gradient } from '@/components/ui/gradient';
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -35,7 +37,7 @@ import { useFreelanceAssignments } from '@/hooks/use-freelance-assignments';
 import { useGradients, useTheme } from '@/hooks/use-theme';
 import { usePullRefresh } from '@/hooks/use-pull-refresh';
 import { groupByStatusAndMonth, type SectionKey } from '@/lib/dashboard-grouping';
-import { generateAndSharePdf, withInlinedLogo } from '@/lib/pdf';
+import { generateAndSharePdf, notifyPdfDisabled, withInlinedLogo } from '@/lib/pdf';
 import { buildAgreementHtml, buildFreelanceAgreementHtml } from '@/lib/pdf-templates';
 import { toAssignmentCard, toFreelanceCard, type RevenueItem } from '@/lib/revenue';
 import type { AppStackParamList } from '@/navigation/types';
@@ -73,6 +75,8 @@ export function DashboardScreen() {
   const [detailItem, setDetailItem] = useState<CardItem | null>(null);
   const [paymentsFor, setPaymentsFor] = useState<CardItem | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
+  // Admin can revoke PDF export per user (canExportPdf === false)
+  const canExportPdf = user?.canExportPdf !== false;
   const { refreshing, onRefresh } = usePullRefresh();
 
   const cards = useMemo<CardItem[]>(
@@ -162,20 +166,10 @@ export function DashboardScreen() {
           title={viewMode === 'assignments' ? 'Your Shoots' : 'Freelance Jobs'}
           colors={modeColors}
           right={<RefreshIndicator active={refreshing} />}
-          paddingTop={insets.top + Spacing.two}>
-          <View style={styles.statsRow}>
-            {[
-              { label: 'Ongoing', value: counts.ongoing },
-              { label: 'Upcoming', value: counts.upcoming },
-              { label: 'Done', value: counts.past },
-            ].map((stat) => (
-              <View key={stat.label} style={styles.stat}>
-                <ThemedText style={styles.statValue}>{stat.value}</ThemedText>
-                <ThemedText type="small" style={styles.statLabel}>{stat.label}</ThemedText>
-              </View>
-            ))}
-          </View>
-        </ScreenHeader>
+          paddingTop={insets.top + Spacing.two}
+        />
+
+        <BannerCarousel style={styles.banner} />
 
         <View style={styles.controls}>
           <Segmented
@@ -381,13 +375,21 @@ export function DashboardScreen() {
                     </ThemedText>
                   </Pressable>
                   <Pressable
-                    style={[styles.actionPill, { backgroundColor: theme.accent + '17', borderColor: theme.accent + '30' }]}
+                    style={[
+                      styles.actionPill,
+                      { backgroundColor: theme.accent + '17', borderColor: theme.accent + '30' },
+                      !canExportPdf && styles.disabled,
+                    ]}
                     disabled={pdfLoading}
-                    onPress={() => handleAgreementPdf(detailItem)}>
+                    accessibilityState={{ disabled: !canExportPdf }}
+                    accessibilityHint={canExportPdf ? undefined : 'PDF export is turned off by your admin'}
+                    onPress={() => (canExportPdf ? handleAgreementPdf(detailItem) : notifyPdfDisabled())}>
                     {pdfLoading ? (
                       <ActivityIndicator size="small" color={theme.accent} />
-                    ) : (
+                    ) : canExportPdf ? (
                       <FileText size={16} color={theme.accent} />
+                    ) : (
+                      <Lock size={16} color={theme.accent} />
                     )}
                     <ThemedText type="smallBold" style={[styles.actionLabel, { color: theme.accent }]}>
                       PDF
@@ -438,16 +440,7 @@ export function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  statsRow: { flexDirection: 'row', gap: Spacing.two },
-  stat: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    borderRadius: 16,
-    paddingVertical: Spacing.two,
-    alignItems: 'center',
-  },
-  statValue: { color: '#fff', fontSize: 24, fontWeight: '800', lineHeight: 30 },
-  statLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 12 },
+  banner: { marginTop: -Spacing.three },
   controls: { padding: Spacing.three, gap: Spacing.two },
   tabBar: { flexDirection: 'row', gap: Spacing.two },
   tab: {
@@ -509,5 +502,6 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   actionLabel: { fontSize: 12.5 },
+  disabled: { opacity: 0.4 },
   completeButton: { flex: undefined, alignSelf: 'flex-end', paddingHorizontal: Spacing.four, marginTop: Spacing.two },
 });

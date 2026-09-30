@@ -11,7 +11,10 @@ import {
   Plus,
   User,
   Lock,
+  FileDown,
 } from "lucide-react";
+import { useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
 import { toast } from "react-toastify";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -84,6 +87,7 @@ export default function PhotographerManager({
   });
 
   const [confirmId, setConfirmId] = useState(null);
+  const setPdfAccess = useMutation(api.photographers.setPdfAccess);
 
   // Edit modal
   const [editTarget, setEditTarget] = useState(null);
@@ -104,6 +108,16 @@ export default function PhotographerManager({
     const isActive = artist.active !== false;
     // Single-object arg — correct Convex mutation call
     onUpdate({ id: artist._id, active: !isActive });
+  };
+
+  const handlePdfToggle = async (artist) => {
+    const allowed = artist.canExportPdf !== false;
+    try {
+      await setPdfAccess({ id: artist._id, canExportPdf: !allowed });
+      toast.success(`PDF export ${allowed ? "disabled" : "enabled"} for ${artist.name || "user"}.`);
+    } catch {
+      toast.error("Failed to update PDF access.");
+    }
   };
 
   const openEdit = (artist) => {
@@ -312,6 +326,21 @@ export default function PhotographerManager({
                     <span className="font-mono">{artist.upiId}</span>
                   </div>
                 )}
+              </div>
+
+              {/* ── PDF export permission ── */}
+              <div className="flex items-center justify-between gap-2 mb-4 rounded-xl bg-muted/40 px-3 py-2">
+                <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
+                  <FileDown size={12} className="shrink-0 text-primary/50" />
+                  <span>PDF export</span>
+                  <span className={cn("text-[10px] font-bold", artist.canExportPdf !== false ? "text-emerald-500" : "text-rose-500")}>
+                    {artist.canExportPdf !== false ? "Allowed" : "Restricted"}
+                  </span>
+                </div>
+                <Toggle
+                  checked={artist.canExportPdf !== false}
+                  onChange={() => handlePdfToggle(artist)}
+                />
               </div>
 
               {/* ── Actions ── */}

@@ -104,6 +104,9 @@ export default function FreelancePDFDialog({ job }) {
     setTimeout(() => setPrinting(false), 2000);
   }, [printing, filename]);
 
+  // Admin can revoke PDF export per user (canExportPdf === false)
+  if (user?.canExportPdf === false) return null;
+
   return (
     <>
       <button

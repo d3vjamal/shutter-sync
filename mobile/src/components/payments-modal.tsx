@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { FileText, IndianRupee, Loader2, Trash2, X } from 'lucide-react-native';
+import { FileText, IndianRupee, Lock, Loader2, Trash2, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { Alert, FlatList, Modal, Pressable, StyleSheet, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -14,7 +14,7 @@ import { Radius, Spacing } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { usePayments } from '@/hooks/use-payments';
 import { useTheme } from '@/hooks/use-theme';
-import { generateAndSharePdf, withInlinedLogo } from '@/lib/pdf';
+import { generateAndSharePdf, notifyPdfDisabled, withInlinedLogo } from '@/lib/pdf';
 import { buildReceiptHtml } from '@/lib/pdf-templates';
 import type { Doc } from '@convex/_generated/dataModel';
 
@@ -49,6 +49,9 @@ export function PaymentsModal({
   const total = Number(totalAmount || 0);
   const balance = Math.max(0, total - totalPaid);
   const pct = total > 0 ? Math.min(100, Math.round((totalPaid / total) * 100)) : 0;
+
+  // Admin can revoke PDF export per user (canExportPdf === false)
+  const canExportPdf = user?.canExportPdf !== false;
 
   const handleDownloadReceipt = async () => {
     if (pdfLoading) return;
@@ -99,11 +102,19 @@ export function PaymentsModal({
               Payments — {title}
             </ThemedText>
             {payments.length > 0 && (
-              <Pressable onPress={handleDownloadReceipt} disabled={pdfLoading} style={styles.receiptButton} hitSlop={8}>
+              <Pressable
+                onPress={canExportPdf ? handleDownloadReceipt : notifyPdfDisabled}
+                disabled={pdfLoading}
+                accessibilityState={{ disabled: !canExportPdf }}
+                accessibilityHint={canExportPdf ? undefined : 'PDF export is turned off by your admin'}
+                style={[styles.receiptButton, !canExportPdf && styles.dimmed]}
+                hitSlop={8}>
                 {pdfLoading ? (
                   <Loader2 size={16} color={theme.primary} />
-                ) : (
+                ) : canExportPdf ? (
                   <FileText size={16} color={theme.primary} />
+                ) : (
+                  <Lock size={16} color={theme.primary} />
                 )}
               </Pressable>
             )}
@@ -247,6 +258,7 @@ const styles = StyleSheet.create({
     padding: Spacing.three,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
+  dimmed: { opacity: 0.45 },
   receiptButton: { padding: 2 },
   list: { padding: Spacing.three, gap: Spacing.two },
   summary: { borderRadius: Radius, padding: Spacing.three, gap: Spacing.two },
