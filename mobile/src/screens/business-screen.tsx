@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedView } from '@/components/themed-view';
+import { EyeToggle } from '@/components/ui/eye-toggle';
 import { HeaderStats } from '@/components/ui/header-stats';
 import { RefreshIndicator } from '@/components/ui/refresh-indicator';
 import { ScreenHeader } from '@/components/ui/screen-header';
@@ -11,13 +13,17 @@ import { useGradients } from '@/hooks/use-theme';
 import { usePullRefresh } from '@/hooks/use-pull-refresh';
 import { useWorkCounts } from '@/hooks/use-work-counts';
 import { AgreementsBody } from '@/screens/agreements-screen';
+import { CalendarBody } from '@/screens/calendar-body';
+import { InsightsBody } from '@/screens/insights-body';
 import { PackagesBody } from '@/screens/packages-body';
 import { RevenueBody } from '@/screens/revenue-screen';
 
-type BusinessView = 'revenue' | 'packages' | 'agreements';
+type BusinessView = 'revenue' | 'calendar' | 'insights' | 'packages' | 'agreements';
 
 const TITLES: Record<BusinessView, { eyebrow: string; title: string }> = {
   revenue: { eyebrow: 'Business', title: 'Revenue' },
+  calendar: { eyebrow: 'Schedule', title: 'Calendar' },
+  insights: { eyebrow: 'Business', title: 'Insights' },
   packages: { eyebrow: 'Your services', title: 'Packages' },
   agreements: { eyebrow: 'Terms & conditions', title: 'Agreements' },
 };
@@ -38,11 +44,18 @@ export function BusinessScreen() {
           eyebrow={TITLES[view].eyebrow}
           title={TITLES[view].title}
           colors={colors}
-          right={<RefreshIndicator active={refreshing} />}
+          right={
+            <View style={styles.headerRight}>
+              <RefreshIndicator active={refreshing} />
+              <EyeToggle />
+            </View>
+          }
           paddingTop={insets.top + Spacing.two}>
           <Segmented
             options={[
               { key: 'revenue', label: 'Revenue' },
+              { key: 'calendar', label: 'Calendar' },
+              { key: 'insights', label: 'Insights' },
               { key: 'packages', label: 'Packages' },
               { key: 'agreements', label: 'Agreements' },
             ]}
@@ -62,9 +75,15 @@ export function BusinessScreen() {
         </ScreenHeader>
 
         {view === 'revenue' && <RevenueBody refreshing={refreshing} onRefresh={onRefresh} />}
+        {view === 'calendar' && <CalendarBody />}
+        {view === 'insights' && <InsightsBody refreshing={refreshing} onRefresh={onRefresh} />}
         {view === 'packages' && <PackagesBody refreshing={refreshing} onRefresh={onRefresh} />}
         {view === 'agreements' && <AgreementsBody refreshing={refreshing} onRefresh={onRefresh} />}
       </SafeAreaView>
     </ThemedView>
   );
 }
+
+const styles = StyleSheet.create({
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three },
+});

@@ -97,8 +97,8 @@ export function AppTabs() {
           component={DashboardScreen}
         />
         <Tab.Screen
-          name="Community"
-          component={CommunityScreen}
+          name="Business"
+          component={BusinessScreen}
         />
         <Tab.Screen
           name="CreateAction"
@@ -111,8 +111,8 @@ export function AppTabs() {
           }}
         />
         <Tab.Screen
-          name="Business"
-          component={BusinessScreen}
+          name="Community"
+          component={CommunityScreen}
         />
         <Tab.Screen
           name="Profile"

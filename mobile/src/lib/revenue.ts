@@ -6,6 +6,7 @@ export type RevenueItem = {
   subtitle: string;
   date?: string;
   location?: string;
+  contact?: string;
   total: number;
   paid: number;
   status: string;
@@ -21,6 +22,7 @@ export function toAssignmentCard(a: Doc<'assignments'>): RevenueItem {
     subtitle: a.title || 'Photography Session',
     date: a.eventStartDate || a.captureDate,
     location: a.location,
+    contact: a.clientContact,
     total: Number(a.amount || 0),
     paid: Number(a.paidAmount || 0),
     status: a.status,
@@ -41,6 +43,7 @@ export function toFreelanceCard(j: Doc<'freelanceAssignments'>): RevenueItem {
     subtitle: j.studioOwnerName,
     date: j.dates?.[0],
     location: j.location || j.venue,
+    contact: j.studioMobile,
     total,
     paid,
     status: j.status,

@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Radius, Spacing } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { usePayments } from '@/hooks/use-payments';
+import { useMoney } from '@/hooks/use-money';
 import { useTheme } from '@/hooks/use-theme';
 import { generateAndSharePdf, notifyPdfDisabled, withInlinedLogo } from '@/lib/pdf';
 import { buildReceiptHtml } from '@/lib/pdf-templates';
@@ -34,6 +35,7 @@ export function PaymentsModal({
   totalAmount: number;
 }) {
   const theme = useTheme();
+  const { money } = useMoney();
   const { user } = useAuth();
   const { payments, isLoading, addPayment, removePayment } = usePayments(parentId);
 
@@ -143,11 +145,11 @@ export function PaymentsModal({
                   </View>
                   <View style={styles.summaryBottomRow}>
                     <ThemedText type="small" style={{ color: theme.success }}>
-                      ₹{totalPaid.toLocaleString()} paid
+                      {money(totalPaid)} paid
                     </ThemedText>
                     {balance > 0 && (
                       <ThemedText type="small" themeColor="accent">
-                        ₹{balance.toLocaleString()} due
+                        {money(balance)} due
                       </ThemedText>
                     )}
                   </View>
@@ -217,7 +219,7 @@ export function PaymentsModal({
               <View style={[styles.historyRow, { backgroundColor: theme.backgroundElement }]}>
                 <View style={{ flex: 1 }}>
                   <View style={styles.row}>
-                    <ThemedText type="smallBold">₹{Number(item.amount).toLocaleString()}</ThemedText>
+                    <ThemedText type="smallBold">{money(Number(item.amount))}</ThemedText>
                     <ThemedText type="small" themeColor="textSecondary">
                       {format(new Date(item.date), 'dd MMM yyyy')}
                     </ThemedText>

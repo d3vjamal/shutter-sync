@@ -43,6 +43,8 @@ export function Segmented<T extends string>({
         <Pressable key={o.key} onPress={() => onChange(o.key)} style={styles.item}>
           <ThemedText
             type="smallBold"
+            numberOfLines={1}
+            adjustsFontSizeToFit
             style={[styles.label, { color: o.key === value ? theme.onPrimary : theme.textSecondary }]}>
             {o.label}
           </ThemedText>
@@ -55,6 +57,6 @@ export function Segmented<T extends string>({
 const styles = StyleSheet.create({
   track: { flexDirection: 'row', borderRadius: 13, padding: 3 },
   indicator: { position: 'absolute', top: 3, bottom: 3, left: 3 },
-  item: { flex: 1, paddingVertical: 7, alignItems: 'center' },
+  item: { flex: 1, paddingVertical: 7, paddingHorizontal: 2, alignItems: 'center' },
   label: { fontSize: 13, lineHeight: 16 },
 });

@@ -1,19 +1,23 @@
 import { format } from 'date-fns';
-import { Download, Lock, IndianRupee, TrendingUp } from 'lucide-react-native';
+import { Download, IndianRupee, Lock, MessageCircle, TrendingUp } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { Alert, FlatList, Pressable, RefreshControl, Share, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, Linking, Pressable, RefreshControl, Share, StyleSheet, View } from 'react-native';
 
+import { PaymentsModal } from '@/components/payments-modal';
 import { ThemedText } from '@/components/themed-text';
 import { BarChart } from '@/components/ui/bar-chart';
 import { FadeIn } from '@/components/ui/fade-in';
+import { ProgressBar } from '@/components/ui/progress-bar';
 import { SkeletonCard, SkeletonStat } from '@/components/ui/skeleton';
 import { Radius, Shadow, Spacing } from '@/constants/theme';
 import { useAssignments } from '@/hooks/use-assignments';
 import { useAuth } from '@/hooks/use-auth';
 import { useFreelanceAssignments } from '@/hooks/use-freelance-assignments';
+import { useMoney } from '@/hooks/use-money';
 import { useGradients, useTheme } from '@/hooks/use-theme';
 import { generateAndSharePdf, notifyPdfDisabled, withInlinedLogo } from '@/lib/pdf';
 import { buildRevenueReportHtml } from '@/lib/pdf-templates';
+import { buildReminderMessage, whatsappUrl } from '@/lib/payment-reminder';
 import { monthlyCollected, toAssignmentCard, toFreelanceCard, toRevenueCsv, type RevenueItem } from '@/lib/revenue';
 
 /** Revenue totals, chart, booking list and export, embedded in the Business tab. */
@@ -25,6 +29,7 @@ export function RevenueBody({
   onRefresh?: () => void;
 } = {}) {
   const theme = useTheme();
+  const { money } = useMoney();
   const gradients = useGradients();
   const { user } = useAuth();
   const { assignments, isLoading: assignmentsLoading } = useAssignments(user);
@@ -48,6 +53,19 @@ export function RevenueBody({
 
   const chartData = useMemo(() => monthlyCollected(items), [items]);
   const [exporting, setExporting] = useState(false);
+  const [paymentsFor, setPaymentsFor] = useState<RevenueItem | null>(null);
+
+  const sendReminder = (item: RevenueItem) => {
+    const url = whatsappUrl(
+      item.contact,
+      buildReminderMessage({ clientName: item.title, total: item.total, paid: item.paid, senderName: user?.name }),
+    );
+    if (!url) {
+      Alert.alert('No phone number', 'Add a contact number to this booking to send a WhatsApp reminder.');
+      return;
+    }
+    Linking.openURL(url).catch(() => Alert.alert('WhatsApp unavailable', 'Could not open WhatsApp on this device.'));
+  };
 
   // Admin can revoke PDF export per user (canExportPdf === false)
   const canExportPdf = user?.canExportPdf !== false;
@@ -89,6 +107,7 @@ export function RevenueBody({
   }
 
   return (
+    <>
     <FlatList
       data={items}
       keyExtractor={(item) => item.id}
@@ -109,7 +128,7 @@ export function RevenueBody({
                 Collected
               </ThemedText>
               <ThemedText type="subtitle" style={{ color: theme.success }}>
-                ₹{totals.collected.toLocaleString()}
+                {money(totals.collected)}
               </ThemedText>
             </View>
             <View style={[styles.statCard, Shadow.soft, { backgroundColor: theme.card, borderColor: theme.border }]}>
@@ -120,7 +139,7 @@ export function RevenueBody({
                 Pending
               </ThemedText>
               <ThemedText type="subtitle" style={{ color: theme.accent }}>
-                ₹{totals.pending.toLocaleString()}
+                {money(totals.pending)}
               </ThemedText>
             </View>
           </View>
@@ -159,29 +178,65 @@ export function RevenueBody({
       }
       renderItem={({ item, index }) => {
         const pending = Math.max(0, item.total - item.paid);
+        const pct = item.total > 0 ? Math.min(100, Math.round((item.paid / item.total) * 100)) : 0;
         return (
           <FadeIn index={index}>
-            <View style={[styles.row, Shadow.soft, { backgroundColor: theme.card, borderColor: theme.border }]}>
-              <View style={{ flex: 1, gap: 2 }}>
-                <ThemedText type="smallBold" numberOfLines={1}>
-                  {item.title}
-                </ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
-                  {item.date ? format(new Date(item.date), 'dd MMM yyyy') : 'Date TBD'} ·{' '}
-                  {item.source === 'assignment' ? 'Assignment' : 'Freelance'}
+            <Pressable
+              onPress={() => setPaymentsFor(item)}
+              accessibilityHint="Opens payment history"
+              style={[styles.row, Shadow.soft, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <View style={styles.rowTop}>
+                <View style={{ flex: 1, gap: 2 }}>
+                  <ThemedText type="smallBold" numberOfLines={1}>
+                    {item.title}
+                  </ThemedText>
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {item.date ? format(new Date(item.date), 'dd MMM yyyy') : 'Date TBD'} ·{' '}
+                    {item.source === 'assignment' ? 'Assignment' : 'Freelance'}
+                  </ThemedText>
+                </View>
+                <ThemedText type="small" style={{ color: pending > 0 ? theme.accent : theme.success }}>
+                  {pending > 0 ? `${pct}% paid` : 'Fully paid'}
                 </ThemedText>
               </View>
-              <View style={{ alignItems: 'flex-end', gap: 2 }}>
-                <ThemedText type="smallBold" style={{ color: theme.success }}>
-                  ₹{item.paid.toLocaleString()}
-                </ThemedText>
-                {pending > 0 && (
-                  <ThemedText type="small" style={{ color: theme.accent, fontSize: 12 }}>
-                    ₹{pending.toLocaleString()} due
+              <ProgressBar value={pct} />
+              <View style={styles.rowAmounts}>
+                <View>
+                  <ThemedText type="small" themeColor="textSecondary" style={styles.amountLabel}>
+                    Total
                   </ThemedText>
+                  <ThemedText type="smallBold">{money(item.total)}</ThemedText>
+                </View>
+                <View>
+                  <ThemedText type="small" themeColor="textSecondary" style={styles.amountLabel}>
+                    Received
+                  </ThemedText>
+                  <ThemedText type="smallBold" style={{ color: theme.success }}>
+                    {money(item.paid)}
+                  </ThemedText>
+                </View>
+                <View>
+                  <ThemedText type="small" themeColor="textSecondary" style={styles.amountLabel}>
+                    Balance
+                  </ThemedText>
+                  <ThemedText type="smallBold" style={{ color: pending > 0 ? theme.accent : theme.textSecondary }}>
+                    {money(pending)}
+                  </ThemedText>
+                </View>
+                {pending > 0 && (
+                  <Pressable
+                    onPress={() => sendReminder(item)}
+                    accessibilityLabel={`Send WhatsApp payment reminder to ${item.title}`}
+                    style={[styles.remind, { backgroundColor: theme.success + '1F' }]}
+                    hitSlop={6}>
+                    <MessageCircle size={14} color={theme.success} />
+                    <ThemedText type="small" style={{ color: theme.success }}>
+                      Remind
+                    </ThemedText>
+                  </Pressable>
                 )}
               </View>
-            </View>
+            </Pressable>
           </FadeIn>
         );
       }}
@@ -191,6 +246,17 @@ export function RevenueBody({
         </ThemedText>
       }
     />
+    {paymentsFor && (
+      <PaymentsModal
+        visible
+        onClose={() => setPaymentsFor(null)}
+        parentId={paymentsFor.id}
+        parentType={paymentsFor.source}
+        title={paymentsFor.title}
+        totalAmount={paymentsFor.total}
+      />
+    )}
+    </>
   );
 }
 
@@ -212,10 +278,11 @@ const styles = StyleSheet.create({
     borderRadius: 99,
     borderWidth: 1,
   },
+  rowTop: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
+  rowAmounts: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: Spacing.two },
+  amountLabel: { fontSize: 11 },
+  remind: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 99 },
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     gap: Spacing.two,
     borderRadius: Radius,
     borderWidth: StyleSheet.hairlineWidth,

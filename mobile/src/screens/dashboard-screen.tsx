@@ -22,6 +22,7 @@ import { PaymentsModal } from '@/components/payments-modal';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BannerCarousel } from '@/components/ui/banner-carousel';
+import { EyeToggle } from '@/components/ui/eye-toggle';
 import { FadeIn } from '@/components/ui/fade-in';
 import { Gradient } from '@/components/ui/gradient';
 import { PressableScale } from '@/components/ui/pressable-scale';
@@ -34,6 +35,7 @@ import { Radius, Shadow, Spacing } from '@/constants/theme';
 import { useAssignments } from '@/hooks/use-assignments';
 import { useAuth } from '@/hooks/use-auth';
 import { useFreelanceAssignments } from '@/hooks/use-freelance-assignments';
+import { useMoney } from '@/hooks/use-money';
 import { useGradients, useTheme } from '@/hooks/use-theme';
 import { usePullRefresh } from '@/hooks/use-pull-refresh';
 import { groupByStatusAndMonth, type SectionKey } from '@/lib/dashboard-grouping';
@@ -59,6 +61,7 @@ const SECTION_ICON: Record<SectionKey, typeof PlayCircle> = {
 };
 
 export function DashboardScreen() {
+  const { money } = useMoney();
   const theme = useTheme();
   const gradients = useGradients();
   const insets = useSafeAreaInsets();
@@ -165,7 +168,12 @@ export function DashboardScreen() {
           eyebrow={`Hello${user?.name ? ', ' + user.name.split(' ')[0] : ''} 👋`}
           title={viewMode === 'assignments' ? 'Your Shoots' : 'Freelance Jobs'}
           colors={modeColors}
-          right={<RefreshIndicator active={refreshing} />}
+          right={
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.three }}>
+              <RefreshIndicator active={refreshing} />
+              <EyeToggle />
+            </View>
+          }
           paddingTop={insets.top + Spacing.two}
         />
 
@@ -274,7 +282,7 @@ export function DashboardScreen() {
                       {!paidUp && item.total > 0 && (
                         <View style={styles.metaItem}>
                           <ThemedText type="smallBold" style={[styles.metaText, { color: theme.accent }]}>
-                            ₹{(item.total - item.paid).toLocaleString('en-IN')} due
+                            {money(item.total - item.paid)} due
                           </ThemedText>
                         </View>
                       )}
@@ -371,7 +379,7 @@ export function DashboardScreen() {
                       Payments
                     </ThemedText>
                     <ThemedText type="smallBold">
-                      ₹{detailItem.paid.toLocaleString()} / ₹{detailItem.total.toLocaleString()}
+                      {money(detailItem.paid)} / {money(detailItem.total)}
                     </ThemedText>
                   </View>
                 </View>
