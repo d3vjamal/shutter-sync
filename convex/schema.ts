@@ -16,6 +16,7 @@ export default defineSchema({
         // Admin-controlled: when false, the user cannot export PDFs (agreements, receipts, reports). Undefined = allowed.
         canExportPdf: v.optional(v.boolean()),
         bio: v.optional(v.string()),
+        address: v.optional(v.string()),
         instagram: v.optional(v.string()),
         facebook: v.optional(v.string()),
         twitter: v.optional(v.string()),

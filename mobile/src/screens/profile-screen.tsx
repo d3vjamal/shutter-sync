@@ -7,7 +7,6 @@ import {
   ExternalLink,
   Globe,
   ImageIcon,
-  Layers2,
   Link2,
   LogOut,
   Lock,
@@ -29,7 +28,7 @@ import { Radius, Shadow, Spacing } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { useProfileImageUpload } from '@/hooks/use-profile-image-upload';
 import { useGradients, useTheme } from '@/hooks/use-theme';
-import { publicPackagesUrl, publicProfileUrl } from '@/lib/public-links';
+import { publicProfileUrl } from '@/lib/public-links';
 import type { AppStackParamList } from '@/navigation/types';
 
 type IconType = ComponentType<{ size?: number; color?: string }>;
@@ -48,7 +47,6 @@ export function ProfileScreen() {
 
   const initial = (user.name || user.email || 'U')[0].toUpperCase();
   const profileUrl = publicProfileUrl(user);
-  const packagesUrl = publicPackagesUrl(user);
   const socialCount = [user.instagram, user.facebook, user.twitter, user.youtube, user.linkedin, user.website].filter(
     Boolean,
   ).length;
@@ -113,22 +111,16 @@ export function ProfileScreen() {
               <View style={styles.cardHead}>
                 <Globe size={16} color={theme.primary} />
                 <ThemedText type="smallBold" style={{ fontSize: 16 }}>
-                  Your public links
+                  Your public link
                 </ThemedText>
               </View>
-              {profileUrl && packagesUrl ? (
+              {profileUrl ? (
                 <>
                   <LinkRow
                     icon={Link2}
                     label="Profile link"
                     url={profileUrl}
                     message={`View ${user.name || 'my'} photography portfolio and services.`}
-                  />
-                  <LinkRow
-                    icon={Layers2}
-                    label="Packages link"
-                    url={packagesUrl}
-                    message={`Explore ${user.name ? user.name + "'s" : 'my'} service packages.`}
                   />
                   {!user.username && (
                     <ThemedText type="small" themeColor="textSecondary" style={{ fontSize: 12 }}>
@@ -138,7 +130,7 @@ export function ProfileScreen() {
                 </>
               ) : (
                 <ThemedText type="small" themeColor="textSecondary">
-                  Set WEB_URL in mobile/.env to your web app's address to get shareable profile and packages links.
+                  Set WEB_URL in mobile/.env to your web app's address to get a shareable profile link.
                 </ThemedText>
               )}
             </View>

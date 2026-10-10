@@ -42,6 +42,7 @@ export const updateUserProfile = mutation({
         contact: v.optional(v.string()),
         upiId: v.optional(v.string()),
         bio: v.optional(v.string()),
+        address: v.optional(v.string()),
         instagram: v.optional(v.string()),
         facebook: v.optional(v.string()),
         twitter: v.optional(v.string()),
@@ -71,6 +72,7 @@ export const updateUserProfile = mutation({
         if (args.contact !== undefined) updates.contact = args.contact;
         if (args.upiId !== undefined) updates.upiId = args.upiId;
         if (args.bio !== undefined) updates.bio = args.bio;
+        if (args.address !== undefined) updates.address = args.address;
         if (args.instagram !== undefined) updates.instagram = args.instagram;
         if (args.facebook !== undefined) updates.facebook = args.facebook;
         if (args.twitter !== undefined) updates.twitter = args.twitter;

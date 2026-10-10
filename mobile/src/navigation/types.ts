@@ -19,7 +19,7 @@ export type RootStackParamList = {
 
 export type TabParamList = {
   Dashboard: undefined;
-  Packages: undefined;
+  Community: undefined;
   CreateAction: undefined;
   Business: undefined;
   Profile: undefined;

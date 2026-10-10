@@ -1,20 +1,19 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Banknote, Briefcase, Camera, Layers2, LayoutDashboard, Plus, User } from 'lucide-react-native';
+import { Briefcase, Camera } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Modal, Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { FloatingTabBar } from '@/components/ui/floating-tab-bar';
 import { Gradient } from '@/components/ui/gradient';
-import { PressableScale } from '@/components/ui/pressable-scale';
-import { Radius, Shadow, Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { useGradients, useTheme } from '@/hooks/use-theme';
 import type { AppStackParamList, TabParamList } from '@/navigation/types';
 import { BusinessScreen } from '@/screens/business-screen';
+import { CommunityScreen } from '@/screens/community-screen';
 import { DashboardScreen } from '@/screens/dashboard-screen';
-import { PackagesScreen } from '@/screens/packages-screen';
 import { ProfileScreen } from '@/screens/profile-screen';
 
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -83,56 +82,27 @@ function CreateActionSheet({ visible, onClose }: { visible: boolean; onClose: ()
 }
 
 export function AppTabs() {
-  const theme = useTheme();
-  const gradients = useGradients();
-  const insets = useSafeAreaInsets();
   const [sheetOpen, setSheetOpen] = useState(false);
 
   return (
     <>
       <Tab.Navigator
-        screenOptions={{
-          headerShown: false,
-          tabBarActiveTintColor: theme.primary,
-          tabBarInactiveTintColor: theme.textSecondary,
-          tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
-          tabBarStyle: {
-            backgroundColor: theme.card,
-            borderTopWidth: 0,
-            height: 62 + insets.bottom,
-            paddingTop: 6,
-            paddingBottom: Math.max(insets.bottom, 8),
-            ...Shadow.soft,
-          },
-        }}>
+        // React Navigation invokes `tabBar` as a plain function, so it must return an element
+        // (rendering the component) for the bar's hooks to run inside a component.
+        // eslint-disable-next-line react/no-unstable-nested-components
+        tabBar={(props) => <FloatingTabBar {...props} />}
+        screenOptions={{ headerShown: false }}>
         <Tab.Screen
           name="Dashboard"
           component={DashboardScreen}
-          options={{
-            tabBarIcon: ({ color, size }) => <LayoutDashboard color={color} size={size} />,
-          }}
         />
         <Tab.Screen
-          name="Packages"
-          component={PackagesScreen}
-          options={{ tabBarIcon: ({ color, size }) => <Layers2 color={color} size={size} /> }}
+          name="Community"
+          component={CommunityScreen}
         />
         <Tab.Screen
           name="CreateAction"
           component={EmptyScreen}
-          options={{
-            tabBarLabel: () => null,
-            tabBarIcon: () => (
-              <PressableScale
-                scaleTo={0.9}
-                style={[styles.createButton, Shadow.glow]}
-                contentStyle={styles.createInner}
-                pointerEvents="none">
-                <Gradient colors={gradients.primary} radius={28} style={StyleSheet.absoluteFill} />
-                <Plus size={26} color="#fff" strokeWidth={3} />
-              </PressableScale>
-            ),
-          }}
           listeners={{
             tabPress: (e) => {
               e.preventDefault();
@@ -143,12 +113,10 @@ export function AppTabs() {
         <Tab.Screen
           name="Business"
           component={BusinessScreen}
-          options={{ tabBarIcon: ({ color, size }) => <Banknote color={color} size={size} /> }}
         />
         <Tab.Screen
           name="Profile"
           component={ProfileScreen}
-          options={{ tabBarIcon: ({ color, size }) => <User color={color} size={size} /> }}
         />
       </Tab.Navigator>
       <CreateActionSheet visible={sheetOpen} onClose={() => setSheetOpen(false)} />
@@ -157,13 +125,6 @@ export function AppTabs() {
 }
 
 const styles = StyleSheet.create({
-  createButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    top: -16,
-  },
-  createInner: { flex: 1, width: 56, height: 56, alignItems: 'center', justifyContent: 'center' },
   grabber: { width: 40, height: 4, borderRadius: 2, alignSelf: 'center' },
   backdrop: {
     flex: 1,

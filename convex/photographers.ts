@@ -2,6 +2,9 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 import { requireAdmin } from "./admin";
+import { auth } from "./auth";
+import { deleteAuthDataForUser } from "./authCleanup";
+import { paginationOptsValidator } from "convex/server";
 
 export const create = mutation({
     args: {
@@ -37,6 +40,44 @@ export const list = query({
         // Return all non-admin users (supports both legacy string roleCode and new numeric 1)
         const all = await ctx.db.query("users").collect();
         return all.filter((u) => u.roleCode !== 0);
+    },
+});
+
+// Community directory for signed-in photographers, newest first and paginated
+// so it scales. Exposes only public-facing fields (no email / UPI id), unlike
+// `list` which returns whole user docs.
+export const directory = query({
+    args: { paginationOpts: paginationOptsValidator },
+    handler: async (ctx, args) => {
+        const userId = await auth.getUserId(ctx);
+        if (!userId) return { page: [], isDone: true, continueCursor: "" };
+
+        const result = await ctx.db
+            .query("users")
+            .filter((q) => q.and(q.neq(q.field("roleCode"), 0), q.neq(q.field("active"), false)))
+            .order("desc")
+            .paginate(args.paginationOpts);
+
+        const page = await Promise.all(
+            result.page.map(async (u) => ({
+                _id: u._id,
+                name: u.name ?? "",
+                contact: u.contact ?? "",
+                address: u.address ?? "",
+                instagram: u.instagram ?? "",
+                facebook: u.facebook ?? "",
+                twitter: u.twitter ?? "",
+                youtube: u.youtube ?? "",
+                linkedin: u.linkedin ?? "",
+                website: u.website ?? "",
+                username: u.username,
+                avatarUrl:
+                    u.avatarUrl && !u.avatarUrl.startsWith("http")
+                        ? (await ctx.storage.getUrl(u.avatarUrl)) ?? undefined
+                        : u.avatarUrl,
+            })),
+        );
+        return { ...result, page };
     },
 });
 
@@ -132,6 +173,8 @@ export const remove = mutation({
     args: { id: v.id("users") },
     handler: async (ctx, args) => {
         await requireAdmin(ctx);
+        // Also drop the user's login records, or they can never sign in again.
+        await deleteAuthDataForUser(ctx, args.id);
         await ctx.db.delete(args.id);
     },
 });

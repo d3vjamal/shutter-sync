@@ -23,7 +23,7 @@ export function PersonalInfoScreen() {
   const { user } = useAuth();
   const updateUserProfile = useMutation(api.users.updateUserProfile);
 
-  const [form, setForm] = useState({ name: '', contact: '', upiId: '', bio: '', username: '' });
+  const [form, setForm] = useState({ name: '', contact: '', upiId: '', bio: '', address: '', username: '' });
   const [saving, setSaving] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
 
@@ -34,6 +34,7 @@ export function PersonalInfoScreen() {
         contact: user.contact || '',
         upiId: user.upiId || '',
         bio: user.bio || '',
+        address: user.address || '',
         username: user.username || '',
       });
     }
@@ -110,6 +111,13 @@ export function PersonalInfoScreen() {
           error={submitAttempted ? fieldErrors.name : undefined}
         />
         <Field label="Bio" value={form.bio} onChangeText={(v) => setField('bio', v)} multiline />
+        <Field
+          label="Address"
+          value={form.address}
+          onChangeText={(v) => setField('address', v)}
+          placeholder="Studio or city, shown in Community"
+          multiline
+        />
       </SettingsCard>
 
       <SettingsCard title="Contact & payments" hint="Contact is used for the WhatsApp button on your public page.">
