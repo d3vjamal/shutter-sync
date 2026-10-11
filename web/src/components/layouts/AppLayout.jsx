@@ -296,6 +296,18 @@ export default function AppLayout({ children, user, onLogout, theme, setTheme })
         >
           {userInitial}
         </Link>
+
+        {/* Logout — mobile only (desktop has it in the sidebar) */}
+        {onLogout && (
+          <button
+            onClick={onLogout}
+            title="Logout"
+            aria-label="Logout"
+            className="md:hidden p-2 rounded-xl text-destructive hover:bg-destructive/10 transition-colors"
+          >
+            <LogOut size={17} />
+          </button>
+        )}
       </header>
 
       {/* ── Body: sidebar + content ── */}
