@@ -14,6 +14,7 @@ import type * as assignments from "../assignments.js";
 import type * as auth from "../auth.js";
 import type * as authCleanup from "../authCleanup.js";
 import type * as banners from "../banners.js";
+import type * as emailNode from "../emailNode.js";
 import type * as freelanceAssignments from "../freelanceAssignments.js";
 import type * as http from "../http.js";
 import type * as packages from "../packages.js";
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   authCleanup: typeof authCleanup;
   banners: typeof banners;
+  emailNode: typeof emailNode;
   freelanceAssignments: typeof freelanceAssignments;
   http: typeof http;
   packages: typeof packages;

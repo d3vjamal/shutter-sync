@@ -19,6 +19,7 @@ import { Label } from '@/components/ui/label';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { OAUTH_REDIRECT_URL } from '@/hooks/use-oauth-redirect';
 import { useGradients, useTheme } from '@/hooks/use-theme';
+import { ForgotPassword } from '@/screens/auth/forgot-password';
 import { isValidEmail, isValidPhone } from '@/lib/validation';
 import { api } from '@convex/_generated/api';
 
@@ -33,6 +34,7 @@ export function LoginScreen() {
   const updateUserProfile = useMutation(api.users.updateUserProfile);
 
   const [isLogin, setIsLogin] = useState(true);
+  const [forgot, setForgot] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -145,6 +147,12 @@ export function LoginScreen() {
             </ThemedText>
           </FadeIn>
 
+          {forgot ? (
+            <FadeIn delay={120} style={[styles.form, styles.formCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <ForgotPassword onBack={() => setForgot(false)} />
+            </FadeIn>
+          ) : (
+          <>
           <FadeIn delay={120}>
             <Segmented
               options={[
@@ -193,6 +201,11 @@ export function LoginScreen() {
                   Min 8 chars, 1 uppercase, 1 number
                 </ThemedText>
               )}
+              {isLogin && (
+                <ThemedText type="small" themeColor="primary" onPress={() => setForgot(true)}>
+                  Forgot password?
+                </ThemedText>
+              )}
             </View>
 
             {!isLogin && (
@@ -239,6 +252,8 @@ export function LoginScreen() {
               disabled={loading}
             />
           </FadeIn>
+          </>
+          )}
         </ScrollView>
       </SafeAreaView>
     </ThemedView>

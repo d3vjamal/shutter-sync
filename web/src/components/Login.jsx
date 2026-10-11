@@ -25,6 +25,7 @@ import { useConvex } from "convex/react";
 import { useNavigate } from "react-router-dom";
 import { api } from "@convex/_generated/api";
 import { cn } from "../lib/utils";
+import ForgotPassword from "./ForgotPassword";
 
 function GoogleIcon() {
   return (
@@ -61,6 +62,7 @@ export default function Login({ onLogin }) {
   const convex = useConvex();
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
+  const [forgot, setForgot] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -245,6 +247,12 @@ export default function Login({ onLogin }) {
             </div>
           </CardHeader>
 
+          {forgot ? (
+            <CardContent>
+              <ForgotPassword onBack={() => setForgot(false)} />
+            </CardContent>
+          ) : (
+          <>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
@@ -316,6 +324,15 @@ export default function Login({ onLogin }) {
                   <p className="text-[9px] text-muted-foreground/60 ml-1">
                     Min 8 chars, 1 uppercase, 1 number
                   </p>
+                )}
+                {isLogin && (
+                  <button
+                    type="button"
+                    onClick={() => setForgot(true)}
+                    className="text-[11px] font-bold text-primary ml-1 hover:underline"
+                  >
+                    Forgot password?
+                  </button>
                 )}
               </div>
 
@@ -401,6 +418,8 @@ export default function Login({ onLogin }) {
               Admin Portal Access <ArrowRight size={12} />
             </button>
           </CardFooter>
+          </>
+          )}
         </Card>
       </div>
     </div>
