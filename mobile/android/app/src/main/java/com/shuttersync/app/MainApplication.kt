@@ -1,4 +1,4 @@
-package com.biman.mobile
+package com.shuttersync.app
 
 import android.app.Application
 import com.facebook.react.PackageList

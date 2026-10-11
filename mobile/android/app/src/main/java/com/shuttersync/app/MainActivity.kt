@@ -1,4 +1,4 @@
-package com.biman.mobile
+package com.shuttersync.app
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
