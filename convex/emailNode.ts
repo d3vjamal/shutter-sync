@@ -46,7 +46,8 @@ export const sendEmail = internalAction({
     },
     handler: async (_ctx, { to, kind, name, code }) => {
         const user = process.env.GMAIL_USER;
-        const pass = process.env.GMAIL_APP_PASSWORD;
+        // Google shows app passwords as "xxxx xxxx xxxx xxxx"; SMTP wants them without spaces.
+        const pass = process.env.GMAIL_APP_PASSWORD?.replace(/\s+/g, "");
         if (!user || !pass) {
             throw new Error("GMAIL_USER and GMAIL_APP_PASSWORD must be set in the Convex environment");
         }

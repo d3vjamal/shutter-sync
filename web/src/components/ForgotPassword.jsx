@@ -17,11 +17,14 @@ export default function ForgotPassword({ onBack }) {
   const requestCode = async (e) => {
     e.preventDefault();
     setError("");
+    const cleanEmail = email.trim();
+    setEmail(cleanEmail);
     setLoading(true);
     try {
-      await signIn("password", { email, flow: "reset" });
+      await signIn("password", { email: cleanEmail, flow: "reset" });
       setStep("verify");
-    } catch {
+    } catch (err) {
+      console.error("Password reset request failed:", err);
       setError("Could not send reset email. Check the address and try again.");
     } finally {
       setLoading(false);
@@ -38,7 +41,8 @@ export default function ForgotPassword({ onBack }) {
     try {
       // On success this also signs the user in.
       await signIn("password", { email, code, newPassword, flow: "reset-verification" });
-    } catch {
+    } catch (err) {
+      console.error("Password reset verification failed:", err);
       setError("Invalid or expired code. Please try again.");
       setLoading(false);
     }

@@ -1050,8 +1050,14 @@ function Footer() {
           Built for photographers who take their business as seriously as their
           craft.
         </p>
-        <div className="text-white/25 text-xs">
-          © {new Date().getFullYear()} ShutterSync
+        <div className="text-white/25 text-xs flex items-center gap-3">
+          <a href="/privacy" className="hover:text-white/60 transition-colors">
+            Privacy
+          </a>
+          <a href="/terms" className="hover:text-white/60 transition-colors">
+            Terms
+          </a>
+          <span>© {new Date().getFullYear()} ShutterSync</span>
         </div>
       </div>
     </footer>

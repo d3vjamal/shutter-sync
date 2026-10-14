@@ -41,8 +41,8 @@ function shell(title: string, body: string) {
     pointer-events: none; overflow: hidden; z-index: 0;
   }
   .watermark .grid {
-    display: grid; grid-template-columns: repeat(3, 80px); gap: 60px 80px;
-    transform: rotate(-35deg); opacity: 0.08;
+    display: grid; grid-template-columns: repeat(2, 80px); gap: 120px 140px;
+    transform: rotate(-35deg); opacity: 0.04;
   }
   .watermark .grid img { width: 72px; height: 72px; object-fit: contain; }
   .header-logo { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
@@ -130,7 +130,7 @@ function shell(title: string, body: string) {
 /** Tiled, low-opacity ShutterSync mark behind the page content — matches the web PDFs' watermark. */
 function watermarkHtml() {
   const tile = `<img src="${BRAND_MARK_DATA_URI}" />`;
-  return `<div class="watermark"><div class="grid">${tile.repeat(9)}</div></div>`;
+  return `<div class="watermark"><div class="grid">${tile.repeat(4)}</div></div>`;
 }
 
 function pdfHeader(mainTitle: string, refId: string, today: string, photographer?: Photographer) {

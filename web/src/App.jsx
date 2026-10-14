@@ -21,6 +21,8 @@ import ServicePackagesPage from "./pages/ServicePackagesPage";
 import LandingPage from "./pages/LandingPage";
 import FreelancePage from "./pages/FreelancePage";
 import CreateFreelanceAssignmentPage from "./pages/CreateFreelanceAssignmentPage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import TermsPage from "./pages/TermsPage";
 
 // Components
 import LoadingSpinner from "./components/common/LoadingSpinner";
@@ -184,6 +186,10 @@ const AppContent = () => {
             </ProtectedRoute>
           }
         />
+
+        {/* Legal pages (public, required for app store listings) */}
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
 
         {/* Fallback */}
         <Route path="/client/:id" element={<PublicClientPage />} />

@@ -97,12 +97,12 @@ const Watermark = () => (
         left: "50%",
         transform: "translate(-50%, -50%) rotate(-35deg)",
         display: "grid",
-        gridTemplateColumns: "repeat(3, 80px)",
-        gap: "60px 80px",
-        opacity: 0.12,
+        gridTemplateColumns: "repeat(2, 80px)",
+        gap: "120px 140px",
+        opacity: 0.04,
       }}
     >
-      {Array.from({ length: 9 }).map((_, i) => (
+      {Array.from({ length: 4 }).map((_, i) => (
         <img
           key={i}
           src="/static/icons/logo.png"
